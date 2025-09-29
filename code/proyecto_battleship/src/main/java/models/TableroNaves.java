@@ -1,4 +1,5 @@
 package models;
+import enums.EstadoCasilla;
 import java.util.Set;
 /**
  * TableroNaves.java
@@ -22,5 +23,25 @@ public class TableroNaves extends Tablero {
     
     private Set<Nave> naves;
     private Set<Casilla> casillas;
+
+    public TableroNaves(Jugador propietario) {
+        super(propietario);
+    }
     
+    /**
+     * Añade una nave al tablero si la posición es válida.
+     * @param nave La nave a colocar.
+     * @return true si la nave se pudo colocar, false en caso contrario.
+     */
+    public boolean añadirNave(Nave nave) {
+
+        return false;
+
+    }
+
+    public EstadoCasilla recibirImpacto(Coordenada coordenada) {
+        
+        return null;
+        
+    }
 }

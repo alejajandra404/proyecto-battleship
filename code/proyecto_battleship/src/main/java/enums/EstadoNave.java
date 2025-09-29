@@ -19,6 +19,6 @@ package enums;
  */
 public enum EstadoNave {
     INTACTA,
-    AVERIAD,
+    AVERIADA,
     HUNDIDA
 }

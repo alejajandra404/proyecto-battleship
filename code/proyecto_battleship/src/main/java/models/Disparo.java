@@ -1,5 +1,6 @@
 package models;
 import enums.ResultadoDisparo;
+import java.time.LocalDateTime;
 /**
  * Disparo.java
  *
@@ -20,8 +21,53 @@ import enums.ResultadoDisparo;
  */
 public class Disparo {
      
-    private Coordenada coordenada;
-    private ResultadoDisparo resultado;
-//    private DateTime timestamp;
-    private Jugador jugador;
+    private final Coordenada coordenada;
+    private final ResultadoDisparo resultado;
+    private final LocalDateTime timestamp;
+    private final Jugador jugador;
+
+    /**
+     * Constructor para crear un nuevo objeto Disparo
+     * @param coordenada La coordenada donde se realizó el disparo
+     * @param resultado El resultado del disparo (IMPACTO o AGUA)
+     * @param jugador El jugador que realizó el disparo
+     */
+    public Disparo(Coordenada coordenada, ResultadoDisparo resultado, Jugador jugador) {
+        this.coordenada = coordenada;
+        this.resultado = resultado;
+        this.jugador = jugador;
+        this.timestamp = LocalDateTime.now();
+    }
+    
+    /**
+     * Procesa y devuelve una representación en texto del disparo.
+     * @return Un String describiendo la jugada.
+     */
+    public String procesarDisparo() {
+        return "El jugador " + jugador.getNombre()+ " disparó en " + coordenada.toString() + " con resultado: " + resultado;
+    }
+
+    /**
+     * Devuelve el resultado del disparo
+     * @return El enum ResultadoDisparo
+     */
+    public ResultadoDisparo obtenerResultado() {
+        return this.resultado;
+    }
+
+    /**
+     * Verifica si el disparo fue un impacto a una nave
+     * @return true si el resultado fue IMPACTO
+     */
+    public boolean esImpacto() {
+        return this.resultado == ResultadoDisparo.IMPACTO;
+    }
+
+    /**
+     * Devuelve la coordenada del disparo
+     * @return El objeto Coordenada del disparo
+     */
+    public Coordenada obtenerCoordenada() {
+        return this.coordenada;
+    }
 }

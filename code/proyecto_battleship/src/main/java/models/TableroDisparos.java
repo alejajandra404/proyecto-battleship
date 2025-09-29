@@ -1,4 +1,5 @@
 package models;
+import java.util.HashSet;
 import java.util.Set;
 /**
  * TableroDisparos.java
@@ -22,4 +23,30 @@ public class TableroDisparos extends Tablero {
     
     private Set<Disparo> disparos;
     
+    public TableroDisparos(Jugador propietario) {
+        super(propietario);
+        this.disparos = new HashSet<>();
+    }
+
+    /**
+     * Añade un nuevo disparo al registro del tablero
+     * @param disparo El disparo a registrar
+     */
+    public void añadirDisparo(Disparo disparo) {
+        this.disparos.add(disparo);
+    }
+    
+    /**
+     * Valida si ya se ha disparado a una coordenada previamente
+     * @param coordenada La coordenada a verificar
+     * @return true si la coordenada está libre, false si ya fue disparada
+     */
+    public boolean validarDisparo(Coordenada coordenada) {
+        for (Disparo d : disparos) {
+            if (d.obtenerCoordenada().equals(coordenada)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
