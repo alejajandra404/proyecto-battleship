@@ -48,6 +48,22 @@ public class Partida implements ISubject{
         this.tiempoRestante = 0;
         this.observadores = new ArrayList<>();
     }
+
+    public Jugador getJugador1() {
+        return jugador1;
+    }
+
+    public Jugador getJugador2() {
+        return jugador2;
+    }
+
+    public EstadoPartida getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoPartida estado) {
+        this.estado = estado;
+    }
     
     public void iniciarPartida() {
         this.jugadorTurno = this.jugador1;
@@ -175,6 +191,6 @@ public class Partida implements ISubject{
 
     @Override
     public void notificarObservadores(String mensaje) {
-        observadores.stream().forEach(o -> o.actualizar(mensaje, this.jugadorTurno.getNombre()));
+        observadores.stream().forEach(o -> o.notificar(mensaje, this.jugadorTurno.getNombre()));
     }
 }

@@ -43,6 +43,22 @@ public class Nave {
         this.impactosRecibidos = 0;
     }
 
+    public EstadoNave getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoNave estado) {
+        this.estado = estado;
+    }
+
+    public int getImpactosRecibidos() {
+        return impactosRecibidos;
+    }
+
+    public void setImpactosRecibidos(int impactosRecibidos) {
+        this.impactosRecibidos = impactosRecibidos;
+    }
+
     /**
      * Procesa un disparo en una coordenada específica. La lógica para encontrar
      * y registrar el impacto está consolidada dentro de este método

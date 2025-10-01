@@ -39,6 +39,23 @@ public class Disparo {
         this.timestamp = LocalDateTime.now();
     }
     
+    // Getters
+    public Coordenada getCoordenada() {
+        return coordenada;
+    }
+
+    public ResultadoDisparo getResultado() {
+        return resultado;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public Jugador getJugador() {
+        return jugador;
+    }
+    
     /**
      * Procesa y devuelve una representación en texto del disparo.
      * @return Un String describiendo la jugada.
