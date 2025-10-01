@@ -21,5 +21,6 @@ public enum EstadoCasilla {
     VACIA,
     OCUPADA,
     IMPACTADA_VACIA,
-    IMPACTADA_OCUPADA
+    IMPACTADA_AVERIADA,
+    IMPACTADA_HUNDIDA
 }

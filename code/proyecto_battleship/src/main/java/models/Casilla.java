@@ -1,5 +1,6 @@
 package models;
 import enums.EstadoCasilla;
+import exceptions.CasillaException;
 
 /**
  * Casilla.java
@@ -18,11 +19,9 @@ import enums.EstadoCasilla;
  * ID: 00000252801
  *
  */
-public class Casilla {
-    private final Coordenada coordenada; 
+public class Casilla extends Coordenada{
     
     private EstadoCasilla estado;
-    private Nave nave;
 
     /**
      * Constructor para una nueva Casilla
@@ -30,23 +29,48 @@ public class Casilla {
      * @param coordenada La coordenada que esta casilla representa en el tablero
      */
     public Casilla(Coordenada coordenada) {
-        this.coordenada = coordenada;
+        super(coordenada.obtenerX(), coordenada.obtenerY());
         this.estado = EstadoCasilla.VACIA;
-        this.nave = null;
     }
-
     /**
-     * Marca la casilla como impactada y actualiza su estado
+     * 
+     * @throws CasillaException 
      */
-    public void marcarImpacto() {
-        if (this.estado == EstadoCasilla.OCUPADA) {
-            this.estado = EstadoCasilla.IMPACTADA_OCUPADA;
-            if (this.nave != null) {
-                this.nave.recibirImpacto(coordenada);
-            }
-        } else if (this.estado == EstadoCasilla.VACIA) {
-            this.estado = EstadoCasilla.IMPACTADA_VACIA;
-        }
+    public void ocuparCasilla() throws CasillaException{
+        if(estado != EstadoCasilla.VACIA)
+            throw new CasillaException("La casilla ya se encuentra ocupada o impactada.");
+        else
+            estado = EstadoCasilla.OCUPADA;
+    }
+    /**
+     * 
+     * @throws CasillaException 
+     */
+    public void marcarImpactoAgua() throws CasillaException{
+        if(estado != EstadoCasilla.VACIA)
+            throw new CasillaException("La casilla no está vacía.");
+        else
+            estado = EstadoCasilla.IMPACTADA_VACIA;
+    }
+    /**
+     * 
+     * @throws CasillaException 
+     */
+    public void marcarImpactoAveriada() throws CasillaException{
+        if(estado != EstadoCasilla.OCUPADA)
+            throw new CasillaException("La casilla ya ha recibido un impacto previo o está vacía.");
+        else
+            estado = EstadoCasilla.IMPACTADA_AVERIADA;
+    }
+    /**
+     * 
+     * @throws CasillaException 
+     */
+    public void marcarImpactoHundida() throws CasillaException{
+        if(estado != EstadoCasilla.IMPACTADA_AVERIADA)
+            throw new CasillaException("La casilla no corresponde con un barco averiado.");
+        else
+            estado = EstadoCasilla.IMPACTADA_HUNDIDA;
     }
 
     /**
@@ -54,7 +78,7 @@ public class Casilla {
      * @return true si el estado es OCUPADA o IMPACTADA_OCUPADA
      */
     public boolean estaOcupada() {
-        return this.estado == EstadoCasilla.OCUPADA || this.estado == EstadoCasilla.IMPACTADA_OCUPADA;
+        return this.estado != EstadoCasilla.VACIA && this.estado != EstadoCasilla.IMPACTADA_VACIA;
     }
 
     /**
@@ -62,14 +86,17 @@ public class Casilla {
      * @return true si el estado es IMPACTADA_VACIA o IMPACTADA_OCUPADA
      */
     public boolean estaImpactada() {
-        return this.estado == EstadoCasilla.IMPACTADA_VACIA || this.estado == EstadoCasilla.IMPACTADA_OCUPADA;
+        return 
+                this.estado == EstadoCasilla.IMPACTADA_VACIA 
+                    || 
+                this.estado == EstadoCasilla.IMPACTADA_AVERIADA 
+                    || 
+                this.estado == EstadoCasilla.IMPACTADA_HUNDIDA;
     }
 
     /**
      * Devuelve el estado actual de la casilla
      * @return El enum EstadoCasilla que representa el estado actual
      */
-    public EstadoCasilla obtenerEstado() {
-        return this.estado;
-    }
+    public EstadoCasilla obtenerEstado() {return this.estado;}
 }

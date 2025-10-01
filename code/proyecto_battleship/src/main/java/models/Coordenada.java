@@ -32,26 +32,10 @@ public class Coordenada {
         this.y = y;
     }
 
-    /**
-     * Valida si la coordenada está dentro de los límites de un tablero estándar (10x10)
-     * @return true si la coordenada es válida, false en caso contrario
-     */
-    public boolean validar() {
-        if (x >= 0 && x < 10 && y >= 0 && y < 10) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     // --- Getters --- //
-    public int getX() {
-        return x;
-    }
+    public int obtenerX() {return x;}
 
-    public int getY() {
-        return y;
-    }
+    public int obtenerY() {return y;}
 
     @Override
     public int hashCode() {
@@ -81,6 +65,6 @@ public class Coordenada {
 
     @Override
     public String toString() {
-        return "Coordenada{" + "x=" + x + ", y=" + y + '}';
+        return "x = " + x + ", y = " + y + '}';
     }
 }

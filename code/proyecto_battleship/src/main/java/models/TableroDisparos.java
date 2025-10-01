@@ -1,4 +1,5 @@
 package models;
+import exceptions.TableroException;
 import java.util.HashSet;
 import java.util.Set;
 /**
@@ -21,10 +22,10 @@ import java.util.Set;
  */
 public class TableroDisparos extends Tablero {
     
-    private Set<Disparo> disparos;
+    private final Set<Disparo> disparos;
     
-    public TableroDisparos(Jugador propietario) {
-        super(propietario);
+    public TableroDisparos(Jugador propietario, int tamanio) throws TableroException {
+        super(propietario, tamanio);
         this.disparos = new HashSet<>();
     }
 
@@ -32,21 +33,30 @@ public class TableroDisparos extends Tablero {
      * Añade un nuevo disparo al registro del tablero
      * @param disparo El disparo a registrar
      */
-    public void añadirDisparo(Disparo disparo) {
-        this.disparos.add(disparo);
-    }
+    public void añadirDisparo(Disparo disparo){this.disparos.add(disparo);}
     
     /**
      * Valida si ya se ha disparado a una coordenada previamente
-     * @param coordenada La coordenada a verificar
+     * @param disparo
      * @return true si la coordenada está libre, false si ya fue disparada
+     * @throws exceptions.TableroException
      */
-    public boolean validarDisparo(Coordenada coordenada) {
+    public boolean validarDisparo(Disparo disparo) throws TableroException {
+        // Si el disparo no existe
+        if(disparo == null)
+            throw new TableroException("Disparo inválido.");
+        // Si la coordenada del disparo no existe
+        if(disparo.obtenerCoordenada() == null)
+            throw new TableroException("El disparo carece de una coordenada.");
+        // Si el resultado del disparo no existe
+        if(disparo.obtenerResultado() == null)
+            throw new TableroException("El disparo carece de un resultado.");
+        // Verifica las coordenadas de cada disparo
         for (Disparo d : disparos) {
-            if (d.obtenerCoordenada().equals(coordenada)) {
-                return false;
-            }
+            if (d.obtenerCoordenada().equals(disparo.obtenerCoordenada()))
+                throw new TableroException("Ya existe otro disparo con la misma coordenada.");   
         }
+        // Verdadero si pasa todas las validaciones
         return true;
     }
 }
