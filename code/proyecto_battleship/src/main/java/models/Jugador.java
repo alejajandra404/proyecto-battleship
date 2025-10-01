@@ -1,7 +1,6 @@
 package models;
 
 import enums.EstadoCasilla;
-import enums.ResultadoDisparo;
 import exceptions.CasillaException;
 import exceptions.TableroException;
 
@@ -57,6 +56,24 @@ public class Jugador {
      * @return El color del jugador
      */
     public String getColor() {return this.color;}
+    
+    /**
+     * Obtiene el tablero de naves del jugador 
+     * 
+     * @return 
+     */
+    public TableroNaves getTableroNaves() {
+        return this.tableroNaves;
+    }
+
+    /**
+     * Obtiene el tablero de disparos del jugador 
+     * 
+     * @return 
+     */
+    public TableroDisparos getTableroDisparos() {
+        return this.tableroDisparos;
+    }
 
     /**
      * Marca un disparo realizado por este jugador en su tablero de disparos

@@ -39,6 +39,18 @@ public class Disparo {
         this.timestamp = LocalDateTime.now();
     }
     
+    /**
+     * Constructor sin resultado 
+     * 
+     * @param coordenada
+     */
+    public Disparo(Coordenada coordenada) {
+        this.coordenada = coordenada;
+        this.timestamp = java.time.LocalDateTime.now();
+        this.jugador = null; // Se establece después
+        this.resultado = null; // Se establece después
+    }
+    
     // Getters
     public Coordenada getCoordenada() {
         return coordenada;

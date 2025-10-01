@@ -40,6 +40,15 @@ public class TableroNaves extends Tablero {
     }
     
     /**
+     * Obtiene el conjunto de naves 
+     * 
+     * @return 
+     */
+    public Set<Nave> getNaves() {
+        return naves;
+    }
+    
+    /**
      * Añade una nave al tablero si la posición es válida.
      * @param nave La nave a colocar.
      * @return true si la nave se pudo colocar, false en caso contrario.
@@ -83,10 +92,18 @@ public class TableroNaves extends Tablero {
                 if(nave.estaHundida()){
                     // Si es así, se actualiza el estado de todas las casillas ocupadas por la nave como IMPACTADA_HUNDIDA
                     for(Coordenada coordenadaNave : nave.obtenerCoordenadas()){
-                        casillas[coordenadaNave.obtenerX()][coordenadaNave.obtenerY()].marcarImpactoHundida();
-                        // Se regresa el estado IMPACTADA_HUNDIDA
-                        return EstadoCasilla.IMPACTADA_HUNDIDA;
+                        Casilla casillaActual = casillas[coordenadaNave.obtenerX()][coordenadaNave.obtenerY()];
+                        // Solo marcar como hundida si estaba averiada
+                        if (casillaActual.obtenerEstado() == EstadoCasilla.IMPACTADA_AVERIADA) {
+                            casillaActual.marcarImpactoHundida();
+                        } else if (casillaActual.obtenerEstado() == EstadoCasilla.OCUPADA) {
+                            // Si es el primer impacto que hunde la nave, marcar directamente
+                            casillaActual.marcarImpactoAveriada();
+                            casillaActual.marcarImpactoHundida();
+                        }
                     }
+                    // Se regresa el estado IMPACTADA_HUNDIDA
+                    return EstadoCasilla.IMPACTADA_HUNDIDA;
                 // Si la nave solo fue averiada, se actualiza el estado de la casilla como IMPACTADA_AVERIADA
                 } else{
                     casillas[coordenada.obtenerX()][coordenada.obtenerY()].marcarImpactoAveriada();
@@ -95,7 +112,22 @@ public class TableroNaves extends Tablero {
                 }
             }
         }
+        // Si ninguna nave fue impactada, marcar la casilla como agua
+        casillas[coordenada.obtenerX()][coordenada.obtenerY()].marcarImpactoAgua();
+        
         // Si ninguna nave fue impactada, se regresa el estado IMPACTADA_VACIA
         return EstadoCasilla.IMPACTADA_VACIA;
     }
+    
+    /**
+     * Inicializa la matriz de casillas vacías 
+     */
+    public void inicializarCasillas() {
+        for (int i = 0; i < getTamanio(); i++) {
+            for (int j = 0; j < getTamanio(); j++) {
+                casillas[i][j] = new Casilla(new Coordenada(i, j));
+            }
+        }
+    }
+    
 }

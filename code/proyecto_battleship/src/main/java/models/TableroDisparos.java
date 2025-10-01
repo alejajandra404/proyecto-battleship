@@ -63,4 +63,20 @@ public class TableroDisparos extends Tablero {
         // Verdadero si pasa todas las validaciones
         return true;
     }
+    
+    /**
+     * Verifica si ya se disparó en una coordenada 
+     * 
+     * @param coordenada
+     * @return 
+     */
+    public boolean yaDisparado(Coordenada coordenada) {
+        for (Disparo disparo : disparos) {
+            if (disparo.obtenerCoordenada().equals(coordenada)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 }

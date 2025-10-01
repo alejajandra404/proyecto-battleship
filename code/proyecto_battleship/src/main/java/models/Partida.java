@@ -32,9 +32,9 @@ public class Partida implements ISubject{
     private EstadoPartida estado;
     private final Jugador jugador1;
     private final Jugador jugador2;
-    private ScheduledExecutorService temporizador;
-    private ScheduledFuture<?> tarea;
-    private int tiempoRestante;
+//    private ScheduledExecutorService temporizador;
+//    private ScheduledFuture<?> tarea;
+//    private int tiempoRestante;
     
     /**
      * Constructor para iniciar una nueva partida
@@ -45,7 +45,6 @@ public class Partida implements ISubject{
         this.jugador1 = jugador1;
         this.jugador2 = jugador2;
         this.estado = EstadoPartida.EN_CURSO;
-        this.tiempoRestante = 0;
         this.observadores = new ArrayList<>();
     }
 
@@ -67,7 +66,6 @@ public class Partida implements ISubject{
     
     public void iniciarPartida() {
         this.jugadorTurno = this.jugador1;
-        iniciarTemporizador();
     }
 
     public void cambiarTurno() {
@@ -94,53 +92,55 @@ public class Partida implements ISubject{
      * @param jugador El jugador a verificar
      * @return true si es el turno de ese jugador
      */
-    public boolean verificarJugadorTurno(Jugador jugador) {return this.jugadorTurno == jugador;}
-    
-    private void iniciarTemporizador(){
-        tiempoRestante = 30;
-        tarea = temporizador.scheduleAtFixedRate(() -> tarea(), 0, 1, TimeUnit.SECONDS);
+    public boolean verificarJugadorTurno(Jugador jugador) {
+        return this.jugadorTurno == jugador;
     }
+    
+//    private void iniciarTemporizador(){
+//        tiempoRestante = 30;
+//        tarea = temporizador.scheduleAtFixedRate(() -> tarea(), 0, 1, TimeUnit.SECONDS);
+//    }
     
     /**
      * Pausa el flujo del temporizador
      */
-    public void pausarTemporizador() {
-        if(!tarea.isCancelled())
-            tarea.cancel(true);
-    }
+//    public void pausarTemporizador() {
+//        if(!tarea.isCancelled())
+//            tarea.cancel(true);
+//    }
 
     /**
      * Reanuda el flujo del temporizador si estaba pausado
      */
-    public void reanudarTemporizador() {
-        if(tarea.isCancelled())
-            tarea = temporizador.scheduleAtFixedRate(() -> tarea(), 0, 1, TimeUnit.SECONDS);
-    }
+//    public void reanudarTemporizador() {
+//        if(tarea.isCancelled())
+//            tarea = temporizador.scheduleAtFixedRate(() -> tarea(), 0, 1, TimeUnit.SECONDS);
+//    }
 
     /**
      * Reinicia el contador de tiempo al valor inicial y lo activa
      * Se usaría al inicio de cada turno
      */
-    public void reiniciarTemporizador() {
-        if(!tarea.isCancelled())
-            tarea.cancel(true);
-        temporizador.schedule(() -> iniciarTemporizador(), 1, TimeUnit.SECONDS);
-    }
+//    public void reiniciarTemporizador() {
+//        if(!tarea.isCancelled())
+//            tarea.cancel(true);
+//        temporizador.schedule(() -> iniciarTemporizador(), 1, TimeUnit.SECONDS);
+//    }
     
-    private void tarea() {
-        
-        tiempoRestante--;
-
-        if (tiempoRestante <= 0) {
-            notificarObservadores("Turno perdido");
-            
-            cambiarTurno();
-            // Cancela la tarea programada si el tiempo se agota
-            tarea.cancel(true);
-            // Iniciar de nuevo el temporizador después de un delay de 5 segundos
-            temporizador.schedule(() -> iniciarTemporizador(), 5, TimeUnit.SECONDS);
-        }
-    }
+//    private void tarea() {
+//        
+//        tiempoRestante--;
+//
+//        if (tiempoRestante <= 0) {
+//            notificarObservadores("Turno perdido");
+//            
+//            cambiarTurno();
+//            // Cancela la tarea programada si el tiempo se agota
+//            tarea.cancel(true);
+//            // Iniciar de nuevo el temporizador después de un delay de 5 segundos
+//            temporizador.schedule(() -> iniciarTemporizador(), 5, TimeUnit.SECONDS);
+//        }
+//    }
     
     /**
      * Valida si un disparo es legal (turno correcto y casilla no repetida)
@@ -149,7 +149,9 @@ public class Partida implements ISubject{
      * @return true si el disparo es válido
      * @throws exceptions.TableroException
      */
-    public boolean validarDisparo(Coordenada coordenada, Jugador jugador) throws TableroException {return jugador.validarDisparo(coordenada);}
+    public boolean validarDisparo(Coordenada coordenada, Jugador jugador) throws TableroException {
+        return jugador.validarDisparo(coordenada);
+    }
 
     /**
      * Procesa un disparo de un jugador a otro
@@ -165,32 +167,44 @@ public class Partida implements ISubject{
         
         EstadoCasilla estadoCasilla = jugadorDefensor.recibirDisparo(coordenada);
         
-        // Resultado del disparo a añadir a una instancia de Disparo
+        // Determinar el resultado del disparo
         ResultadoDisparo resultadoDisparo;
+        boolean esImpacto;
         
         // Si el estado de la casilla impactada, es averiada o hundida, se actualiza el resultado del Diparo como IMPACTO
-        if (estadoCasilla == EstadoCasilla.IMPACTADA_AVERIADA || estadoCasilla == EstadoCasilla.IMPACTADA_HUNDIDA)
+        if (estadoCasilla == EstadoCasilla.IMPACTADA_AVERIADA
+                || estadoCasilla == EstadoCasilla.IMPACTADA_HUNDIDA) {
             resultadoDisparo = ResultadoDisparo.IMPACTO;
+            esImpacto = true;
         // De lo contrario, se actualiza el resultado como AGUA.
-        else 
+        } else { 
             resultadoDisparo = ResultadoDisparo.AGUA;
+            esImpacto = false;
+        }
         
         // Se crea una nueva instancia de un Disparo, con su resultado anterior.
         Disparo disparoResultante = new Disparo(coordenada, resultadoDisparo, jugadorAtacante);
         
+        // Marcar el disparo en el tablero del atacante
         jugadorAtacante.marcarDisparo(disparoResultante);
         
-        return true;
+        // Retornar si fue impacto o agua
+        return esImpacto;
     }
 
     @Override
-    public void agregarObserver(IObserver observador) {this.observadores.add(observador);}
+    public void agregarObserver(IObserver observador) {
+        this.observadores.add(observador);
+    }
 
     @Override
-    public void quitarObserver(IObserver observador) {this.observadores.remove(observador);}
+    public void quitarObserver(IObserver observador) {
+        this.observadores.remove(observador);
+    }
 
     @Override
     public void notificarObservadores(String mensaje) {
         observadores.stream().forEach(o -> o.notificar(mensaje, this.jugadorTurno.getNombre()));
     }
+    
 }

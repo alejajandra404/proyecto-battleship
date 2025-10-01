@@ -106,10 +106,13 @@ public class ControlDisparo {
             disparoDTO.setResultado(ResultadoDisparo.IMPACTO);
             disparoDTO.setMensaje("🎯 ¡IMPACTO! Sigue tu turno");
             notificarResultado("🎯 ¡IMPACTO!");
+            // NO cambiar turno si fue impacto
         } else {
             disparoDTO.setResultado(ResultadoDisparo.AGUA);
             disparoDTO.setMensaje("💧 Agua. Turno del oponente");
             notificarResultado("💧 Agua");
+            // Cambiar turno si fue agua
+            partidaActual.cambiarTurno();
         }
 
         // PASO 8: Reiniciar temporizador
@@ -207,7 +210,16 @@ public class ControlDisparo {
      */
     private void manejarTiempoAgotado() {
         detenerTemporizador();
-        notificarResultado("⏰ Tiempo agotado. Turno perdido");
+        String mensaje = "⏰ Tiempo agotado. Turno perdido";
+        notificarResultado(mensaje);
+        
+        // Esperar un momento antes de cambiar turno para que el usuario vea la notificación
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        
         actualizarTurno();
     }
 

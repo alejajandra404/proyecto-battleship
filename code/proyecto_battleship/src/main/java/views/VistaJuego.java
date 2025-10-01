@@ -4,21 +4,521 @@
  */
 package views;
 
-import javax.swing.JOptionPane;
+import controllers.ControlDisparo;
+import dtos.*;
+import enums.ResultadoDisparo;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import models.IObserver;
 
 /**
- *
- * @author itsyu
+ * Vista principal del juego - Caso de Uso: Realizar Disparo
+ * 
+ * BAJO ACOPLAMIENTO - ALTA COHESIÓN
+ * 
+ * Esta vista SOLO conoce DTOs, NO conoce el modelo de dominio
+ * Esto permite:
+ * - Desacoplamiento total del modelo
+ * - Facilidad para cambiar el modelo sin afectar la vista
+ * - Preparación para comunicación en red
+ * - Arquitectura limpia 
+ * 
+ * @author Leonardo Flores Leyva ID: 00000252390
+ * @author Yuri Germán García López ID: 00000252583
+ * @author Alejandra García Preciado ID: 00000252444
+ * @author Jesús Ernesto López Ibarra ID: 00000252663
+ * @author Daniel Miramontes Iribe ID: 00000252801
  */
-public class Tablero extends javax.swing.JFrame {
+public class VistaJuego extends javax.swing.JFrame implements IObserver {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Tablero.class.getName());
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VistaJuego.class.getName());
+    
+    // Componentes visuales
+    private JPanel panelTableroPropio;
+    private JPanel panelTableroDisparos;
+    private JButton[][] botonesTableroPropio;
+    private JButton[][] botonesTableroDisparos;
+    private JLabel lblTurnoActual;
+    private JLabel lblTemporizador;
+    private JLabel lblNombreJugador;
+    private JLabel lblNombreOponente;
+    private JPanel panelMarcador;
+    private JTextArea txtNotificaciones;
+    
+    // Controlador (único punto de comunicación)
+    private ControlDisparo controlador;
+
+    // Datos del jugador (solo primitivos y Strings, NO objetos del modelo)
+    private String nombreJugadorActual;
+    private String nombreJugadorOponente;
+
+    // Constantes
+    private static final int TAMANO_TABLERO = 10;
+    private static final int TAMANO_CELDA = 45;
+
+    // Colores
+    private static final Color COLOR_AGUA = new Color(30, 144, 255); // azul agua 
+    private static final Color COLOR_AGUA_OSCURO = new Color(0, 105, 148); // azul oscuro
+    private static final Color COLOR_IMPACTO = new Color(220, 20, 60); // rojo
+    private static final Color COLOR_NAVE = new Color(100, 100, 100); // gris
+    private static final Color COLOR_VACIO = new Color(173, 216, 230); // azul bajito
+    private static final Color COLOR_DISPARO_AGUA = new Color(135, 206, 250); // azul cielo
+    private static final Color COLOR_FONDO = new Color(240, 248, 255); // azul más bajito
+    private static final Color COLOR_BORDE = new Color(70, 130, 180); // azul
 
     /**
-     * Creates new form Tablero
+     * Constructor de la vista
+     *
+     * Solo recibe Strings y el controlador, NO objetos del modelo
+     * @param nombreJugador
+     * @param nombreOponente
+     * @param controlador
      */
-    public Tablero() {
-        initComponents();
+    public VistaJuego(String nombreJugador, String nombreOponente, ControlDisparo controlador) {
+        this.nombreJugadorActual = nombreJugador;
+        this.nombreJugadorOponente = nombreOponente;
+        this.controlador = controlador;
+
+        configurarVentana();
+        inicializarComponentes();
+        
+        // Registrarse como observador
+        controlador.getPartida().agregarObserver(this);
+        
+        // Inicializar el temporizador
+        controlador.iniciarTemporizador();
+
+        // Configurar observador para actualizaciones
+        configurarObservador();
+    }
+    
+    private void configurarVentana() {
+        setTitle("Batalla Naval - " + nombreJugadorActual);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout(15, 15));
+        getContentPane().setBackground(COLOR_FONDO);
+        setResizable(false);
+    }
+
+    private void inicializarComponentes() {
+        add(crearPanelSuperior(), BorderLayout.NORTH);
+        add(crearPanelCentral(), BorderLayout.CENTER);
+        add(crearPanelMarcador(), BorderLayout.EAST);
+        add(crearPanelInferior(), BorderLayout.SOUTH);
+
+        pack();
+        setLocationRelativeTo(null);
+    }
+
+    private JPanel crearPanelSuperior() {
+        JPanel panel = new JPanel(new BorderLayout(10, 0));
+        panel.setBackground(COLOR_FONDO);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_BORDE, 2, true),
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
+
+        JPanel panelJugador = new JPanel(new GridLayout(2, 1, 5, 5));
+        panelJugador.setBackground(COLOR_FONDO);
+
+        lblNombreJugador = new JLabel("🎮 " + nombreJugadorActual);
+        lblNombreJugador.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblNombreJugador.setForeground(new Color(0, 100, 200));
+
+        lblNombreOponente = new JLabel("VS: " + nombreJugadorOponente);
+        lblNombreOponente.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblNombreOponente.setForeground(new Color(150, 150, 150));
+
+        panelJugador.add(lblNombreJugador);
+        panelJugador.add(lblNombreOponente);
+
+        lblTurnoActual = new JLabel("Esperando turno...", SwingConstants.CENTER);
+        lblTurnoActual.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTurnoActual.setForeground(Color.DARK_GRAY);
+
+        JPanel panelTemporizador = new JPanel(new BorderLayout());
+        panelTemporizador.setBackground(COLOR_FONDO);
+
+        JLabel lblTiempoLabel = new JLabel("⏱️ TIEMPO:", SwingConstants.RIGHT);
+        lblTiempoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        lblTemporizador = new JLabel("30s", SwingConstants.CENTER);
+        lblTemporizador.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblTemporizador.setForeground(new Color(0, 150, 0));
+
+        panelTemporizador.add(lblTiempoLabel, BorderLayout.NORTH);
+        panelTemporizador.add(lblTemporizador, BorderLayout.CENTER);
+
+        panel.add(panelJugador, BorderLayout.WEST);
+        panel.add(lblTurnoActual, BorderLayout.CENTER);
+        panel.add(panelTemporizador, BorderLayout.EAST);
+
+        return panel;
+    }
+
+    private JPanel crearPanelCentral() {
+        JPanel panel = new JPanel(new GridLayout(1, 2, 30, 0));
+        panel.setBackground(COLOR_FONDO);
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        panel.add(crearPanelTablero("MI TABLERO", false));
+        panel.add(crearPanelTablero("TABLERO DE DISPAROS", true));
+
+        return panel;
+    }
+
+    private JPanel crearPanelTablero(String titulo, boolean esTableroDisparos) {
+        JPanel panelContenedor = new JPanel(new BorderLayout(0, 10));
+        panelContenedor.setBackground(COLOR_FONDO);
+
+        JLabel lblTitulo = new JLabel(titulo, SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitulo.setForeground(COLOR_BORDE);
+
+        JPanel tablero = crearTablero(esTableroDisparos);
+        tablero.setBorder(new LineBorder(COLOR_BORDE, 3, true));
+
+        panelContenedor.add(lblTitulo, BorderLayout.NORTH);
+        panelContenedor.add(tablero, BorderLayout.CENTER);
+
+        return panelContenedor;
+    }
+
+    private JPanel crearTablero(boolean esTableroDisparos) {
+        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 2, 2));
+        panel.setBackground(COLOR_BORDE);
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JButton[][] botones = new JButton[TAMANO_TABLERO][TAMANO_TABLERO];
+
+        JLabel lblVacio = new JLabel("");
+        lblVacio.setOpaque(true);
+        lblVacio.setBackground(COLOR_AGUA_OSCURO);
+        panel.add(lblVacio);
+
+        for (int i = 0; i < TAMANO_TABLERO; i++) {
+            JLabel lblCol = new JLabel(String.valueOf((char) ('A' + i)), SwingConstants.CENTER);
+            lblCol.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            lblCol.setForeground(Color.WHITE);
+            lblCol.setOpaque(true);
+            lblCol.setBackground(COLOR_AGUA_OSCURO);
+            panel.add(lblCol);
+        }
+
+        for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
+            JLabel lblFila = new JLabel(String.valueOf(fila + 1), SwingConstants.CENTER);
+            lblFila.setFont(new Font("Segoe UI", Font.BOLD, 12));
+            lblFila.setForeground(Color.WHITE);
+            lblFila.setOpaque(true);
+            lblFila.setBackground(COLOR_AGUA_OSCURO);
+            panel.add(lblFila);
+
+            for (int col = 0; col < TAMANO_TABLERO; col++) {
+                JButton btnCelda = crearBotonCelda(fila, col, esTableroDisparos);
+                botones[fila][col] = btnCelda;
+                panel.add(btnCelda);
+            }
+        }
+
+        if (esTableroDisparos) {
+            botonesTableroDisparos = botones;
+        } else {
+            botonesTableroPropio = botones;
+        }
+
+        return panel;
+    }
+
+    private JButton crearBotonCelda(int fila, int col, boolean esTableroDisparos) {
+        JButton btn = new JButton();
+        btn.setPreferredSize(new Dimension(TAMANO_CELDA, TAMANO_CELDA));
+        btn.setBackground(COLOR_VACIO);
+        btn.setOpaque(true);
+        btn.setBorder(new LineBorder(COLOR_AGUA, 1));
+        btn.setFocusPainted(false);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
+
+        if (esTableroDisparos) {
+            final int filaFinal = fila;
+            final int colFinal = col;
+
+            btn.addActionListener(e -> realizarDisparo(filaFinal, colFinal));
+
+            btn.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    if (btn.isEnabled() && btn.getBackground().equals(COLOR_VACIO)) {
+                        btn.setBackground(COLOR_AGUA);
+                        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                    }
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    if (btn.isEnabled() && btn.getBackground().equals(COLOR_AGUA)) {
+                        btn.setBackground(COLOR_VACIO);
+                    }
+                }
+            });
+        } else {
+            btn.setEnabled(false);
+        }
+
+        return btn;
+    }
+
+    private JPanel crearPanelMarcador() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(COLOR_FONDO);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_BORDE, 2, true),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        panel.setPreferredSize(new Dimension(250, 0));
+
+        JLabel lblTitulo = new JLabel("📊 MARCADOR");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTitulo.setForeground(COLOR_BORDE);
+        panel.add(lblTitulo);
+        panel.add(Box.createVerticalStrut(15));
+
+        panelMarcador = panel;
+
+        return panel;
+    }
+
+    private JPanel crearPanelInferior() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(COLOR_FONDO);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_BORDE, 2, true),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+
+        JLabel lblTitulo = new JLabel("📢 NOTIFICACIONES");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitulo.setForeground(COLOR_BORDE);
+
+        txtNotificaciones = new JTextArea(4, 50);
+        txtNotificaciones.setEditable(false);
+        txtNotificaciones.setLineWrap(true);
+        txtNotificaciones.setWrapStyleWord(true);
+        txtNotificaciones.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        txtNotificaciones.setBackground(new Color(250, 250, 250));
+
+        JScrollPane scroll = new JScrollPane(txtNotificaciones);
+        scroll.setBorder(new LineBorder(COLOR_AGUA, 1));
+
+        panel.add(lblTitulo, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+
+        return panel;
+    }
+    
+    // MÉTODO PRINCIPAL: REALIZAR DISPARO (USA DTOs) 
+    /**
+     * Realiza un disparo en las coordenadas especificadas
+     *
+     * BAJO ACOPLAMIENTO: Este método solo usa DTOs, NO objetos del modelo
+     */
+    private void realizarDisparo(int fila, int col) {
+        try {
+            // Crear DTO para el disparo (NO se crea objeto Coordenada del modelo)
+            CoordenadaDTO coordDTO = new CoordenadaDTO(fila, col);
+            DisparoDTO disparoDTO = new DisparoDTO(coordDTO, nombreJugadorActual);
+
+            // Llamar al controlador con DTO
+            DisparoDTO resultado = controlador.procesarDisparo(disparoDTO);
+
+            // Procesar resultado usando el DTO
+            if (resultado.getResultado() != null) {
+                boolean esImpacto = resultado.getResultado() == ResultadoDisparo.IMPACTO; // Duda en si debería de haber un DTO para ResultadoDisparo
+
+                // Actualizar visual
+                marcarResultadoEnTableroDisparos(fila, col, esImpacto);
+
+                // Mostrar mensaje del DTO
+                String coordStr = coordDTO.toStringCoord();
+                if (esImpacto) {
+                    agregarNotificacion("🎯 ¡IMPACTO en " + coordStr + "!");
+                    mostrarDialogo("¡IMPACTO!", resultado.getMensaje(),
+                            JOptionPane.INFORMATION_MESSAGE);
+                    // El turno se mantiene automáticamente
+                } else {
+                    agregarNotificacion("💧 Agua en " + coordStr);
+                    mostrarDialogo("Agua", resultado.getMensaje(),
+                            JOptionPane.INFORMATION_MESSAGE);
+
+                    // Actualizar turno después del diálogo
+                    TurnoDTO nuevoTurno = controlador.obtenerTurnoActual();
+                    actualizarTurnoDesdeDTO(nuevoTurno);
+                }
+
+            } else {
+                // Error en el disparo
+                agregarNotificacion("❌ " + resultado.getMensaje());
+                mostrarDialogo("Error", resultado.getMensaje(),
+                        JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            agregarNotificacion("❌ Error: " + ex.getMessage());
+            mostrarDialogo("Error", "Error al procesar disparo: " + ex.getMessage(),
+                    JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+
+    // MÉTODOS PÚBLICOS (usan DTOs) 
+    /**
+     * Muestra las naves en el tablero propio usando DTOs
+     * 
+     * @param naves
+     */
+    public void mostrarNavesDesdeDTO(NaveDTO[] naves) {
+        if (naves == null) {
+            return;
+        }
+
+        for (NaveDTO nave : naves) {
+            CoordenadaDTO[] coordenadas = nave.getCoordenadas();
+            for (CoordenadaDTO coord : coordenadas) {
+                marcarNaveEnTableroPropio(coord.getX(), coord.getY());
+            }
+        }
+    }
+
+    /**
+     * Actualiza el turno usando un TurnoDTO
+     * 
+     * @param turnoDTO
+     */
+    public void actualizarTurnoDesdeDTO(TurnoDTO turnoDTO) {
+        SwingUtilities.invokeLater(() -> {
+            boolean esMiTurno = turnoDTO.getNombreJugadorTurno().equals(nombreJugadorActual);
+
+            if (esMiTurno) {
+                lblTurnoActual.setText("¡TU TURNO!");
+                lblTurnoActual.setForeground(new Color(0, 150, 0));
+            } else {
+                lblTurnoActual.setText("Turno de: " + turnoDTO.getNombreJugadorTurno());
+                lblTurnoActual.setForeground(Color.RED);
+            }
+
+            habilitarTableroDisparos(esMiTurno);
+            actualizarTemporizador(turnoDTO.getTiempoRestante());
+        });
+    }
+
+    /**
+     * Actualiza el marcador usando DTOs
+     * 
+     * @param navesOponente
+     */
+    public void actualizarMarcadorDesdeDTO(NaveDTO[] navesOponente) {
+        // pendiente...
+    }
+
+    // MÉTODOS DE ACTUALIZACIÓN VISUAL 
+    public void marcarNaveEnTableroPropio(int x, int y) {
+        if (x >= 0 && x < TAMANO_TABLERO && y >= 0 && y < TAMANO_TABLERO) {
+            botonesTableroPropio[x][y].setBackground(COLOR_NAVE);
+            botonesTableroPropio[x][y].setBorder(new LineBorder(Color.BLACK, 2));
+        }
+    }
+
+    public void habilitarTableroDisparos(boolean habilitar) {
+        for (int i = 0; i < TAMANO_TABLERO; i++) {
+            for (int j = 0; j < TAMANO_TABLERO; j++) {
+                JButton btn = botonesTableroDisparos[i][j];
+                if (btn.getBackground().equals(COLOR_VACIO) || btn.getBackground().equals(COLOR_AGUA)) {
+                    btn.setEnabled(habilitar);
+                }
+            }
+        }
+    }
+
+    public void marcarResultadoEnTableroDisparos(int x, int y, boolean esImpacto) {
+        JButton btn = botonesTableroDisparos[x][y];
+        if (esImpacto) {
+            btn.setBackground(COLOR_IMPACTO);
+            btn.setText("X");
+            btn.setForeground(Color.WHITE);
+        } else {
+            btn.setBackground(COLOR_DISPARO_AGUA);
+            btn.setText("•");
+            btn.setForeground(Color.WHITE);
+        }
+        btn.setEnabled(false);
+    }
+
+    public void marcarImpactoEnTableroPropio(int x, int y) {
+        JButton btn = botonesTableroPropio[x][y];
+        btn.setBackground(COLOR_IMPACTO);
+        btn.setText("X");
+        btn.setForeground(Color.WHITE);
+    }
+
+    public void actualizarTemporizador(int segundos) {
+        SwingUtilities.invokeLater(() -> {
+            lblTemporizador.setText(segundos + "s");
+            if (segundos <= 10) {
+                lblTemporizador.setForeground(Color.RED);
+            } else if (segundos <= 20) {
+                lblTemporizador.setForeground(new Color(255, 165, 0));
+            } else {
+                lblTemporizador.setForeground(new Color(0, 150, 0));
+            }
+        });
+    }
+
+    public void agregarNotificacion(String mensaje) {
+        SwingUtilities.invokeLater(() -> {
+            txtNotificaciones.append("• " + mensaje + "\n");
+            txtNotificaciones.setCaretPosition(txtNotificaciones.getDocument().getLength());
+        });
+    }
+
+    public void mostrarDialogo(String titulo, String mensaje, int tipo) {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(this, mensaje, titulo, tipo);
+        });
+    }
+
+    // CONFIGURACIÓN DE OBSERVADOR 
+    private void configurarObservador() {
+        // Timer para actualizar el temporizador desde el controlador
+        Timer timer = new Timer(1000, e -> {
+            int tiempoRestante = controlador.getTiempoRestante();
+            actualizarTemporizador(tiempoRestante);
+        });
+        timer.start();
+    }
+    
+    @Override
+    public void notificar(String mensaje, String nombreJugadorTurno) {
+        SwingUtilities.invokeLater(() -> {
+            agregarNotificacion(mensaje);
+
+            // Si el mensaje es de tiempo agotado
+            if (mensaje.contains("Tiempo agotado")) {
+                mostrarDialogo("Tiempo Agotado",
+                        "El tiempo se ha agotado. Turno perdido.",
+                        JOptionPane.WARNING_MESSAGE);
+            }
+
+            // Actualizar el turno en la interfaz
+            TurnoDTO turnoDTO = controlador.obtenerTurnoActual();
+            actualizarTurnoDesdeDTO(turnoDTO);
+        });
+    }
+
+    public String getNombreJugadorActual() {
+        return nombreJugadorActual;
     }
 
     /**
@@ -928,37 +1428,36 @@ public class Tablero extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void botonAbandonarBatallaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonAbandonarBatallaActionPerformed
-        System.exit(0);
+        int confirmacion = JOptionPane.showConfirmDialog(
+                this,
+                "¿Estás seguro de que deseas abandonar la partida?",
+                "Confirmar Abandono",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirmacion == JOptionPane.YES_OPTION) {
+            agregarNotificacion("🏳️ " + nombreJugadorActual + " ha abandonado la partida");
+            agregarNotificacion("🏆 " + nombreJugadorOponente + " es el ganador");
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    nombreJugadorOponente + " gana por abandono de " + nombreJugadorActual,
+                    "Partida Finalizada",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            // Detener el temporizador
+            controlador.pausarTemporizador();
+
+            // Cerrar la aplicación 
+            System.exit(0);
+        }
     }//GEN-LAST:event_botonAbandonarBatallaActionPerformed
 
     private void botonAtacarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonAtacarActionPerformed
         JOptionPane.showMessageDialog(rootPane, "SaS");
     }//GEN-LAST:event_botonAtacarActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new Tablero().setVisible(true));
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton botonAbandonarBatalla;
@@ -1171,7 +1670,4 @@ public class Tablero extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 
-    
-    
-    
 }
