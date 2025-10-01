@@ -1,4 +1,7 @@
 package models;
+
+import exceptions.TableroException;
+
 /**
  * Tablero.java
  *
@@ -18,16 +21,18 @@ package models;
  */
 public class Tablero {
     
-    private Jugador propietario;
-    private int tamanio;
+    private final Jugador propietario;
+    private final int tamanio;
     
     /**
      * Constructor para un Tablero
      * @param propietario El jugador dueño de este tablero
+     * @param tamanio
      */
-    public Tablero(Jugador propietario) {
+    public Tablero(Jugador propietario, int tamanio) throws TableroException {
         this.propietario = propietario;
-        this.tamanio = 10;
+        validarTamanio(tamanio);
+        this.tamanio = tamanio;
     }
 
     /**
@@ -35,16 +40,18 @@ public class Tablero {
      * @param coordenada La coordenada a validar.
      * @return true si la coordenada está dentro del tablero, false en caso contrario.
      */
-    public boolean validarCoordenada(Coordenada coordenada) {
-        return coordenada.getX()>= 0 && coordenada.getX() < this.tamanio &&
-               coordenada.getY()>= 0 && coordenada.getY() < this.tamanio;
-    }
+    public boolean validarCoordenada(Coordenada coordenada){
+        int x = coordenada.obtenerX();
+        int y = coordenada.obtenerY();
+        return (x < tamanio && x >= 0) && (y < tamanio && y >= 0);
+    };
 
-    public Jugador getPropietario() {
-        return propietario;
-    }
+    public Jugador getPropietario() {return propietario;}
 
-    public int getTamanio() {
-        return tamanio;
+    public int getTamanio() {return tamanio;}
+    
+    private void validarTamanio(int tamanio) throws TableroException{
+        if(tamanio < 0)
+            throw new TableroException("Solo se aceptan tamaños positivos.");
     }
 }

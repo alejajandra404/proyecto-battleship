@@ -14376,10 +14376,12 @@ el disparo
 <XPD:OBJ name="DiagramView" type="UMLSequenceDiagramView" guid="Y0dPsMYzJkigTMyFx7qn9AAA">
 <XPD:REF name="Model">Vu/l3YPhYUa4DBcrnSTP8QAA</XPD:REF>
 <XPD:REF name="Diagram">Vu/l3YPhYUa4DBcrnSTP8QAA</XPD:REF>
-<XPD:ATTR name="#OwnedViews" type="integer">26</XPD:ATTR>
+<XPD:ATTR name="#OwnedViews" type="integer">28</XPD:ATTR>
 <XPD:OBJ name="OwnedViews[0]" type="UMLFrameView" guid="s18UYuZeykyzIfj++J5E5AAA">
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">4</XPD:ATTR>
+<XPD:ATTR name="Top" type="integer">24</XPD:ATTR>
 <XPD:ATTR name="Width" type="integer">1665</XPD:ATTR>
 <XPD:ATTR name="Height" type="integer">857</XPD:ATTR>
 <XPD:REF name="Model">4KNVEYtUSkaJrolRaHYGxQAA</XPD:REF>
@@ -15025,8 +15027,8 @@ el disparo
 <XPD:REF name="Head">gG1YUfGJqEuMLK76SxpJXgAA</XPD:REF>
 <XPD:REF name="Tail">mGj5SBc9tkG7zoI3fDamSQAA</XPD:REF>
 <XPD:OBJ name="NameLabel" type="EdgeLabelView" guid="AKYojOsEtkSpWJLnA6OF0AAA">
-<XPD:ATTR name="Alpha" type="real">1.5707963267949</XPD:ATTR>
-<XPD:ATTR name="Distance" type="real">10</XPD:ATTR>
+<XPD:ATTR name="Alpha" type="real">2.21429731533151</XPD:ATTR>
+<XPD:ATTR name="Distance" type="real">15</XPD:ATTR>
 <XPD:ATTR name="Text" type="string">10 : error - casilla previamente impactada</XPD:ATTR>
 <XPD:REF name="Model">UV/Y5qPpEEK800CpyQpXvQAA</XPD:REF>
 <XPD:REF name="HostEdge">TRgh9TchaESHxaP9yLJvzgAA</XPD:REF>
@@ -15161,6 +15163,31 @@ el disparo
 <XPD:ATTR name="Width" type="integer">14</XPD:ATTR>
 <XPD:ATTR name="Height" type="integer">29</XPD:ATTR>
 </XPD:OBJ>
+</XPD:OBJ>
+<XPD:OBJ name="OwnedViews[26]" type="UMLNoteView" guid="oynG0vPUmUu2LRZWQVJacwAA">
+<XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
+<XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">256</XPD:ATTR>
+<XPD:ATTR name="Top" type="integer">384</XPD:ATTR>
+<XPD:ATTR name="Width" type="integer">186</XPD:ATTR>
+<XPD:ATTR name="Height" type="integer">53</XPD:ATTR>
+<XPD:ATTR name="Text" type="string">Mostrar notificaci&#243;n de casilla 
+previamente impactada al jugador 
+que realiz&#243; el disparo
+</XPD:ATTR>
+</XPD:OBJ>
+<XPD:OBJ name="OwnedViews[27]" type="LineView" guid="/SMVMGyY3EqOOpBkm+z8DAAA">
+<XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
+<XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">364</XPD:ATTR>
+<XPD:ATTR name="Top" type="integer">532</XPD:ATTR>
+<XPD:ATTR name="Width" type="integer">5</XPD:ATTR>
+<XPD:ATTR name="Height" type="integer">5</XPD:ATTR>
+<XPD:ATTR name="LineWidth" type="integer">1</XPD:ATTR>
+<XPD:ATTR name="LineKind" type="LineKind">lkSolid</XPD:ATTR>
+<XPD:ATTR name="Points" type="Points">364,532;300,436</XPD:ATTR>
+<XPD:ATTR name="BeginArrowheadStyle" type="ArrowheadStyleKind">askNone</XPD:ATTR>
+<XPD:ATTR name="EndArrowheadStyle" type="ArrowheadStyleKind">askTriangle</XPD:ATTR>
 </XPD:OBJ>
 </XPD:OBJ>
 </XPD:OBJ>

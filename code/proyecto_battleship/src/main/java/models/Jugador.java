@@ -2,6 +2,8 @@ package models;
 
 import enums.EstadoCasilla;
 import enums.ResultadoDisparo;
+import exceptions.CasillaException;
+import exceptions.TableroException;
 
 /**
  * Jugador.java
@@ -22,71 +24,63 @@ import enums.ResultadoDisparo;
  */
 public class Jugador {
     
-    private String nombre;
+    private final String nombre;
     private String color;
-    private TableroNaves tableroNaves;
-    private TableroDisparos tableroDisparos;
+    private final TableroNaves tableroNaves;
+    private final TableroDisparos tableroDisparos;
 
     /**
      * Constructor para crear un nuevo Jugador
      * @param nombre El nombre del jugador
+     * @throws exceptions.TableroException
      */
-    public Jugador(String nombre) {
+    public Jugador(String nombre) throws TableroException {
         this.nombre = nombre;
-        this.tableroNaves = new TableroNaves(this);
-        this.tableroDisparos = new TableroDisparos(this);
+        this.tableroNaves = new TableroNaves(this, 10);
+        this.tableroDisparos = new TableroDisparos(this, 10);
     }
 
+    public Jugador(String nombre, TableroNaves tableroNaves, TableroDisparos tableroDisparos) {
+        this.nombre = nombre;
+        this.tableroNaves = tableroNaves;
+        this.tableroDisparos = tableroDisparos;
+    }
+    
     /**
      * Devuelve el nombre del jugador
      * @return El nombre del jugador
      */
-    public String getNombre() {
-        return this.nombre;
-    }
+    public String getNombre() {return this.nombre;}
 
     /**
      * Devuelve el color asignado al jugador
      * @return El color del jugador
      */
-    public String getColor() {
-        return this.color;
-    }
+    public String getColor() {return this.color;}
 
     /**
      * Marca un disparo realizado por este jugador en su tablero de disparos
      * @param disparo El objeto Disparo que contiene el resultado y la coordenada
+     * @throws exceptions.TableroException
      */
-    public void marcarDisparo(Disparo disparo) {
-        this.tableroDisparos.añadirDisparo(disparo);
-    }
+    public void marcarDisparo(Disparo disparo) throws TableroException {this.tableroDisparos.añadirDisparo(disparo);}
 
     /**
      * Procesa un disparo recibido de un oponente en una coordenada específica
      * Delega la acción a su tablero de naves
      * @param coordenada La coordenada donde el oponente ha disparado
      * @return Un objeto Disparo con el resultado (AGUA, TOCADO, HUNDIDO)
+     * @throws exceptions.TableroException
+     * @throws exceptions.CasillaException
      */
-    public Disparo recibirDisparo(Coordenada coordenada) {
-        EstadoCasilla estadoCasilla = this.tableroNaves.recibirImpacto(coordenada);
-        
-        ResultadoDisparo resultadoDisparo;
-        if (estadoCasilla == EstadoCasilla.IMPACTADA_OCUPADA) {
-            resultadoDisparo = ResultadoDisparo.IMPACTO;
-        } else {
-            resultadoDisparo = ResultadoDisparo.AGUA;
-        }
-        
-        return new Disparo(coordenada, resultadoDisparo, this);
-    }
+    public EstadoCasilla recibirDisparo(Coordenada coordenada) throws TableroException, CasillaException {return this.tableroNaves.recibirImpacto(coordenada);}
 
     /**
      * Valida si un disparo en una coordenada es válido (por ejemplo, si no se ha
      * disparado antes en esa misma casilla)
-     * @param coordenada La coordenada a validar
+     * @param disparo
      * @return true si el disparo es válido, false en caso contrario
+     * @throws exceptions.TableroException
      */
-    public boolean validarDisparo(Coordenada coordenada) {
-        return this.tableroDisparos.validarDisparo(coordenada);
-    }
+    public boolean validarDisparo(Coordenada disparo) throws TableroException {return this.tableroDisparos.validarCoordenada(disparo);}
 }
