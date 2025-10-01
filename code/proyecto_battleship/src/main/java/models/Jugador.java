@@ -73,21 +73,7 @@ public class Jugador {
      * @throws exceptions.TableroException
      * @throws exceptions.CasillaException
      */
-    public Disparo recibirDisparo(Coordenada coordenada) throws TableroException, CasillaException {
-        
-        EstadoCasilla estadoCasilla = this.tableroNaves.recibirImpacto(coordenada);
-        // Resultado del disparo a añadir a una instancia de Disparo
-        ResultadoDisparo resultadoDisparo;
-        
-        // Si el estado de la casilla impactada, es averiada o hundida, se actualiza el resultado del Diparo como IMPACTO
-        if (estadoCasilla == EstadoCasilla.IMPACTADA_AVERIADA || estadoCasilla == EstadoCasilla.IMPACTADA_HUNDIDA)
-            resultadoDisparo = ResultadoDisparo.IMPACTO;
-        // De lo contrario, se actualiza el resultado como AGUA.
-        else 
-            resultadoDisparo = ResultadoDisparo.AGUA;
-        // Se regresa una nueva instancia de un Disparo, con su resultado anterior.
-        return new Disparo(coordenada, resultadoDisparo, this);
-    }
+    public EstadoCasilla recibirDisparo(Coordenada coordenada) throws TableroException, CasillaException {return this.tableroNaves.recibirImpacto(coordenada);}
 
     /**
      * Valida si un disparo en una coordenada es válido (por ejemplo, si no se ha
