@@ -32,8 +32,12 @@ public class TableroDisparos extends Tablero {
     /**
      * Añade un nuevo disparo al registro del tablero
      * @param disparo El disparo a registrar
+     * @throws exceptions.TableroException
      */
-    public void añadirDisparo(Disparo disparo){this.disparos.add(disparo);}
+    public void añadirDisparo(Disparo disparo) throws TableroException{
+        validarDisparo(disparo);
+        this.disparos.add(disparo);
+    }
     
     /**
      * Valida si ya se ha disparado a una coordenada previamente

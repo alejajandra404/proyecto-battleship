@@ -1,5 +1,12 @@
 package models;
 import enums.EstadoPartida;
+import exceptions.CasillaException;
+import exceptions.TableroException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 /**
  * Partida.java
  *
@@ -18,14 +25,14 @@ import enums.EstadoPartida;
  *
  */
 public class Partida {
+    
     private Jugador jugadorTurno;
     private EstadoPartida estado;
-    private Jugador jugador1;
-    private Jugador jugador2;
-
-    public static final int TIEMPO_TURNO = 30; // Tiempo por turno en segundos
+    private final Jugador jugador1;
+    private final Jugador jugador2;
+    private ScheduledExecutorService temporizador;
+    private ScheduledFuture<?> tarea;
     private int tiempoRestante;
-    private boolean temporizadorActivo;
     
     /**
      * Constructor para iniciar una nueva partida
@@ -36,14 +43,19 @@ public class Partida {
         this.jugador1 = jugador1;
         this.jugador2 = jugador2;
         this.estado = EstadoPartida.EN_CURSO;
-        this.jugadorTurno = this.jugador1;
+        this.tiempoRestante = 0;
     }
     
     public void iniciarPartida() {
-
+        this.jugadorTurno = this.jugador1;
+        iniciarTemporizador();
     }
 
     public void cambiarTurno() {
+        if(jugador1.equals(jugadorTurno))
+            jugadorTurno = jugador2;
+        else
+            jugadorTurno = jugador1;
     }
 
     public boolean verificarFinPartida() {
@@ -66,19 +78,26 @@ public class Partida {
     public boolean verificarJugadorTurno(Jugador jugador) {
         return this.jugadorTurno == jugador;
     }
-
+    
+    private void iniciarTemporizador(){
+        tiempoRestante = 30;
+        tarea = temporizador.scheduleAtFixedRate(() -> tarea(), 0, 1, TimeUnit.SECONDS);
+    }
+    
     /**
      * Pausa el flujo del temporizador
      */
     public void pausarTemporizador() {
-        this.temporizadorActivo = false;
+        if(!tarea.isCancelled())
+            tarea.cancel(true);
     }
 
     /**
      * Reanuda el flujo del temporizador si estaba pausado
      */
     public void reanudarTemporizador() {
-        this.temporizadorActivo = true;
+        if(tarea.isCancelled())
+            tarea = temporizador.scheduleAtFixedRate(() -> tarea(), 0, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -86,8 +105,22 @@ public class Partida {
      * Se usaría al inicio de cada turno
      */
     public void reiniciarTemporizador() {
-        this.tiempoRestante = TIEMPO_TURNO;
-        this.temporizadorActivo = true;
+        if(!tarea.isCancelled())
+            tarea.cancel(true);
+        temporizador.schedule(() -> iniciarTemporizador(), 1, TimeUnit.SECONDS);
+    }
+    
+    private void tarea() {
+        
+        tiempoRestante--;
+
+        if (tiempoRestante <= 0) {
+            cambiarTurno();
+            // Cancela la tarea programada si el tiempo se agota
+            tarea.cancel(true);
+            // Iniciar de nuevo el temporizador después de un delay de 5 segundos
+            temporizador.schedule(() -> iniciarTemporizador(), 5, TimeUnit.SECONDS);
+        }
     }
     
     /**
@@ -95,8 +128,9 @@ public class Partida {
      * @param coordenada La coordenada del disparo
      * @param jugador El jugador que intenta disparar
      * @return true si el disparo es válido
+     * @throws exceptions.TableroException
      */
-    public boolean validarDisparo(Coordenada coordenada, Jugador jugador) {
+    public boolean validarDisparo(Coordenada coordenada, Jugador jugador) throws TableroException {
         return verificarJugadorTurno(jugador) && jugador.validarDisparo(coordenada);
     }
 
@@ -105,8 +139,9 @@ public class Partida {
      * @param coordenada La coordenada del disparo
      * @param jugadorAtacante El jugador que realiza el disparo
      * @return true si el disparo fue procesado, false si no fue válido
+     * @throws exceptions.TableroException
      */
-    public boolean recibirDisparo(Coordenada coordenada, Jugador jugadorAtacante) {
+    public boolean recibirDisparo(Coordenada coordenada, Jugador jugadorAtacante) throws TableroException, CasillaException {
         if (!validarDisparo(coordenada, jugadorAtacante)) {
             return false;
         }

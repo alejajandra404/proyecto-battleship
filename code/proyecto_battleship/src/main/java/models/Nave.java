@@ -68,13 +68,10 @@ public class Nave {
      * @return El nuevo estado de la nave
      */
     private void actualizarEstado() {
-        if (impactosRecibidos == 0) {
-            this.estado = EstadoNave.INTACTA;
-        } else if (impactosRecibidos >= getLongitud()) {
+        if (impactosRecibidos >= getLongitud()) 
             this.estado = EstadoNave.HUNDIDA;
-        } else {
+         else 
             this.estado = EstadoNave.AVERIADA;
-        }
     }
 
     /**

@@ -61,8 +61,9 @@ public class Jugador {
     /**
      * Marca un disparo realizado por este jugador en su tablero de disparos
      * @param disparo El objeto Disparo que contiene el resultado y la coordenada
+     * @throws exceptions.TableroException
      */
-    public void marcarDisparo(Disparo disparo) {this.tableroDisparos.añadirDisparo(disparo);}
+    public void marcarDisparo(Disparo disparo) throws TableroException {this.tableroDisparos.añadirDisparo(disparo);}
 
     /**
      * Procesa un disparo recibido de un oponente en una coordenada específica
@@ -95,5 +96,5 @@ public class Jugador {
      * @return true si el disparo es válido, false en caso contrario
      * @throws exceptions.TableroException
      */
-    public boolean validarDisparo(Disparo disparo) throws TableroException {return this.tableroDisparos.validarDisparo(disparo);}
+    public boolean validarDisparo(Coordenada disparo) throws TableroException {return this.tableroDisparos.validarCoordenada(disparo);}
 }
