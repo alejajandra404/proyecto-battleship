@@ -292,14 +292,33 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
     }
 
     private JPanel crearPanelInferior() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(COLOR_FONDO);
-        panel.setBorder(BorderFactory.createCompoundBorder(
+        JPanel panelPrincipal = new JPanel(new BorderLayout(0, 10));
+        panelPrincipal.setBackground(COLOR_FONDO);
+        panelPrincipal.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(COLOR_BORDE, 2, true),
                 BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
 
-        JLabel lblTitulo = new JLabel("📢 NOTIFICACIONES");
+        // Panel de botones en la parte superior
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        panelBotones.setBackground(COLOR_FONDO);
+
+        JButton btnAbandonar = new JButton("Abandonar Batalla");
+        btnAbandonar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnAbandonar.setBackground(new Color(220, 53, 69));
+        btnAbandonar.setForeground(Color.WHITE);
+        btnAbandonar.setFocusPainted(false);
+        btnAbandonar.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btnAbandonar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnAbandonar.addActionListener(e -> botonAbandonarBatallaActionPerformed(e));
+
+        panelBotones.add(btnAbandonar);
+
+        // Panel de notificaciones
+        JPanel panelNotificaciones = new JPanel(new BorderLayout());
+        panelNotificaciones.setBackground(COLOR_FONDO);
+
+        JLabel lblTitulo = new JLabel("<html>&#128226; NOTIFICACIONES</html>");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTitulo.setForeground(COLOR_BORDE);
 
@@ -313,10 +332,14 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
         JScrollPane scroll = new JScrollPane(txtNotificaciones);
         scroll.setBorder(new LineBorder(COLOR_AGUA, 1));
 
-        panel.add(lblTitulo, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
+        panelNotificaciones.add(lblTitulo, BorderLayout.NORTH);
+        panelNotificaciones.add(scroll, BorderLayout.CENTER);
 
-        return panel;
+        // Agregar ambos paneles
+        panelPrincipal.add(panelBotones, BorderLayout.NORTH);
+        panelPrincipal.add(panelNotificaciones, BorderLayout.CENTER);
+
+        return panelPrincipal;
     }
     
     // MÉTODO PRINCIPAL: REALIZAR DISPARO (USA DTOs) 
