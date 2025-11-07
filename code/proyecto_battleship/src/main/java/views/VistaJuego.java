@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package views;
 
 import controllers.ControlDisparo;
@@ -12,6 +8,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import models.IObserver;
+import static views.ConstantesVista.*;
 
 /**
  * Vista principal del juego - Caso de Uso: Realizar Disparo
@@ -53,20 +50,6 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
     // Datos del jugador (solo primitivos y Strings, NO objetos del modelo)
     private String nombreJugadorActual;
     private String nombreJugadorOponente;
-
-    // Constantes
-    private static final int TAMANO_TABLERO = 10;
-    private static final int TAMANO_CELDA = 45;
-
-    // Colores
-    private static final Color COLOR_AGUA = new Color(30, 144, 255); // azul agua 
-    private static final Color COLOR_AGUA_OSCURO = new Color(0, 105, 148); // azul oscuro
-    private static final Color COLOR_IMPACTO = new Color(220, 20, 60); // rojo
-    private static final Color COLOR_NAVE = new Color(100, 100, 100); // gris
-    private static final Color COLOR_VACIO = new Color(173, 216, 230); // azul bajito
-    private static final Color COLOR_DISPARO_AGUA = new Color(135, 206, 250); // azul cielo
-    private static final Color COLOR_FONDO = new Color(240, 248, 255); // azul más bajito
-    private static final Color COLOR_BORDE = new Color(70, 130, 180); // azul
 
     /**
      * Constructor de la vista
@@ -163,8 +146,8 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
         panel.setBackground(COLOR_FONDO);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        panel.add(crearPanelTablero("MI TABLERO", false));
         panel.add(crearPanelTablero("TABLERO DE DISPAROS", true));
+        panel.add(crearPanelTablero("MI TABLERO", false));
 
         return panel;
     }
@@ -187,107 +170,12 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
     }
 
     private JPanel crearTablero(boolean esTableroDisparos) {
-        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 2, 2));
-        panel.setBackground(COLOR_BORDE);
-        panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        JButton[][] botones = new JButton[TAMANO_TABLERO][TAMANO_TABLERO];
-
-        JLabel lblVacio = new JLabel("");
-        lblVacio.setOpaque(true);
-        lblVacio.setBackground(COLOR_AGUA_OSCURO);
-        panel.add(lblVacio);
-
-        for (int i = 0; i < TAMANO_TABLERO; i++) {
-            JLabel lblCol = new JLabel(String.valueOf((char) ('A' + i)), SwingConstants.CENTER);
-            lblCol.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            lblCol.setForeground(Color.WHITE);
-            lblCol.setOpaque(true);
-            lblCol.setBackground(COLOR_AGUA_OSCURO);
-            panel.add(lblCol);
-        }
-
-        for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
-            JLabel lblFila = new JLabel(String.valueOf(fila + 1), SwingConstants.CENTER);
-            lblFila.setFont(new Font("Segoe UI", Font.BOLD, 12));
-            lblFila.setForeground(Color.WHITE);
-            lblFila.setOpaque(true);
-            lblFila.setBackground(COLOR_AGUA_OSCURO);
-            panel.add(lblFila);
-
-            for (int col = 0; col < TAMANO_TABLERO; col++) {
-                JButton btnCelda = crearBotonCelda(fila, col, esTableroDisparos);
-                botones[fila][col] = btnCelda;
-                panel.add(btnCelda);
-            }
-        }
-
-        if (esTableroDisparos) {
-            botonesTableroDisparos = botones;
-        } else {
-            botonesTableroPropio = botones;
-        }
-
-        return panel;
+        return new VistaTablero(this, esTableroDisparos);
     }
-
-    private JButton crearBotonCelda(int fila, int col, boolean esTableroDisparos) {
-        JButton btn = new JButton();
-        btn.setPreferredSize(new Dimension(TAMANO_CELDA, TAMANO_CELDA));
-        btn.setBackground(COLOR_VACIO);
-        btn.setOpaque(true);
-        btn.setBorder(new LineBorder(COLOR_AGUA, 1));
-        btn.setFocusPainted(false);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 18));
-
-        if (esTableroDisparos) {
-            final int filaFinal = fila;
-            final int colFinal = col;
-
-            btn.addActionListener(e -> realizarDisparo(filaFinal, colFinal));
-
-            btn.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    if (btn.isEnabled() && btn.getBackground().equals(COLOR_VACIO)) {
-                        btn.setBackground(COLOR_AGUA);
-                        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                    }
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    if (btn.isEnabled() && btn.getBackground().equals(COLOR_AGUA)) {
-                        btn.setBackground(COLOR_VACIO);
-                    }
-                }
-            });
-        } else {
-            btn.setEnabled(false);
-        }
-
-        return btn;
-    }
-
+    
     private JPanel crearPanelMarcador() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(COLOR_FONDO);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(COLOR_BORDE, 2, true),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-        panel.setPreferredSize(new Dimension(250, 0));
-
-        JLabel lblTitulo = new JLabel("📊 MARCADOR");
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitulo.setForeground(COLOR_BORDE);
-        panel.add(lblTitulo);
-        panel.add(Box.createVerticalStrut(15));
-
+        JPanel panel = new VistaMarcador();
         panelMarcador = panel;
-
         return panel;
     }
 
@@ -341,61 +229,6 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
 
         return panelPrincipal;
     }
-    
-    // MÉTODO PRINCIPAL: REALIZAR DISPARO (USA DTOs) 
-    /**
-     * Realiza un disparo en las coordenadas especificadas
-     *
-     * BAJO ACOPLAMIENTO: Este método solo usa DTOs, NO objetos del modelo
-     */
-    private void realizarDisparo(int fila, int col) {
-        try {
-            // Crear DTO para el disparo (NO se crea objeto Coordenada del modelo)
-            CoordenadaDTO coordDTO = new CoordenadaDTO(fila, col);
-            DisparoDTO disparoDTO = new DisparoDTO(coordDTO, nombreJugadorActual);
-
-            // Llamar al controlador con DTO
-            DisparoDTO resultado = controlador.procesarDisparo(disparoDTO);
-
-            // Procesar resultado usando el DTO
-            if (resultado.getResultado() != null) {
-                boolean esImpacto = resultado.getResultado() == ResultadoDisparo.IMPACTO; // Duda en si debería de haber un DTO para ResultadoDisparo
-
-                // Actualizar visual
-                marcarResultadoEnTableroDisparos(fila, col, esImpacto);
-
-                // Mostrar mensaje del DTO
-                String coordStr = coordDTO.toStringCoord();
-                if (esImpacto) {
-                    agregarNotificacion("🎯 ¡IMPACTO en " + coordStr + "!");
-                    mostrarDialogo("¡IMPACTO!", resultado.getMensaje(),
-                            JOptionPane.INFORMATION_MESSAGE);
-                    // El turno se mantiene automáticamente
-                } else {
-                    agregarNotificacion("💧 Agua en " + coordStr);
-                    mostrarDialogo("Agua", resultado.getMensaje(),
-                            JOptionPane.INFORMATION_MESSAGE);
-
-                    // Actualizar turno después del diálogo
-                    TurnoDTO nuevoTurno = controlador.obtenerTurnoActual();
-                    actualizarTurnoDesdeDTO(nuevoTurno);
-                }
-
-            } else {
-                // Error en el disparo
-                agregarNotificacion("❌ " + resultado.getMensaje());
-                mostrarDialogo("Error", resultado.getMensaje(),
-                        JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (Exception ex) {
-            agregarNotificacion("❌ Error: " + ex.getMessage());
-            mostrarDialogo("Error", "Error al procesar disparo: " + ex.getMessage(),
-                    JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
-    }
-
     // MÉTODOS PÚBLICOS (usan DTOs) 
     /**
      * Muestra las naves en el tablero propio usando DTOs
@@ -540,10 +373,22 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
         });
     }
 
-    public String getNombreJugadorActual() {
-        return nombreJugadorActual;
+    public ControlDisparo getControlador() {return controlador;}
+    
+    public String getNombreJugadorActual() {return nombreJugadorActual;}
+    
+    public JButton[][] getBotonesTableroPropio() {return botonesTableroPropio;}
+
+    public JButton[][] getBotonesTableroDisparos() {return botonesTableroDisparos;}
+    
+    public void setBotonesTableroPropio(JButton[][] botonesTableroPropio) {
+        this.botonesTableroPropio = botonesTableroPropio;
     }
 
+    public void setBotonesTableroDisparos(JButton[][] botonesTableroDisparos) {
+        this.botonesTableroDisparos = botonesTableroDisparos;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
