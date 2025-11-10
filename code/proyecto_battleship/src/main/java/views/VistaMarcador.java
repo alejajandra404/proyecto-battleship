@@ -3,10 +3,16 @@ package views;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.TransferHandler;
 import javax.swing.border.LineBorder;
 import static views.ConstantesVista.*;
 
@@ -42,6 +48,29 @@ public class VistaMarcador extends javax.swing.JPanel {
         lblTitulo.setForeground(COLOR_BORDE);
         add(lblTitulo);
         add(Box.createVerticalStrut(15));
+        
+        cargarBarcos();
+    }
+    
+    private void cargarBarcos(){
+        Icon portaaviones = new ImageIcon("src/main/java/imgs/casillas.png");
+        JLabel portaavionesLabel1 = new JLabel(portaaviones, JLabel.CENTER);
+        DragMouseAdapter listener = new DragMouseAdapter();
+        portaavionesLabel1.addMouseListener(listener);
+        portaavionesLabel1.setTransferHandler(new TransferHandler("portaaviones"));
+        
+        add(portaavionesLabel1);
+    }
+    
+    private class DragMouseAdapter extends MouseAdapter {
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+
+            var c = (JComponent) e.getSource();
+            var handler = c.getTransferHandler();
+            handler.exportAsDrag(c, e, TransferHandler.MOVE);
+        }
     }
     
     /**

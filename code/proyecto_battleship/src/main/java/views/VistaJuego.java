@@ -4,6 +4,10 @@ import controllers.ControlDisparo;
 import dtos.*;
 import enums.ResultadoDisparo;
 import java.awt.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DragGestureEvent;
+import java.awt.dnd.DragGestureListener;
+import java.awt.dnd.DragSource;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -28,7 +32,7 @@ import static views.ConstantesVista.*;
  * @author Jesús Ernesto López Ibarra ID: 00000252663
  * @author Daniel Miramontes Iribe ID: 00000252801
  */
-public class VistaJuego extends javax.swing.JFrame implements IObserver {
+public class VistaJuego extends javax.swing.JFrame implements IObserver, DragGestureListener {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VistaJuego.class.getName());
     
@@ -387,6 +391,21 @@ public class VistaJuego extends javax.swing.JFrame implements IObserver {
 
     public void setBotonesTableroDisparos(JButton[][] botonesTableroDisparos) {
         this.botonesTableroDisparos = botonesTableroDisparos;
+    }
+    
+    @Override
+    public void dragGestureRecognized(DragGestureEvent event) {
+
+        var cursor = Cursor.getDefaultCursor();
+        var panel = (JPanel) event.getComponent();
+
+        var color = panel.getBackground();
+
+        if (event.getDragAction() == DnDConstants.ACTION_COPY) {
+            cursor = DragSource.DefaultCopyDrop;
+        }
+
+        event.startDrag(cursor, new TransferableColor(color));
     }
     
     /**
