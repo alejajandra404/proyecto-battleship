@@ -24,6 +24,7 @@ public class Partida implements IPartida {
     private EstadoPartida estado;
     private final IJugador jugador1;
     private final IJugador jugador2;
+    private IJugador ganador;
     
     /**
      * Constructor para iniciar una nueva partida
@@ -36,9 +37,26 @@ public class Partida implements IPartida {
         this.estado = EstadoPartida.EN_CURSO;
     }
     
+    /**
+     * Constructor para finalizar una partida
+     * @param jugador1 El primer jugador
+     * @param jugador2 El segundo jugador
+     * @param ganador El ganador de la partida
+     */
+    public Partida(IJugador jugador1, IJugador jugador2, IJugador ganador) {
+        this.jugador1 = jugador1;
+        this.jugador2 = jugador2;
+        this.ganador = ganador;
+        this.estado = EstadoPartida.EN_CURSO;
+    }
+    
     public IJugador getJugador1() {return jugador1;}
 
     public IJugador getJugador2() {return jugador2;}
+    
+    public IJugador ganador(){
+        return ganador;
+    }
 
     public EstadoPartida getEstado() {return estado;}
 
@@ -114,4 +132,24 @@ public class Partida implements IPartida {
     public void quitarNave(Coordenada[] coordenadas, IJugador jugador) throws ModelException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
+    
+    /**
+     * |INICIO| CASO DE USO: TERMINAR PARTIDA 
+     */
+    public void finalizarPartida(IJugador jugadorPerdedor, String razon) {
+        if (this.estado == EstadoPartida.EN_CURSO) {
+            this.estado = EstadoPartida.FINALIZADA;
+            this.ganador = determinarGanador(jugadorPerdedor);
+        }
+    }
+    
+    public IJugador determinarGanador(IJugador perdedor) {
+        if (perdedor == null) {
+            // Lógica para un fin natural (mockeada por ahora)
+            return null; 
+        }
+        // Lógica para rendición
+        return (perdedor == jugador1) ? jugador2 : jugador1;
+    }
+    
 }
