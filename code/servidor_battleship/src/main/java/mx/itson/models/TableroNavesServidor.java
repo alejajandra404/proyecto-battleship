@@ -112,5 +112,10 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
             }
         }
     }
+
+    @Override
+    public boolean todasLasNavesHundidas() {
+        return false;
+    }
     
 }

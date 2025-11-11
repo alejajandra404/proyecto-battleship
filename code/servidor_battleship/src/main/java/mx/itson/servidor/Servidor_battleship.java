@@ -23,7 +23,7 @@ import mx.itson.models.JugadorServidor;
  */
 public class Servidor_battleship {
 
-    private static final int PUERTO = 3060;
+    private static final int PUERTO = 3306;
     
     public static void main(String[] args) {
         
