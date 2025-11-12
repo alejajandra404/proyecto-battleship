@@ -4,9 +4,12 @@ import controllers.ControlDisparo;
 import dtos.*;
 import enums.*;
 import exceptions.*;
+import java.awt.BorderLayout;
 import models.*;
 import utils.MapperDTO;
-import views.VistaJuego;
+import views.ContenedorBattleship;
+import views.FlujoVista;
+import views.VistaDisparos;
 
 /**
  * Clase principal para probar el caso de uso Realizar Disparo
@@ -62,20 +65,18 @@ public class Main {
             javax.swing.SwingUtilities.invokeLater(() -> {
                 // La vista recibe SOLO Strings y el controlador
                 // NO recibe objetos del modelo
-                VistaJuego vista = new VistaJuego(
-                        jugador1.getNombre(), // String
-                        jugador2.getNombre(), // String
-                        controlador // Controlador
-                );
-
-                // Mostrar naves usando DTOs
-                vista.mostrarNavesDesdeDTO(navesDTO1);
-
+                
+                
                 // Obtener turno inicial como DTO
-                TurnoDTO turnoInicial = controlador.obtenerTurnoActual();
-                vista.actualizarTurnoDesdeDTO(turnoInicial);
-
-                vista.setVisible(true);
+                TurnoDTO turnoInicial = controlador.obtenerTurnoActual();;
+                // Se crea el contenedor de las vistas.
+                ContenedorBattleship contenedor = new ContenedorBattleship();
+                // Se muestra la vista de disparos.
+                FlujoVista.mostrarConfigDisparos(jugador1.getNombre(), jugador2.getNombre(), controlador, navesDTO1);
+                // ESTE MÉTODO TIENE QUE IR DESPUÉS DE AGREGAR LA PRIMERA VISTA SÍ O SÍ
+                contenedor.pack();
+                contenedor.setLocationRelativeTo(null);
+                contenedor.setVisible(true);
 
                 System.out.println("✓ Vista creada y mostrada");
                 System.out.println("\nSistema listo");
