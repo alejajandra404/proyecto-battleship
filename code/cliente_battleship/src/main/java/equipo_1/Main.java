@@ -4,12 +4,10 @@ import controllers.ControlDisparo;
 import dtos.*;
 import enums.*;
 import exceptions.*;
-import java.awt.BorderLayout;
 import models.*;
 import utils.MapperDTO;
 import views.ContenedorBattleship;
 import views.FlujoVista;
-import views.VistaDisparos;
 
 /**
  * Clase principal para probar el caso de uso Realizar Disparo
@@ -31,6 +29,45 @@ import views.VistaDisparos;
 public class Main {
 
     public static void main(String[] args) {
+        try {
+            System.out.println("═══════════════════════════════════════════════════");
+            System.out.println("       CLIENTE BATTLESHIP - BATALLA NAVAL         ");
+            System.out.println("═══════════════════════════════════════════════════");
+            System.out.println();
+
+            // INICIAR LA APLICACIÓN CON LA VISTA DE CONFIGURACIÓN
+            System.out.println("Iniciando aplicación cliente...");
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                // Se crea el contenedor de las vistas.
+                ContenedorBattleship contenedor = new ContenedorBattleship();
+
+                // Se muestra la vista de configuración del jugador como primera pantalla
+                FlujoVista.mostrarConfigurarJugador();
+
+                // ESTE MÉTODO TIENE QUE IR DESPUÉS DE AGREGAR LA PRIMERA VISTA SÍ O SÍ
+                contenedor.pack();
+                contenedor.setLocationRelativeTo(null);
+                contenedor.setVisible(true);
+
+                System.out.println("✓ Vista de configuración mostrada");
+                System.out.println("\n🎮 ¡Bienvenido a Battleship!");
+            });
+
+        } catch (Exception e) {
+            System.err.println("❌ Error al iniciar el juego:");
+            e.printStackTrace();
+            javax.swing.JOptionPane.showMessageDialog(null,
+                    "Error al iniciar el juego: " + e.getMessage(),
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Método para iniciar partida de prueba (conservado para testing) Este
+     * método NO se usa en el flujo normal, pero se conserva para pruebas
+     */
+    public static void mainPruebas(String[] args) {
         try {
             System.out.println("Batalla Naval - Inicializando");
             System.out.println();
@@ -65,8 +102,7 @@ public class Main {
             javax.swing.SwingUtilities.invokeLater(() -> {
                 // La vista recibe SOLO Strings y el controlador
                 // NO recibe objetos del modelo
-                
-                
+
                 // Obtener turno inicial como DTO
                 TurnoDTO turnoInicial = controlador.obtenerTurnoActual();;
                 // Se crea el contenedor de las vistas.
@@ -95,8 +131,7 @@ public class Main {
     }
 
     /**
-     * Crea un jugador con naves hardcodeadas 
-     * Este método trabaja con el MODELO
+     * Crea un jugador con naves hardcodeadas Este método trabaja con el MODELO
      */
     private static Jugador crearJugadorConNaves(String nombre)
             throws TableroException, NaveException, CasillaException {
@@ -196,8 +231,8 @@ public class Main {
     /**
      * Convierte las naves del modelo a DTOs
      *
-     * Transforma objetos del modelo a DTOs para que la
-     * vista no tenga que conocer el modelo
+     * Transforma objetos del modelo a DTOs para que la vista no tenga que
+     * conocer el modelo
      */
     private static NaveDTO[] convertirNavesADTOs(Jugador jugador) {
         TableroNaves tableroNaves = jugador.getTableroNaves();
