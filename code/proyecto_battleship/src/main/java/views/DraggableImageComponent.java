@@ -180,7 +180,8 @@ public class DraggableImageComponent extends DraggableComponent implements Image
      */
     public void setImage(Image image) {
         this.image = image;
-        repaint();
         setAutoSizeDimension();
+        repaint();
+        
     }
 }
