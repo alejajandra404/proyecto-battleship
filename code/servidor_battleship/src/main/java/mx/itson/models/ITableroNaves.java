@@ -40,10 +40,4 @@ public interface ITableroNaves {
      * @throws ModelException 
      */
     public EstadoCasilla recibirImpacto(Coordenada coordenada) throws ModelException;
-    
-    /**
-     * Verifica si todas las naves en este tablero han sido hundidas
-     * @return true si las naves de cualquiera de los 2 jugadores se hundió
-     */
-    boolean todasLasNavesHundidas();
 }
