@@ -42,13 +42,13 @@ public class VistaArrastreNaves extends JPanel{
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         setPreferredSize(new Dimension(250, 0));
-
+        
         JLabel lblTitulo = new JLabel("NAVES");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTitulo.setForeground(COLOR_BORDE);
-        add(lblTitulo);
-        add(Box.createVerticalStrut(15));
+        add(lblTitulo, 0);
+        add(Box.createVerticalStrut(15), 1);
         
         cargarBarcos();
     }
@@ -59,23 +59,26 @@ public class VistaArrastreNaves extends JPanel{
 //        DragMouseAdapter listener = new DragMouseAdapter();
 //        portaavionesLabel1.addMouseListener(listener);
 //        portaavionesLabel1.setTransferHandler(new TransferHandler("portaaviones"));
-        DraggableImageComponent imagenNave = new DraggableImageComponent();
-        DraggableImageComponent imagenNave2 = new DraggableImageComponent();
+        NaveArrastrable imagenNave = new NaveArrastrable(2);
+        NaveArrastrable imagenNave2 = new NaveArrastrable(4);
         try {
             Image portaaviones = ImageIO.read(getClass().getResource("/imgs/casillas.png"));
-            imagenNave.setImage(portaaviones);
+            ImageIcon portaavionesIcon = new ImageIcon(portaaviones);
+            imagenNave.setIcon(portaavionesIcon);
             imagenNave.setOverbearing(true);
-            imagenNave.setAutoSize(true);
+            imagenNave.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             Image portaaviones2 = ImageIO.read(getClass().getResource("/imgs/casillas3.png"));
+            ImageIcon portaavionesIcon2 = new ImageIcon(portaaviones2);
+            imagenNave2.setIcon(portaavionesIcon2);
             imagenNave2.setOverbearing(true);
-            imagenNave2.setAutoSize(true);
-            imagenNave2.setImage(portaaviones2);
+            imagenNave2.setAlignmentX(Component.CENTER_ALIGNMENT);
             
 //            ImageIcon icono = new ImageIcon(portaaviones2);
 //            JLabel label = new JLabel(icono);
-            add(imagenNave);
-            add(imagenNave2);
+            add(imagenNave, 2);
+            add(Box.createVerticalStrut(15), 3);
+            add(imagenNave2, 4);
 //            add(label);
         } catch (IOException ex) {
             System.getLogger(VistaArrastreNaves.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
