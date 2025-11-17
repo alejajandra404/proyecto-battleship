@@ -12,7 +12,8 @@ import java.awt.Color;
  */
 public class ConstantesVista {
     // Constantes
-
+    
+    // Tamaños
     public static final int TAMANO_TABLERO = 10;
     public static final int TAMANO_CELDA = 45;
 
@@ -25,4 +26,8 @@ public class ConstantesVista {
     public static final Color COLOR_DISPARO_AGUA = new Color(135, 206, 250); // azul cielo
     public static final Color COLOR_FONDO = new Color(240, 248, 255); // azul más bajito
     public static final Color COLOR_BORDE = new Color(70, 130, 180); // azul
+    
+    //Identificadores de vistas
+    public static final String CONFIG_NAVES = "ConfigNaves";
+    public static final String DISPAROS = "Disparos";
 }

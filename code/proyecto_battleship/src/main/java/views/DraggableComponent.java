@@ -38,7 +38,10 @@ public class DraggableComponent extends JComponent {
     protected Cursor draggingCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     /** If sets <b>TRUE</b> when dragging component, it will be painted over each other (z-Buffer change) */
     protected boolean overbearing = false;
-
+    
+    protected int positionX;
+    protected int positionY;
+    
     public DraggableComponent() {
         addDragListeners();
         setOpaque(true);
@@ -78,10 +81,14 @@ public class DraggableComponent extends JComponent {
             public void mouseDragged(MouseEvent e) {
                 int anchorX = anchorPoint.x;
                 int anchorY = anchorPoint.y;
-
+                
                 Point parentOnScreen = getParent().getLocationOnScreen();
                 Point mouseOnScreen = e.getLocationOnScreen();
-                Point position = new Point(mouseOnScreen.x - parentOnScreen.x - anchorX, mouseOnScreen.y - parentOnScreen.y - anchorY);
+                
+                positionX = mouseOnScreen.x - parentOnScreen.x - anchorX;
+                positionY = mouseOnScreen.y - parentOnScreen.y - anchorY;
+                
+                Point position = new Point(positionX, positionY);
                 setLocation(position);
 
                 //Change Z-Buffer if it is "overbearing"
