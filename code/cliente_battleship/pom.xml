@@ -1,22 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>itson.com</groupId>
-    <artifactId>servidor_battleship</artifactId>
-    <version>1.0</version>
+    <groupId>equipo_1</groupId>
+    <artifactId>cliente_battleship</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <dependencies>
+        <!-- Dependencia del módulo de utilidades compartidas -->
         <dependency>
             <groupId>mx.itson</groupId>
             <artifactId>utilidades</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <exec.mainClass>mx.itson.servidor.Servidor_battleship</exec.mainClass>
+        <exec.mainClass>equipo_1.Main</exec.mainClass>
     </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -34,7 +38,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>mx.itson.servidor.Servidor_battleship</mainClass>
+                            <mainClass>equipo_1.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -52,14 +56,15 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>mx.itson.servidor.Servidor_battleship</mainClass>
+                                    <mainClass>equipo_1.Main</mainClass>
                                 </transformer>
                             </transformers>
-                            <finalName>servidor_battleship-completo</finalName>
+                            <finalName>cliente_battleship-completo</finalName>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+    <name>cliente_battleship</name>
 </project>
