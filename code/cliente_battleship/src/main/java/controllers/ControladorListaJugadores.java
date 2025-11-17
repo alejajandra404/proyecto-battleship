@@ -64,11 +64,15 @@ public class ControladorListaJugadores implements ListenerServidor.ICallbackMens
      * Inicia el listener del servidor y solicita la lista inicial
      */
     public void iniciar() {
-        // Iniciar listener para recibir actualizaciones del servidor
-        listenerServidor = new ListenerServidor(servicioConexion.getEntrada(), this);
-        listenerServidor.start();
-
-        System.out.println("[CONTROLADOR] Listener iniciado");
+        // Solo crear listener si no existe o no está ejecutando
+        if (listenerServidor == null || !listenerServidor.isEjecutando()) {
+            System.out.println("[CONTROLADOR] Creando nuevo listener");
+            listenerServidor = new ListenerServidor(servicioConexion.getEntrada(), this);
+            listenerServidor.start();
+            System.out.println("[CONTROLADOR] Listener iniciado");
+        } else {
+            System.out.println("[CONTROLADOR] Listener ya existe y está activo, reutilizando");
+        }
 
         // Solicitar lista inicial de jugadores
         solicitarListaJugadores();
@@ -259,6 +263,16 @@ public class ControladorListaJugadores implements ListenerServidor.ICallbackMens
         if (listenerServidor != null) {
             listenerServidor.detener();
         }
+    }
+
+    /**
+     * Resetea el estado del controlador después de una partida
+     * Esto permite iniciar nuevas partidas sin interferencia del controlador anterior
+     */
+    public void resetearEstadoJuego() {
+        System.out.println("[CONTROLADOR] Reseteando estado de juego anterior");
+        controladorJuego = null;
+        solicitudActual = null;
     }
 
     /**

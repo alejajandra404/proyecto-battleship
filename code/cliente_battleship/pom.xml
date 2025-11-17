@@ -5,28 +5,48 @@
     <artifactId>cliente_battleship</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>cliente_battleship</name>
-    
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
-        <exec.mainClass>equipo_1.Main</exec.mainClass>
-    </properties>
-    
+
     <dependencies>
+        <!-- Dependencia del módulo de utilidades compartidas -->
         <dependency>
             <groupId>mx.itson</groupId>
             <artifactId>utilidades</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>
-    
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>21</maven.compiler.release>
+        <exec.mainClass>equipo_1.Main</exec.mainClass>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>equipo_1.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.5.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -39,10 +59,12 @@
                                     <mainClass>equipo_1.Main</mainClass>
                                 </transformer>
                             </transformers>
+                            <finalName>cliente_battleship-completo</finalName>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+    <name>cliente_battleship</name>
 </project>

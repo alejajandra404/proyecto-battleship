@@ -3,8 +3,8 @@ package mx.itson.servidor;
 import java.util.Scanner;
 
 /**
- * Clase principal del Servidor Battleship Inicia los servicios de
- * descubrimiento UDP y conexiones TCP
+ * Clase principal del Servidor Battleship
+ * Inicia los servicios de descubrimiento UDP y conexiones TCP
  *
  * @author Leonardo Flores Leyva ID: 00000252390
  * @author Yuri Germán García López ID: 00000252583
