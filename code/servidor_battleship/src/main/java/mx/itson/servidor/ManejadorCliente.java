@@ -451,6 +451,13 @@ public class ManejadorCliente implements Runnable {
                 ));
             }
 
+            // Dar tiempo para que las vistas se inicialicen
+            try {
+                Thread.sleep(500); // 500ms de delay
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             // Iniciar turno del primer jugador
             String idEnTurno = partida.getIdJugadorEnTurno();
             JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
