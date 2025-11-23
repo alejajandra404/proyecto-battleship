@@ -1,5 +1,7 @@
 package mx.itson.subsistema_disparos;
 
+import mx.itson.utils.dtos.DisparoDTO;
+
 /**
  *
  * @author Leonardo Flores Leyva
@@ -14,5 +16,5 @@ package mx.itson.subsistema_disparos;
  * ID: 00000252801
  */
 public interface IDisparos {
-    
+    public void procesarDisparo(DisparoDTO disparo);
 }

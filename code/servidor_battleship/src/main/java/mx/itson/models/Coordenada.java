@@ -39,7 +39,13 @@ public class Coordenada {
      * @return Valor de Y.
      */
     public int obtenerY() {return y;}
-
+    
+    public boolean compararCoordenada(Coordenada coordenada){
+        if (this.x != coordenada.x) 
+            return false;
+        return this.y == coordenada.y;
+    }
+    
     @Override
     public int hashCode() {
         int hash = 7;

@@ -1,5 +1,6 @@
 package mx.itson.models;
 
+import java.util.List;
 import mx.itson.utils.enums.EstadoCasilla;
 import mx.itson.exceptions.ModelException;
 
@@ -17,6 +18,18 @@ import mx.itson.exceptions.ModelException;
  * ID: 00000252801
  */
 public interface IJugador {
+    /**
+     * 
+     * @return 
+     */
+    public String obtenerId();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String obtenerNombre();
+    
     /**
      * Marca un disparo realizado por este jugador en su tablero de disparos
      * @param disparo El objeto Disparo que contiene el resultado y la coordenada
@@ -52,9 +65,17 @@ public interface IJugador {
     
     /**
      * 
-     * @param coordenadas
+     * @param nave
      * @return
      * @throws ModelException 
      */
-    public boolean eliminarNave(Coordenada[] coordenadas) throws ModelException;
+    public boolean eliminarNave(Nave nave) throws ModelException;
+    
+    /**
+     * 
+     * @param naves
+     * @return
+     * @throws ModelException 
+     */
+    public boolean colocarNaves(List<Nave> naves) throws ModelException;
 }

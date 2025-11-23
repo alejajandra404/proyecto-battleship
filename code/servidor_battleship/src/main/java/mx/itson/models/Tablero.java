@@ -17,7 +17,7 @@ import mx.itson.exceptions.ModelException;
  */
 public abstract class Tablero {
     
-    private final int tamanio;
+    protected final int tamanio;
     /**
      * 
      * @param tamanio

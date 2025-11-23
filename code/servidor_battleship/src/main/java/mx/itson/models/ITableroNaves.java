@@ -1,5 +1,6 @@
 package mx.itson.models;
 
+import java.util.List;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
 
@@ -27,11 +28,19 @@ public interface ITableroNaves {
     
     /**
      * 
-     * @param coordenadas
+     * @param nave
      * @return
      * @throws ModelException 
      */
-    public boolean eliminarNave(Coordenada[] coordenadas) throws ModelException;
+    public boolean eliminarNave(Nave nave) throws ModelException;
+    
+    /**
+     * 
+     * @param naves
+     * @return
+     * @throws ModelException 
+     */
+    public boolean colocarNaves(List<Nave> naves) throws ModelException;
     
     /**
      * 
@@ -40,4 +49,10 @@ public interface ITableroNaves {
      * @throws ModelException 
      */
     public EstadoCasilla recibirImpacto(Coordenada coordenada) throws ModelException;
+    
+    /**
+     * 
+     * @return 
+     */
+    public boolean navesColocadas();
 }

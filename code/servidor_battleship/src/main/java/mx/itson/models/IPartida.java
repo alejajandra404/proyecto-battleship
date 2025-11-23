@@ -1,6 +1,11 @@
 package mx.itson.models;
 
+import java.util.List;
+import java.util.function.Consumer;
 import mx.itson.exceptions.ModelException;
+import mx.itson.utils.dtos.CoordenadaDTO;
+import mx.itson.utils.dtos.DisparoDTO;
+import mx.itson.utils.dtos.NaveDTO;
 
 /**
  *
@@ -16,57 +21,90 @@ import mx.itson.exceptions.ModelException;
  * ID: 00000252801
  */
 public interface IPartida {
-    /**
-     * 
-     * @throws ModelException 
-     */
-    public void iniciarPartida() throws ModelException;
     
     /**
      * 
+     * @return 
+     */
+    public String obtenerIdPartida();
+    
+    /**
+     * 
+     * @return 
+     */
+    public boolean ambosJugadoresListos();
+    
+    /**
+     * 
+     * @return 
+     */
+    public int obtenerTiempoRestante();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String obtenerIdJugadorEnTurno();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String obtenerIdGanador();
+    
+    /**
+     * 
+     * @param idJugadorDispara
+     * @param coordenada
+     * @return
      * @throws ModelException 
      */
-    public void cambiarTurno() throws ModelException;
+    public DisparoDTO procesarDisparo(String idJugadorDispara, CoordenadaDTO coordenada) throws ModelException;
     
     /**
-     * Valida si un disparo es legal (turno correcto y casilla no repetida)
-     * @param disparo El disparo a validar
-     * @param jugador El jugador que intenta disparar
-     * @return true si el disparo es válido
-     * @throws ModelException
+     * 
+     * @param naves
+     * @return
+     * @throws ModelException 
      */
-    public boolean validarDisparo(Disparo disparo, IJugador jugador) throws ModelException;
-    
-    /**
-     * Procesa un disparo de un jugador a otro
-     * @param coordenada La coordenada del disparo
-     * @param jugadorAtacante El jugador que realiza el disparo
-     * @return true si el disparo fue procesado, false si no fue válido
-     * @throws ModelException
-     */
-    public boolean recibirDisparo(Coordenada coordenada, IJugador jugadorAtacante) throws ModelException;
-    
-    /**
-     * Verifica si el jugador proporcionado es el que tiene el turno actual
-     * @param jugador El jugador a verificar
-     * @return true si es el turno de ese jugador
-     * @throws ModelException
-     */
-    public boolean verificarJugadorTurno(IJugador jugador) throws ModelException;
+    public boolean colocarNaves(String idJugador, List<NaveDTO> naves) throws ModelException;
     
     /**
      * 
      * @param naveNueva
-     * @param jugador
+     * @param idJugador
+     * @return 
      * @throws ModelException 
      */
-    public void agregarNave(Nave naveNueva, IJugador jugador) throws ModelException;
+    public boolean agregarNave(Nave naveNueva, String idJugador) throws ModelException;
     
     /**
      * 
      * @param coordenadas
-     * @param jugador
+     * @param idJugador
+     * @return 
      * @throws ModelException 
      */
-    public void quitarNave(Coordenada[] coordenadas, IJugador jugador) throws ModelException;
+    public boolean quitarNave(Coordenada[] coordenadas, String idJugador) throws ModelException;
+    
+    /**
+     * 
+     * @param callback 
+     */
+    public void establecerCallbackTimeout(Consumer<String> callback);
+    
+    /**
+     * 
+     */
+    public void iniciarTemporizador();
+    
+    /**
+     * 
+     */
+    public void detenerTemporizador();
+    
+    /**
+     * 
+     */
+    public void limpiarRecursos();
 }

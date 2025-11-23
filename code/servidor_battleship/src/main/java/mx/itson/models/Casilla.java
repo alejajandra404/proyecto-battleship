@@ -39,6 +39,15 @@ public class Casilla extends Coordenada{
         else
             estado = EstadoCasilla.OCUPADA;
     }
+    
+    /**
+     * 
+     * @throws ModelException 
+     */
+    public void desocuparCasilla() throws ModelException{
+        if(estado != EstadoCasilla.VACIA)
+            estado = EstadoCasilla.VACIA;
+    }
     /**
      * 
      * @throws ModelException 

@@ -1,9 +1,12 @@
 package mx.itson.models;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
+import mx.itson.utils.enums.TipoNave;
 
 /**
  *
@@ -40,14 +43,21 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     
     @Override
     public boolean añadirNave(Nave nave) throws ModelException {
-        Coordenada[] coordenadasBarcos = nave.obtenerCoordenadas();
+        // Verifica que la coordenada exista y tenga coordenadas
+        if(nave == null || nave.obtenerCoordenadas() == null || nave.getTipo() == null)
+            throw new ModelException("Ingrese una nave válida.");
+        
+        // Verifica que la nave sea válida
+        verificarNave(nave);
+        
+        Coordenada[] coordenadasNave = nave.obtenerCoordenadas();
         // Verifica si alguna de las casillas ya está ocupada (para cada coordenada que abarca la nave)
-        for(Coordenada coordenada : coordenadasBarcos){
+        for(Coordenada coordenada : coordenadasNave){
             if(casillas[coordenada.obtenerX()][coordenada.obtenerY()].estaOcupada())
                 throw new ModelException("Ya se encuentra una nave en la posición.");
         }
         // Actualiza el estado de cada casilla como ocupada
-        for(Coordenada coordenada : coordenadasBarcos)
+        for(Coordenada coordenada : coordenadasNave)
             casillas[coordenada.obtenerX()][coordenada.obtenerY()].ocuparCasilla();
         
         // Se agrega la nave
@@ -57,12 +67,98 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     }
 
     @Override
-    public boolean eliminarNave(Coordenada[] coordenadas) throws ModelException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public boolean eliminarNave(Nave nave) throws ModelException {
+        
+        // Verifica que la coordenada exista y tenga coordenadas
+        if(nave == null || nave.obtenerCoordenadas() == null || nave.getTipo() == null)
+            throw new ModelException("Ingrese una nave válida.");
+        
+        // Verifica que la nave sea válida
+        verificarNave(nave);
+        
+        // Obtiene las coordenadas de la nave a eliminar
+        Coordenada[] coordenadasNave = nave.obtenerCoordenadas();
+        // Recorre cada nave del conjunto de naves del tablero
+        for(Nave naveActual: naves){
+            // Guarda si la nave actual del conjunto de naves es igual a la nave recibida
+            boolean igual = true;
+            // Primero verifica que sean del mismo tipo de nave
+            if(naveActual.getTipo() == nave.getTipo()){
+                // Obtiene las coordenadas de la nave actual del conjunto de naves del tablero
+                Coordenada[] coordenadasNaveActual = naveActual.obtenerCoordenadas();
+                // Compara si las coordenadas de la nave actual son exactamente las mismas que las de la nave recibida
+                for (int i = 0; i < coordenadasNaveActual.length; i++) {
+                    if(!coordenadasNaveActual[i].compararCoordenada(coordenadasNave[i])){
+                        igual = false;
+                        break;
+                    }
+                }
+                // Desocupa todas las casillas de la nave y elimina la nave del conjunto de naves
+                if(igual){
+                    for(Coordenada coordenada: coordenadasNaveActual)
+                        casillas[coordenada.obtenerX()][coordenada.obtenerY()].desocuparCasilla();
+                    naves.remove(naveActual);
+                    
+                    return true;
+                }
+            }
+        }
+        return false;
     }
-
+    
+    @Override
+    public boolean colocarNaves(List<Nave> naves) throws ModelException{
+        // Lista de naves agregadas
+        List<Nave> navesAgregadas = new ArrayList<>();
+        try {
+            // Intenta agregar cada nave al tablero
+            for(Nave nave: naves){
+                // Agrega la nave al conjunto de naves del tablero
+                añadirNave(nave);
+                // Agrega la nave a la lista de naves agregadas
+                navesAgregadas.add(nave);
+            }
+            return true;
+            
+        } catch (ModelException e) {
+            // Si la lista de naves agregadas no está vacía
+            if(!navesAgregadas.isEmpty()){
+                // Elimina cada nave agregada del tablero
+                for(Nave naveAgregada : navesAgregadas)
+                    eliminarNave(naveAgregada);
+            }
+            throw new ModelException("No se pudieron agregar todas las naves al tablero. Verifique la posición de cada una.");
+        }
+    }
+    
+//    private boolean validarPosicionamientoNaves(List<Nave> naves) {
+//        Set<String> coordenadasOcupadas = new HashSet<>();
+//
+//        for (Nave nave : naves) {
+//            for (Coordenada coord : nave.obtenerCoordenadas()) {
+//                // Validar que esté dentro del tablero
+//                if (coord.obtenerX() < 0 || coord.obtenerX() >= tamanio ||
+//                    coord.obtenerY() < 0 || coord.obtenerY() >= tamanio) {
+//                    return false;
+//                }
+//
+//                String key = coord.obtenerX() + "," + coord.obtenerY();
+//                if (coordenadasOcupadas.contains(key)) {
+//                    return false; // Se sobrep one con otra nave
+//                }
+//                coordenadasOcupadas.add(key);
+//            }
+//        }
+//
+//        return true;
+//    }
+    
     @Override
     public EstadoCasilla recibirImpacto(Coordenada coordenada) throws ModelException {
+        // Verifica que la coordenada exista.
+        if(coordenada == null)
+            throw new ModelException("Ingrese una coordenada válida.");
+        
         // Se verifica si la casilla, ubicada en la coordenada recibida, ya fue impactada previamente
         if(casillas[coordenada.obtenerX()][coordenada.obtenerY()].estaImpactada())
             throw new ModelException("La casilla ya ha sido impactada previamente");
@@ -113,4 +209,58 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
         }
     }
     
+    /**
+     * 
+     * @param coordenadas
+     * @throws ModelException 
+     */
+    private void verificarNave(Nave nave) throws ModelException{
+        
+        Coordenada[] coordenadas = nave.obtenerCoordenadas();
+        TipoNave tipo = nave.getTipo();
+        
+        // Verifica la cantidad de coordenadas, de acuerdo al tipo de nave
+        switch(coordenadas.length){
+            case 1 ->{
+                if(tipo != TipoNave.BARCO)
+                    throw new ModelException("Un barco debe abarcar 1 casilla.");
+                break;
+            }
+            case 2 ->{
+                if(tipo != TipoNave.SUBMARINO)
+                    throw new ModelException("Un submarino debe abarcar 2 casillas.");
+                break;
+            }
+            case 3 ->{
+                if(tipo != TipoNave.CRUCERO)
+                    throw new ModelException("Un crucero debe abarcar 3 casillas.");
+                break;
+            }
+            default ->{
+                if(tipo != TipoNave.PORTAAVIONES)
+                    throw new ModelException("Un portaaviones debe abarcar 4 casillas.");
+            }
+        }
+        
+        // Verifica que la nave esté dentro del tablero
+        for(Coordenada coordenada: coordenadas){
+            if (coordenada.obtenerX() < 0 || coordenada.obtenerX() >= tamanio ||
+                coordenada.obtenerY() < 0 || coordenada.obtenerY() >= tamanio) {
+                throw new ModelException("Las coordenadas de la nave se encuentran fuera del tablero.");
+            }
+        }
+        
+        
+        // Verifica las coordenadas, de acuerdo a la orientación (queda pendiente).
+//        for (Coordenada coordenada : coordenadas) {
+//            if(orientacion == OrientacionNave.HORIZONTAL){
+//                
+//            } else{
+//                
+//            }
+//        }
+    }
+    
+    @Override
+    public boolean navesColocadas(){return naves.size() == tamanio;}
 }

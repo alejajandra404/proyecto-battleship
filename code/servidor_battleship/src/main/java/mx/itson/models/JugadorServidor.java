@@ -1,5 +1,6 @@
 package mx.itson.models;
 
+import java.util.List;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
 
@@ -17,16 +18,21 @@ import mx.itson.utils.enums.EstadoCasilla;
  * ID: 00000252801
  */
 public class JugadorServidor implements IJugador{
+    
+    private final String idJugador;
     private final String nombre;
     private String color;
     private final ITableroNaves tableroNaves;
     private final ITableroDisparos tableroDisparos;
-
-    public JugadorServidor(String nombre, ITableroNaves tableroNaves, ITableroDisparos tableroDisparos) {
+    
+    public JugadorServidor(String idJugador, String nombre, ITableroNaves tableroNaves, ITableroDisparos tableroDisparos) {
+        this.idJugador = idJugador;
         this.nombre = nombre;
         this.tableroNaves = tableroNaves;
         this.tableroDisparos = tableroDisparos;
     }
+
+    public String getIdJugador() {return idJugador;}
     
     /**
      * Devuelve el nombre del jugador
@@ -53,6 +59,12 @@ public class JugadorServidor implements IJugador{
      * @return 
      */
     public ITableroDisparos getTableroDisparos() {return this.tableroDisparos;}
+
+    @Override
+    public String obtenerId() {return getIdJugador();}
+
+    @Override
+    public String obtenerNombre() {return getNombre();}
     
     @Override
     public void marcarDisparo(Disparo disparo) throws ModelException {this.tableroDisparos.añadirDisparo(disparo);}
@@ -67,5 +79,8 @@ public class JugadorServidor implements IJugador{
     public boolean añadirNave(Nave nave) throws ModelException {return this.tableroNaves.añadirNave(nave);}
 
     @Override
-    public boolean eliminarNave(Coordenada[] coordenadas) throws ModelException {return this.tableroNaves.eliminarNave(coordenadas);}
+    public boolean eliminarNave(Nave nave) throws ModelException {return this.tableroNaves.eliminarNave(nave);}
+
+    @Override
+    public boolean colocarNaves(List<Nave> naves) throws ModelException {return this.tableroNaves.colocarNaves(naves);}
 }

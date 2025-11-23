@@ -1,5 +1,7 @@
 package mx.itson.subsistema_disparos;
 
+import mx.itson.utils.dtos.DisparoDTO;
+
 /**
  *
  * @author Leonardo Flores Leyva
@@ -13,6 +15,11 @@ package mx.itson.subsistema_disparos;
  * @author Daniel Miramontes Iribe
  * ID: 00000252801
  */
-public class Disparos {
+public class Disparos implements IDisparos{
+
+    @Override
+    public void procesarDisparo(DisparoDTO disparo) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
     
 }
