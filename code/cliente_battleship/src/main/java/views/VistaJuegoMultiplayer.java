@@ -415,7 +415,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
 
     //PARTE DE FINALIZAR PARTIDA
     @Override
-    public void partidaFinalizada(boolean gane, JugadorDTO ganador) {
+    public void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas) {
         SwingUtilities.invokeLater(() -> {
             String titulo = gane ? "¡VICTORIA!" : "DERROTA";
             String mensaje = gane ?
@@ -438,22 +438,20 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             lblTurno.setForeground(gane ? new Color(0, 128, 0) : Color.RED);
 
             // Mostrar mensaje de fin de partida
-            JOptionPane.showMessageDialog(this,
-                mensaje,
-                titulo,
-                gane ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, 
+            mensaje,
+            titulo,
+            gane ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
 
             log("Partida finalizada. Mostrando Estadísticas...");
 
-            //PANTALLA DE ESTADÍSTICAS (falta hacer el metodo)
-            EstadisticaDTO stats = controlador.generarEstadisticas(ganador);
-            FlujoVista.mostrarEstadisticas(stats);
+            //PANTALLA DE ESTADÍSTICAS
+            FlujoVista.mostrarEstadisticas(misEstadisticas);
             
             // Volver al listado de jugadores
-            FlujoVista.mostrarListaJugadores(
-                controlador.getServicioConexion(),
-                controlador.getJugadorLocal()
-            );
+//            FlujoVista.mostrarListaJugadores(
+//                controlador.getServicioConexion(),
+//                controlador.getJugadorLocal());
         });
     }
 }

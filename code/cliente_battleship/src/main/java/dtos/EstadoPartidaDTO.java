@@ -28,6 +28,7 @@ public class EstadoPartidaDTO implements Serializable {
     private EstadoPartida estadoPartida;
     private int tiempoRestante;
     private String ganador;
+    private String perdedor;
 
     /**
      * Constructor vacío
@@ -101,6 +102,14 @@ public class EstadoPartidaDTO implements Serializable {
 
     public void setGanador(String ganador) {
         this.ganador = ganador;
+    }
+
+    public String getPerdedor() {
+        return perdedor;
+    }
+
+    public void setPerdedor(String perdedor) {
+        this.perdedor = perdedor;
     }
 
     @Override

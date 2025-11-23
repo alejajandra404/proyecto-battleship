@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
+import mx.itson.models.IJugador;
 
 /**
  * Maneja la comunicación con un cliente conectado
@@ -597,6 +598,12 @@ public class ManejadorCliente implements Runnable {
         // Enviar tableros actualizados
         enviarTablerosAJugadores(partida);
 
+        
+        //Lista con las stats de cada jugador
+        List<EstadisticaDTO> reporteFinal = new ArrayList<>();
+//        reporteFinal.add("Aqui irian las stats de cada uno lol");
+//        reporteFinal.add("Aqui irian las stats de cada uno lol");
+        
         // Verificar si hay ganador (PARTE DE FINALIZAR PARTIDA)
         if (partida.hayGanador()) {
             System.out.println("[MANEJADOR] ¡Partida finalizada! Ganador: " + partida.getGanador().getNombre());
@@ -611,7 +618,8 @@ public class ManejadorCliente implements Runnable {
                 manejadorGanador.enviarMensaje(new MensajeDTO(
                     TipoMensaje.PARTIDA_GANADA,
                     "¡Felicidades! Has ganado la partida",
-                    ganador
+                        ganador
+                    //reporteFinal
                 ));
             }
 
@@ -621,7 +629,8 @@ public class ManejadorCliente implements Runnable {
                 manejadorPerdedor.enviarMensaje(new MensajeDTO(
                     TipoMensaje.PARTIDA_PERDIDA,
                     "Has perdido la partida. ¡Mejor suerte la próxima vez!",
-                    perdedor
+                        perdedor
+                    //reporteFinal
                 ));
             }
 

@@ -3,6 +3,7 @@ package views;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.GridLayout;
+import javax.swing.JButton;
 import mx.itson.utils.dtos.EstadisticaDTO;
 
 /**
@@ -17,6 +18,7 @@ public class VistaEstadisticas extends JPanel{
     private JLabel lblAciertos;
     private JLabel lblPrecision;
     private JLabel lblBarcosHundidos;
+    private JButton btnVolver;
 
     public VistaEstadisticas() {
         initComponents();
@@ -25,7 +27,7 @@ public class VistaEstadisticas extends JPanel{
     private void initComponents() {
         setSize(1080, 720);
 
-        JPanel panel = new JPanel(new GridLayout(7, 1)); 
+        JPanel panel = new JPanel(new GridLayout(8, 1)); 
 
         // Inicializamos los labels
         lblTitulo = new JLabel("Resumen del Juego", JLabel.CENTER);
@@ -43,7 +45,11 @@ public class VistaEstadisticas extends JPanel{
         panel.add(lblAciertos);
         panel.add(lblPrecision);
         panel.add(lblBarcosHundidos);
-
+        btnVolver = new JButton("Volver al Menú");
+        btnVolver.addActionListener(e -> {
+             System.out.println("Regresando al menú...");
+        });
+        panel.add(btnVolver);
         add(panel);
     }
 

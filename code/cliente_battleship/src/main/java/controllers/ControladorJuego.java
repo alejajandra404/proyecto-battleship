@@ -65,7 +65,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
         void actualizarTurno(boolean miTurno, JugadorDTO jugadorEnTurno);
         void mostrarMensaje(String mensaje);
         void mostrarError(String error);
-        void partidaFinalizada(boolean gane, JugadorDTO ganador);
+        void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas);
     }
 
     /**
@@ -330,27 +330,40 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                 break;
 
             case PARTIDA_GANADA:
-                JugadorDTO ganador = (JugadorDTO) mensaje.getDatos();
-                estadoActual = EstadoJuego.FINALIZADO;
-
-                System.out.println("[CONTROLADOR_JUEGO] ¡Partida ganada!");
-
-                if (vistaJuego != null) {
-                    vistaJuego.partidaFinalizada(true, ganador);
-                }
-                break;
-
             case PARTIDA_PERDIDA:
-                JugadorDTO perdedor = (JugadorDTO) mensaje.getDatos();
-                estadoActual = EstadoJuego.FINALIZADO;
+                Object datosRecibidos = mensaje.getDatos();
 
-                System.out.println("[CONTROLADOR_JUEGO] Partida perdida");
+                if (datosRecibidos instanceof List) {
+                    List<EstadisticaDTO> listaStats = (List<EstadisticaDTO>) datosRecibidos;
 
-                if (vistaJuego != null) {
-                    vistaJuego.partidaFinalizada(false, oponente);
+                    EstadisticaDTO misStats = null;
+                    for (EstadisticaDTO s : listaStats) {
+                        if (s.getNombreJugador().equals(jugadorLocal.getNombre())) {
+                            misStats = s;
+                            break;
+                        }
+                    }
+
+                    boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
+                    JugadorDTO ganadorDTO = gane ? jugadorLocal : oponente; 
+
+                    if (vistaJuego != null && misStats != null) {
+                        vistaJuego.partidaFinalizada(gane, ganadorDTO, misStats);
+                    }
+
+                } else if (datosRecibidos instanceof JugadorDTO) {
+                    System.err.println("ERROR CRÍTICO: El servidor envió un JugadorDTO en lugar de las Estadísticas.");
+                    System.err.println("Por favor actualiza el código del Servidor.");
+
+                    boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
+                    EstadisticaDTO statsFake = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 0, 0, 0);
+
+                    if (vistaJuego != null) {
+                        vistaJuego.partidaFinalizada(gane, (JugadorDTO)datosRecibidos, statsFake);
+                    }
                 }
                 break;
-
+                
             case ERROR:
                 String error = mensaje.getContenido();
                 System.err.println("[CONTROLADOR_JUEGO] Error del servidor: " + error);
@@ -365,11 +378,6 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
             default:
                 System.out.println("[CONTROLADOR_JUEGO] Mensaje no manejado: " + mensaje.getTipo());
         }
-    }
-
-    public EstadisticaDTO generarEstadisticas(JugadorDTO ganador) {
-        
-        return null; 
     }
     
     // Getters
