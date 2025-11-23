@@ -1,5 +1,6 @@
 package controllers;
 
+import static enums.ResultadoDisparo.AGUA;
 import mx.itson.utils.dtos.*;
 import mx.itson.utils.enums.*;
 import services.ServicioConexion;
@@ -366,6 +367,11 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
         }
     }
 
+    public EstadisticaDTO generarEstadisticas(JugadorDTO ganador) {
+        
+        return null; 
+    }
+    
     // Getters
 
     public JugadorDTO getJugadorLocal() {

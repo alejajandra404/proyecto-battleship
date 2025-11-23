@@ -132,24 +132,4 @@ public class Partida implements IPartida {
     public void quitarNave(Coordenada[] coordenadas, IJugador jugador) throws ModelException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-    
-    /**
-     * |INICIO| CASO DE USO: TERMINAR PARTIDA 
-     */
-    public void finalizarPartida(IJugador jugadorPerdedor, String razon) {
-        if (this.estado == EstadoPartida.EN_CURSO) {
-            this.estado = EstadoPartida.FINALIZADA;
-            this.ganador = determinarGanador(jugadorPerdedor);
-        }
-    }
-    
-    public IJugador determinarGanador(IJugador perdedor) {
-        if (perdedor == null) {
-            // Lógica para un fin natural (mockeada por ahora)
-            return null; 
-        }
-        // Lógica para rendición
-        return (perdedor == jugador1) ? jugador2 : jugador1;
-    }
-    
 }

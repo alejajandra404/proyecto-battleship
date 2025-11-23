@@ -1,7 +1,10 @@
 package mx.itson.models;
 
+import java.util.Set;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
+import mx.itson.utils.enums.ResultadoDisparo;
+import mx.itson.utils.dtos.EstadisticaDTO;
 
 /**
  *
@@ -68,4 +71,30 @@ public class JugadorServidor implements IJugador{
 
     @Override
     public boolean eliminarNave(Coordenada[] coordenadas) throws ModelException {return this.tableroNaves.eliminarNave(coordenadas);}
+    
+    /**
+     * Genera el DTO de estadísticas calculando los aciertos y totales basándose en el 
+     * historial del tablero de disparos
+     * @param esGanador true si este jugador ganó la partida
+     * @param barcosHundidos Cantidad de barcos que este jugador hundió (se recibe externamente)
+     * @return Un objeto EstadisticasDTO listo para enviar al cliente
+     */
+    public EstadisticaDTO generarEstadisticas(boolean esGanador, int barcosHundidos) {
+        //Se obtiene el historial de disparos del tablero
+        Set<Disparo> historialDisparos = this.tableroDisparos.getDisparosRealizados();
+        
+        int totalDisparos = historialDisparos.size();
+        int aciertos = 0;
+
+        //Se verifica entre todo el historial aquellos disparos que su resultado sea diferente de "AGUA"
+        for (Disparo d : historialDisparos) {
+            if (d.obtenerResultado() != ResultadoDisparo.AGUA) {
+                aciertos++;
+            }
+        }
+        
+        //Se crea y se retorna el DTO con la nueva información
+        return new EstadisticaDTO(
+                this.nombre, esGanador, totalDisparos, aciertos, barcosHundidos);
+    }
 }

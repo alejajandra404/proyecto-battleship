@@ -597,14 +597,14 @@ public class ManejadorCliente implements Runnable {
         // Enviar tableros actualizados
         enviarTablerosAJugadores(partida);
 
-        // Verificar si hay ganador
+        // Verificar si hay ganador (PARTE DE FINALIZAR PARTIDA)
         if (partida.hayGanador()) {
             System.out.println("[MANEJADOR] ¡Partida finalizada! Ganador: " + partida.getGanador().getNombre());
 
             JugadorDTO ganador = partida.getGanador();
             JugadorDTO perdedor = partida.getJugador1().getId().equals(ganador.getId())
                 ? partida.getJugador2() : partida.getJugador1();
-
+            
             // Notificar al ganador
             ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());
             if (manejadorGanador != null) {

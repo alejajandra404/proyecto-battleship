@@ -77,4 +77,9 @@ public class TableroDisparosServidor extends Tablero implements ITableroDisparos
         }
         return false;
     }
+    
+    @Override
+    public Set<Disparo> getDisparosRealizados() {
+        return this.disparos;
+    }
 }

@@ -413,6 +413,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         });
     }
 
+    //PARTE DE FINALIZAR PARTIDA
     @Override
     public void partidaFinalizada(boolean gane, JugadorDTO ganador) {
         SwingUtilities.invokeLater(() -> {
@@ -442,8 +443,12 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
                 titulo,
                 gane ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
 
-            log("Partida finalizada. Volviendo al listado de jugadores...");
+            log("Partida finalizada. Mostrando Estadísticas...");
 
+            //PANTALLA DE ESTADÍSTICAS (falta hacer el metodo)
+            EstadisticaDTO stats = controlador.generarEstadisticas(ganador);
+            FlujoVista.mostrarEstadisticas(stats);
+            
             // Volver al listado de jugadores
             FlujoVista.mostrarListaJugadores(
                 controlador.getServicioConexion(),
