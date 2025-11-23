@@ -6,6 +6,8 @@ import mx.itson.utils.enums.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 
 /**
  * Vista principal del juego multijugador
@@ -38,6 +40,9 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     private static final Color COLOR_IMPACTO = new Color(220, 20, 60);
     private static final Color COLOR_HUNDIDO = new Color(139, 0, 0);
     private static final Color COLOR_FALLO = new Color(173, 216, 230);
+    private static final Color COLOR_FONDO_TABLERO = new Color(9, 117, 197);
+    private static final Color COLOR_TITLE_BORDER = new Color(162, 212, 248);
+    private static final Color COLOR_BORDE_TABLERO = new Color(134, 74, 52);
 
     private boolean miTurno = false;
 
@@ -88,7 +93,12 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
 
         // Tablero propio (izquierda)
         JPanel contenedorPropio = new JPanel(new BorderLayout());
-        contenedorPropio.setBorder(BorderFactory.createTitledBorder("Tu Tablero - " + jugadorLocal.getNombre()));
+        Border bordeAzulTableroPropio = BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1);
+        Border bordeExteriorTableroPropio = BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2);
+        TitledBorder bordeTituloTableroPropio = BorderFactory.createTitledBorder(bordeAzulTableroPropio, "Tu Tablero - " + jugadorLocal.getNombre());
+        bordeTituloTableroPropio.setTitleColor(Color.BLACK);
+        Border bordeDobleTableroPropio = BorderFactory.createCompoundBorder(bordeTituloTableroPropio, bordeExteriorTableroPropio);
+        contenedorPropio.setBorder(bordeDobleTableroPropio);
         contenedorPropio.setOpaque(false);
 
         panelTableroPropio = crearPanelTablero(false);
@@ -98,7 +108,12 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
 
         // Tablero oponente (derecha)
         JPanel contenedorOponente = new JPanel(new BorderLayout());
-        contenedorOponente.setBorder(BorderFactory.createTitledBorder("Tablero Enemigo - " + oponente.getNombre()));
+        Border bordeAzulTableroOponente = BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1);
+        Border bordeExteriorTableroOponente = BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2);
+        TitledBorder bordeTituloTableroOponente = BorderFactory.createTitledBorder(bordeAzulTableroOponente, "Tablero Enemigo - " + oponente.getNombre());
+        bordeTituloTableroOponente.setTitleColor(Color.BLACK);
+        Border bordeDobleTableroOponente = BorderFactory.createCompoundBorder(bordeTituloTableroOponente, bordeExteriorTableroOponente);
+        contenedorOponente.setBorder(bordeDobleTableroOponente);
         contenedorOponente.setOpaque(false);
 
         panelTableroOponente = crearPanelTablero(true);
@@ -123,19 +138,39 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         add(panelTableros, BorderLayout.CENTER);
         add(scrollLog, BorderLayout.SOUTH);
     }
+    
+    // Método paintComponent para darle degradado al fondo
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+        int w = getWidth();
+        int h = getHeight();
+
+        Color colorInicio = new Color(240, 248, 255);
+        Color colorFin = new Color(199, 210, 217); 
+
+        GradientPaint gp = new GradientPaint(0, 0, colorInicio, w, h, colorFin);
+
+        g2d.setPaint(gp);
+        g2d.fillRect(0, 0, w, h);
+    }
 
     /**
      * Crea un panel de tablero con grid de botones
      */
     private JPanel crearPanelTablero(boolean paraDisparar) {
-        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 1, 1));
-        panel.setBackground(Color.DARK_GRAY);
+        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 0, 0));
+        panel.setBackground(COLOR_FONDO_TABLERO);
 
         // Encabezados de columnas (A-J)
         panel.add(new JLabel("")); // Esquina superior izquierda
         for (int col = 0; col < TAMANO_TABLERO; col++) {
             JLabel lbl = new JLabel(String.valueOf((char) ('A' + col)), SwingConstants.CENTER);
-            lbl.setFont(new Font("Arial", Font.BOLD, 12));
+            lbl.setFont(new Font("Arial", Font.BOLD, 15));
+            lbl.setForeground(Color.WHITE);
             panel.add(lbl);
         }
 
@@ -143,7 +178,8 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
             // Número de fila
             JLabel lblFila = new JLabel(String.valueOf(fila + 1), SwingConstants.CENTER);
-            lblFila.setFont(new Font("Arial", Font.BOLD, 12));
+            lblFila.setFont(new Font("Arial", Font.BOLD, 15));
+            lblFila.setForeground(Color.WHITE);
             panel.add(lblFila);
 
             // Casillas
@@ -153,6 +189,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
                 btn.setPreferredSize(new Dimension(40, 40));
                 btn.setMargin(new Insets(0, 0, 0, 0));
                 btn.setFocusPainted(false);
+                btn.setBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1));
 
                 if (paraDisparar) {
                     // Solo el tablero oponente tiene acciones de disparo

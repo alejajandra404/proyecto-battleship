@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 
 /**
  * Vista visual con drag-and-drop para colocación de naves en modo multijugador
@@ -25,6 +28,8 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
     private final JugadorDTO jugadorLocal;
     private final JugadorDTO oponente;
 
+    private String colorTema;
+    
     // Componentes UI
     private JLabel lblTitulo;
     private JLabel lblInstrucciones;
@@ -54,6 +59,9 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
     private static final Color COLOR_VALIDO = new Color(50, 205, 50, 100);
     private static final Color COLOR_INVALIDO = new Color(220, 20, 60, 100);
     private static final Color COLOR_HOVER = new Color(173, 216, 230);
+    private static final Color COLOR_FONDO_TABLERO = new Color(9, 117, 197);
+    private static final Color COLOR_TITLE_BORDER = new Color(162, 212, 248);
+    private static final Color COLOR_BORDE_TABLERO = new Color(134, 74, 52);
 
     /**
      * Clase interna para representar una casilla del tablero
@@ -69,7 +77,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             this.columna = columna;
             setPreferredSize(new Dimension(TAMANO_CASILLA, TAMANO_CASILLA));
             setBackground(COLOR_AGUA);
-            setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+            setBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 2));
         }
 
         public void setOcupada(boolean ocupada) {
@@ -357,9 +365,14 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
      * Crea el panel del tablero con grid 10x10
      */
     private JPanel crearPanelTablero() {
-        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 1, 1));
-        panel.setBackground(Color.DARK_GRAY);
-        panel.setBorder(BorderFactory.createTitledBorder("Tu Tablero"));
+        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 0, 0));
+        panel.setBackground(COLOR_FONDO_TABLERO);
+        Border bordeAzulTablero = BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1);
+        Border bordeExterior = BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2);
+        TitledBorder bordeTitulo = BorderFactory.createTitledBorder(bordeAzulTablero, "Tu Tablero");
+        bordeTitulo.setTitleColor(Color.WHITE);
+        Border bordeDoble = BorderFactory.createCompoundBorder(bordeExterior, bordeTitulo);
+        panel.setBorder(bordeDoble);
 
         casillas = new CasillaTablero[TAMANO_TABLERO][TAMANO_TABLERO];
 
@@ -369,7 +382,8 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         // Encabezados de columnas (A-J)
         for (int col = 0; col < TAMANO_TABLERO; col++) {
             JLabel lbl = new JLabel(String.valueOf((char) ('A' + col)), SwingConstants.CENTER);
-            lbl.setFont(new Font("Arial", Font.BOLD, 12));
+            lbl.setFont(new Font("Arial", Font.BOLD, 15));
+            lbl.setForeground(Color.WHITE);
             panel.add(lbl);
         }
 
@@ -377,7 +391,8 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
             // Número de fila
             JLabel lblFila = new JLabel(String.valueOf(fila + 1), SwingConstants.CENTER);
-            lblFila.setFont(new Font("Arial", Font.BOLD, 12));
+            lblFila.setFont(new Font("Arial", Font.BOLD, 15));
+            lblFila.setForeground(Color.WHITE);
             panel.add(lblFila);
 
             // Casillas

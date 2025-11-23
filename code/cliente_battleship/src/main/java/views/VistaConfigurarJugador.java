@@ -46,7 +46,6 @@ public class VistaConfigurarJugador extends JPanel implements IVistaConfigurarJu
     private void initComponents() {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(1216, 680));
-        setBackground(new Color(240, 248, 255));
 
         // Panel principal con el formulario
         panelFormulario = new JPanel();
@@ -221,6 +220,25 @@ public class VistaConfigurarJugador extends JPanel implements IVistaConfigurarJu
         });
     }
 
+    // Método paintComponent para darle degradado al fondo
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+        int w = getWidth();
+        int h = getHeight();
+
+        Color colorInicio = new Color(240, 248, 255);
+        Color colorFin = new Color(199, 210, 217); 
+
+        GradientPaint gp = new GradientPaint(0, 0, colorInicio, w, h, colorFin);
+
+        g2d.setPaint(gp);
+        g2d.fillRect(0, 0, w, h);
+    }
+    
     @Override
     public void nombreDuplicado(String mensaje) {
         SwingUtilities.invokeLater(() -> {
