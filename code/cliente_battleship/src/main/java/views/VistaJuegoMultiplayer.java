@@ -446,12 +446,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             log("Partida finalizada. Mostrando Estadísticas...");
 
             //PANTALLA DE ESTADÍSTICAS
-            FlujoVista.mostrarEstadisticas(misEstadisticas);
-            
-            // Volver al listado de jugadores
-//            FlujoVista.mostrarListaJugadores(
-//                controlador.getServicioConexion(),
-//                controlador.getJugadorLocal());
+            FlujoVista.mostrarEstadisticas(controlador, misEstadisticas);
         });
     }
 }

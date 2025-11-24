@@ -1,5 +1,6 @@
 package views;
 
+import controllers.ControladorJuego;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.GridLayout;
@@ -19,9 +20,12 @@ public class VistaEstadisticas extends JPanel{
     private JLabel lblPrecision;
     private JLabel lblBarcosHundidos;
     private JButton btnVolver;
+    private final ControladorJuego controlador;
 
-    public VistaEstadisticas() {
+    public VistaEstadisticas(ControladorJuego controlador, EstadisticaDTO misEstadisticas) {
+        this.controlador = controlador;
         initComponents();
+        cargarDatos(misEstadisticas);
     }
 
     private void initComponents() {
@@ -47,7 +51,9 @@ public class VistaEstadisticas extends JPanel{
         panel.add(lblBarcosHundidos);
         btnVolver = new JButton("Volver al Menú");
         btnVolver.addActionListener(e -> {
-             System.out.println("Regresando al menú...");
+            System.out.println("Regresando al menú...");
+            FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
+                controlador.getJugadorLocal());;
         });
         panel.add(btnVolver);
         add(panel);

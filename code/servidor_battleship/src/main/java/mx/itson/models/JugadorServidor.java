@@ -20,12 +20,20 @@ import mx.itson.utils.dtos.EstadisticaDTO;
  * ID: 00000252801
  */
 public class JugadorServidor implements IJugador{
+    private String id;
     private final String nombre;
     private String color;
     private final ITableroNaves tableroNaves;
     private final ITableroDisparos tableroDisparos;
 
     public JugadorServidor(String nombre, ITableroNaves tableroNaves, ITableroDisparos tableroDisparos) {
+        this.nombre = nombre;
+        this.tableroNaves = tableroNaves;
+        this.tableroDisparos = tableroDisparos;
+    }
+    
+    public JugadorServidor(String id, String nombre, ITableroNaves tableroNaves, ITableroDisparos tableroDisparos) {
+        this.id = id;
         this.nombre = nombre;
         this.tableroNaves = tableroNaves;
         this.tableroDisparos = tableroDisparos;
@@ -42,6 +50,10 @@ public class JugadorServidor implements IJugador{
      * @return El color del jugador
      */
     public String getColor() {return this.color;}
+
+    public String getId() {
+        return this.id;
+    }
     
     /**
      * Obtiene el tablero de naves del jugador 

@@ -154,11 +154,8 @@ public class FlujoVista {
      * Muestra la vista de las estadísticas de la partida
      * @param stats 
      */
-    public static void mostrarEstadisticas(EstadisticaDTO stats) {
-        if (vistaEstadisticas == null) {
-            vistaEstadisticas = new VistaEstadisticas();
-        }
-        vistaEstadisticas.cargarDatos(stats);
+    public static void mostrarEstadisticas(ControladorJuego controlador, EstadisticaDTO misEstadisticas) {
+        vistaEstadisticas = new VistaEstadisticas(controlador, misEstadisticas);
         cambiarVista(vistaEstadisticas);
     }
 }

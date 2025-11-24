@@ -2,6 +2,7 @@ package mx.itson.models;
 
 import mx.itson.utils.enums.EstadoCasilla;
 import mx.itson.exceptions.ModelException;
+import mx.itson.utils.dtos.EstadisticaDTO;
 
 /**
  *
@@ -57,4 +58,8 @@ public interface IJugador {
      * @throws ModelException 
      */
     public boolean eliminarNave(Coordenada[] coordenadas) throws ModelException;
+    
+    public String getId();
+    
+    public EstadisticaDTO generarEstadisticas(boolean esGanador, int barcosHundidos);
 }
