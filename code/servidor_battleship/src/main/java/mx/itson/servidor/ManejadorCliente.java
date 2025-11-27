@@ -1,5 +1,6 @@
 package mx.itson.servidor;
 
+import mx.itson.subsistema_gestor_partidas.GestorPartidas;
 import mx.itson.utils.dtos.*;
 import mx.itson.utils.enums.*;
 import java.io.*;

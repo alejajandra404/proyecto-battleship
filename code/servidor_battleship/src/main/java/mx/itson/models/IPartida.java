@@ -26,7 +26,31 @@ public interface IPartida {
      * 
      * @return 
      */
-    public String obtenerIdPartida();
+    public String getIdPartida();
+    
+    /**
+     * 
+     * @return 
+     */
+    public IJugador getJugador1();
+    
+    /**
+     * 
+     * @return 
+     */
+    public IJugador getJugador2();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String getIdJugadorEnTurno();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String getIdGanador();
     
     /**
      * 
@@ -38,19 +62,13 @@ public interface IPartida {
      * 
      * @return 
      */
-    public int obtenerTiempoRestante();
+    public int getTiempoRestante();
     
     /**
      * 
      * @return 
      */
-    public String obtenerIdJugadorEnTurno();
-    
-    /**
-     * 
-     * @return 
-     */
-    public String obtenerIdGanador();
+//    public String getIdGanador();
     
     /**
      * 
@@ -63,11 +81,12 @@ public interface IPartida {
     
     /**
      * 
+     * @param idJugador
      * @param naves
      * @return
      * @throws ModelException 
      */
-    public boolean colocarNaves(String idJugador, List<NaveDTO> naves) throws ModelException;
+    public boolean colocarNaves(String idJugador, List<Nave> naves) throws ModelException;
     
     /**
      * 
@@ -89,9 +108,14 @@ public interface IPartida {
     
     /**
      * 
+     */
+    public void manejarTiempoAgotado();
+    
+    /**
+     * 
      * @param callback 
      */
-    public void establecerCallbackTimeout(Consumer<String> callback);
+    public void establecerRespuestaTiempoAgotado(Consumer<String> callback);
     
     /**
      * 

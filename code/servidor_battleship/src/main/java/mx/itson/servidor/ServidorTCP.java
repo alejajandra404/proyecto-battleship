@@ -1,5 +1,6 @@
 package mx.itson.servidor;
 
+import mx.itson.subsistema_gestor_partidas.GestorPartidas;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

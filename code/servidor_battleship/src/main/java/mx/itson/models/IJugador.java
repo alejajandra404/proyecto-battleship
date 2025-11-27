@@ -22,13 +22,37 @@ public interface IJugador {
      * 
      * @return 
      */
-    public String obtenerId();
+    public String getId();
     
     /**
      * 
      * @return 
      */
-    public String obtenerNombre();
+    public String getNombre();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String getColor();
+    
+    /**
+     * 
+     * @return 
+     */
+    public ITableroDisparos getTableroDisparos();
+    
+    /**
+     * 
+     * @return 
+     */
+    public ITableroNaves getTableroNaves();
+    
+    /**
+     * 
+     * @return 
+     */
+    public boolean isEnPartida();
     
     /**
      * Marca un disparo realizado por este jugador en su tablero de disparos

@@ -1,4 +1,4 @@
-package mx.itson.subsistema_inicio_fin_partida;
+package mx.itson.subsistema_gestion_partida;
 
 import java.util.List;
 import mx.itson.models.IPartida;
@@ -17,7 +17,7 @@ import mx.itson.utils.dtos.JugadorDTO;
  * @author Daniel Miramontes Iribe
  * ID: 00000252801
  */
-public interface IInicioFinPartida {
+public interface IGestionPartida {
     public IPartida crearPartida(JugadorDTO jugador1, JugadorDTO jugador2);
     public IPartida obtenerPartida(String idPartida);
     public void eliminarPartida(String idPartida);

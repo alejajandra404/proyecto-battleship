@@ -22,49 +22,44 @@ public class JugadorServidor implements IJugador{
     private final String idJugador;
     private final String nombre;
     private String color;
+    public boolean enPartida;
     private final ITableroNaves tableroNaves;
     private final ITableroDisparos tableroDisparos;
     
-    public JugadorServidor(String idJugador, String nombre, ITableroNaves tableroNaves, ITableroDisparos tableroDisparos) {
+    public JugadorServidor(
+            String idJugador, 
+            String nombre,
+            String color,
+            ITableroNaves tableroNaves,
+            ITableroDisparos tableroDisparos
+    ) {
         this.idJugador = idJugador;
         this.nombre = nombre;
         this.tableroNaves = tableroNaves;
         this.tableroDisparos = tableroDisparos;
     }
-
-    public String getIdJugador() {return idJugador;}
     
-    /**
-     * Devuelve el nombre del jugador
-     * @return El nombre del jugador
-     */
+    @Override
+    public String getId() {return idJugador;}
+    
+    @Override
     public String getNombre() {return this.nombre;}
 
-    /**
-     * Devuelve el color asignado al jugador
-     * @return El color del jugador
-     */
+    @Override
     public String getColor() {return this.color;}
     
-    /**
-     * Obtiene el tablero de naves del jugador 
-     * 
-     * @return 
-     */
+    @Override
+    public boolean isEnPartida(){return enPartida;}
+    
+    @Override
     public ITableroNaves getTableroNaves() {return this.tableroNaves;}
-
-    /**
-     * Obtiene el tablero de disparos del jugador 
-     * 
-     * @return 
-     */
+    
+    @Override
     public ITableroDisparos getTableroDisparos() {return this.tableroDisparos;}
+    
+    public void setColor(String color) {this.color = color;}
 
-    @Override
-    public String obtenerId() {return getIdJugador();}
-
-    @Override
-    public String obtenerNombre() {return getNombre();}
+    public void setEnPartida(boolean enPartida) {this.enPartida = enPartida;}
     
     @Override
     public void marcarDisparo(Disparo disparo) throws ModelException {this.tableroDisparos.añadirDisparo(disparo);}
