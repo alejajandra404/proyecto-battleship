@@ -19,7 +19,7 @@ public class ContenedorBattleship extends javax.swing.JFrame {
     public ContenedorBattleship() {
         initComponents();
         setSize(1216, 680);
-        setResizable(false);
+        setResizable(true);
         FlujoVista.setContenedor(contenedorPaneles);
     }
     
