@@ -13,7 +13,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-
 /**
  * Vista visual con drag-and-drop para colocación de naves en modo multijugador.
  * Combina la estética original (casillas de colores sólidos) con el motor de 
@@ -621,6 +620,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             nave.setCoordenadas(coords.toArray(new CoordenadaDTO[0]));
             naves.add(nave);
         }
+        VistaJuegoMultiplayer.navesParaTransferir = naves;
         controlador.enviarNavesColocadas(naves);
         btnListo.setEnabled(false);
         btnReiniciar.setEnabled(false);
