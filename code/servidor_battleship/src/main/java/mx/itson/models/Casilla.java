@@ -34,10 +34,9 @@ public class Casilla extends Coordenada{
      * @throws ModelException 
      */
     public void ocuparCasilla() throws ModelException{
-        if(estado != EstadoCasilla.VACIA)
+        if(estado != EstadoCasilla.VACIA) 
             throw new ModelException("La casilla ya se encuentra ocupada o impactada.");
-        else
-            estado = EstadoCasilla.OCUPADA;
+        else estado = EstadoCasilla.OCUPADA;
     }
     
     /**
@@ -45,8 +44,7 @@ public class Casilla extends Coordenada{
      * @throws ModelException 
      */
     public void desocuparCasilla() throws ModelException{
-        if(estado != EstadoCasilla.VACIA)
-            estado = EstadoCasilla.VACIA;
+        if(estado != EstadoCasilla.VACIA) estado = EstadoCasilla.VACIA;
     }
     /**
      * 

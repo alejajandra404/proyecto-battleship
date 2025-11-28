@@ -44,8 +44,7 @@ public abstract class Tablero {
      * @throws ModelException 
      */
     private void validarTamanio(int tamanio) throws ModelException{
-        if(tamanio < 0)
-            throw new ModelException("Solo se aceptan tamaños positivos.");
+        if(tamanio < 0) throw new ModelException("Solo se aceptan tamaños positivos.");
     }
     /**
      * 

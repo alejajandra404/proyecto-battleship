@@ -182,9 +182,7 @@ public class GestorPartidas implements IGestorPartidas{
     }
 
     @Override
-    public void iniciarTemporizador(String idPartida) {
-        partidas.get(idPartida).iniciarTemporizador();
-    }
+    public void iniciarTemporizador(String idPartida) {partidas.get(idPartida).iniciarTemporizador();}
     
     @Override
     public void liberarRecursos(String idPartida){
@@ -198,16 +196,13 @@ public class GestorPartidas implements IGestorPartidas{
             IPartida partida = partidas.get(idPartida);
             
             // Valida que exista la partida (colocado aquí en caso de que se reutilice el subsistema)
-            if(partida == null)
-                return null;
+            if(partida == null)return null;
             
             // Verifica que el jugador tenga el turno
-            if(!partida.verificarJugadorTurno(idJugador))
-                throw new GestorPartidasException("No es tu turno.");
+            if(!partida.verificarJugadorTurno(idJugador))throw new GestorPartidasException("No es tu turno.");
             
-            // Verifica que el disparo sea válido
-            if(!partida.validarDisparo(idJugador, coordenada))
-                throw new GestorPartidasException("Disparo inválido."); // Técnicamente nunca da false en la implementación del método
+            // Verifica que el disparo sea válido (Técnicamente nunca da false en la implementación del método)
+            if(!partida.validarDisparo(idJugador, coordenada))throw new GestorPartidasException("Disparo inválido.");
             
             // Procesa el disparo y regresa el resultado
             return partida.procesarDisparo(idJugador, coordenada);

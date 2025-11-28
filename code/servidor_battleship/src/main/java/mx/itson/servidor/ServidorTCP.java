@@ -1,11 +1,11 @@
 package mx.itson.servidor;
 
-import mx.itson.subsistema_gestor_partidas.GestorPartidas;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import mx.itson.subsistema_gestor_partidas.IGestorPartidas;
 
 /**
  * Servidor TCP que acepta conexiones de clientes
@@ -23,7 +23,7 @@ public class ServidorTCP implements Runnable {
 
     private ServerSocket serverSocket;
     private final GestorJugadores gestorJugadores;
-    private final GestorPartidas gestorPartidas;
+    private final IGestorPartidas gestorPartidas;
     private final List<Thread> hilosClientes;
     private boolean ejecutando;
 
@@ -32,7 +32,7 @@ public class ServidorTCP implements Runnable {
      * @param gestorJugadores Gestor de jugadores compartido
      * @param gestorPartidas Gestor de partidas compartido
      */
-    public ServidorTCP(GestorJugadores gestorJugadores, GestorPartidas gestorPartidas) {
+    public ServidorTCP(GestorJugadores gestorJugadores, IGestorPartidas gestorPartidas) {
         this.gestorJugadores = gestorJugadores;
         this.gestorPartidas = gestorPartidas;
         this.hilosClientes = new ArrayList<>();

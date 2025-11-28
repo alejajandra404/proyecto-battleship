@@ -138,8 +138,7 @@ public class Partida implements IPartida {
     }
     
     public String getNombreGanador() {
-        if (idGanador == null)
-            return null;
+        if (idGanador == null) return null;
         return idGanador.equals(jugador1.getId()) ? jugador1.getNombre() : jugador2.getNombre();
     }
     

@@ -575,7 +575,7 @@ public class ManejadorCliente implements Runnable {
                 return;
             }
             
-            // Obtiene la partida después de procesar el disparo
+            // Obtiene la partida después de haber procesado el disparo
             PartidaDTO partida = gestorPartidas.obtenerPartidaDeJugador(idJugador);
             
             // Obtener manejadores de ambos jugadores

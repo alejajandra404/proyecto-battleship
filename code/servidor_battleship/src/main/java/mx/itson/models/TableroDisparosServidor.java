@@ -33,28 +33,25 @@ public class TableroDisparosServidor extends Tablero implements ITableroDisparos
      */
     @Override
     public void añadirDisparo(Disparo disparo) throws ModelException{
-        if(disparo == null)
-            throw new ModelException("Disparo inválido");
-        
+        // Verifica que el disparo no sea null
+        if(disparo == null) throw new ModelException("Disparo inválido");
+        // Valida el disparo (podría ser innecesario si es validado por la partida o el subsistema)
         validarDisparo(disparo.obtenerCoordenada());
-        
+        // Añade el disparo
         this.disparos.add(disparo);
     }
     
     @Override
     public boolean validarDisparo(Coordenada coordenada) throws ModelException {
         // Si el disparo no existe
-        if(coordenada == null)
-            throw new ModelException("Disparo inválido.");
+        if(coordenada == null) throw new ModelException("Disparo inválido.");
         
         // Si la coordenada está fuera de los límites del tablero
-        if(!super.validarCoordenada(coordenada))
-            throw new ModelException("Coordenada del disparo fuera de los límites del tablero");
+        if(!super.validarCoordenada(coordenada)) throw new ModelException("Coordenada del disparo fuera de los límites del tablero");
         
         // Verifica las coordenadas de cada disparo
         for (Disparo d : disparos) 
-            if (d.obtenerCoordenada().equals(coordenada))
-                throw new ModelException("Ya existe otro disparo con la misma coordenada.");
+            if (d.obtenerCoordenada().equals(coordenada)) throw new ModelException("Ya existe otro disparo con la misma coordenada.");
         
         // Verdadero si pasa todas las validaciones
         return true;
@@ -62,10 +59,8 @@ public class TableroDisparosServidor extends Tablero implements ITableroDisparos
     
     @Override
     public boolean yaDisparado(Coordenada coordenada) {
-        for (Disparo disparo : disparos) {
-            if (disparo.obtenerCoordenada().equals(coordenada)) 
-                return true;
-        }
+        for (Disparo disparo : disparos) 
+            if (disparo.obtenerCoordenada().equals(coordenada)) return true;
         return false;
     }
 }

@@ -73,7 +73,5 @@ public class Coordenada {
     }
 
     @Override
-    public String toString() {
-        return "x = " + x + ", y = " + y + '}';
-    }
+    public String toString() {return String.format("%d, %d", obtenerX(), obtenerY());}
 }
