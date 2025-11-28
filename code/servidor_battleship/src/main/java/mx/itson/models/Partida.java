@@ -82,73 +82,24 @@ public class Partida implements IPartida {
 
     @Override
     public IJugador getJugador2() {return jugador2;}
-
-    public EstadoPartida getEstado() {return estado;}
-
-    public void setEstadoPartida(EstadoPartida estado) {this.estado = estado;}
-
-    public void setTiempoRestante(int tiempoRestante) {this.tiempoRestante = tiempoRestante;}
     
-//    @Override
-//    public void iniciarPartida() throws ModelException {
-//        this.jugadorTurno = this.jugador1;
-//    }
-//
-//    @Override
-//    public void cambiarTurno() throws ModelException {
-//        if(jugador1.equals(jugadorTurno))
-//            jugadorTurno = jugador2;
-//        else
-//            jugadorTurno = jugador1;
-//    }
-//
-//    @Override
-//    public boolean validarDisparo(Disparo disparo, IJugador jugador) throws ModelException {
-//        return jugador.validarDisparo(disparo);
-//    }
-//
-//    @Override
-//    public boolean recibirDisparo(Coordenada coordenada, IJugador jugadorAtacante) throws ModelException {
-//        
-//        IJugador jugadorDefensor = (jugadorAtacante == this.jugador1) ? this.jugador2 : this.jugador1;
-//        
-//        EstadoCasilla estadoCasilla = jugadorDefensor.recibirDisparo(coordenada);
-//        
-//        // Determinar el resultado del disparo
-//        ResultadoDisparo resultadoDisparo;
-//        boolean esImpacto;
-//        
-//        // Si el estado de la casilla impactada, es averiada o hundida, se actualiza el resultado del Diparo como IMPACTO
-//        switch (estadoCasilla) {
-//            case IMPACTADA_AVERIADA -> {
-//                resultadoDisparo = ResultadoDisparo.IMPACTO_AVERIADA;
-//                esImpacto = true;
-//            }
-//            case IMPACTADA_HUNDIDA -> {
-//                resultadoDisparo = ResultadoDisparo.IMPACTO_HUNDIDA;
-//                esImpacto = true;
-//                // De lo contrario, se actualiza el resultado como AGUA.
-//            }
-//            default -> {
-//                resultadoDisparo = ResultadoDisparo.AGUA;
-//                esImpacto = false;
-//            }
-//        }
-//        
-//        // Se crea una nueva instancia de un Disparo, con su resultado anterior.
-//        Disparo disparoResultante = new Disparo(coordenada, resultadoDisparo, jugadorAtacante);
-//        
-//        // Marcar el disparo en el tablero del atacante
-//        jugadorAtacante.marcarDisparo(disparoResultante);
-//        
-//        // Retornar si fue impacto o agua
-//        return esImpacto;
-//    }
-//
-//    @Override
-//    public boolean verificarJugadorTurno(IJugador jugador) throws ModelException {
-//        return this.jugadorTurno == jugador;
-//    }
+    @Override
+    public String getIdJugadorEnTurno() {return idJugadorEnTurno;}
+    
+    @Override
+    public String getIdGanador() {return idGanador;}
+    
+    @Override
+    public boolean hayGanador() {return idGanador != null;}
+    
+    @Override
+    public boolean ambosJugadoresListos() {return navesColocadasJugador1 && navesColocadasJugador2;}
+    
+    @Override
+    public EstadoPartida getEstadoPartida() {return estado;}
+    
+    @Override
+    public int getTiempoRestante() {return tiempoRestante;}
     
     /**
      * Inicia el juego una vez que ambos jugadores han colocado sus naves
@@ -175,12 +126,10 @@ public class Partida implements IPartida {
         System.out.println("[PARTIDA] Partida finalizada. Ganador: " + getNombreGanador());
     }
     
-    private IJugador obtenerJugador(String idJugador){return (jugador1.getId().equals(idJugador)) ? jugador1 : jugador2;}
-    
-    private IJugador obtenerJugadorOponente(String idJugador){return (jugador1.getId().equals(idJugador)) ? jugador2 : jugador1;}
-    
     @Override
-    public String getIdJugadorEnTurno() {return idJugadorEnTurno;}
+    public IJugador getJugador(String idJugador){return (jugador1.getId().equals(idJugador)) ? jugador1 : jugador2;}
+    
+    private IJugador getJugadorOponente(String idJugador){return (jugador1.getId().equals(idJugador)) ? jugador2 : jugador1;}
     
     public String getNombreJugadorEnTurno() {
         return (idJugadorEnTurno.equals(jugador1.getId())) ? 
@@ -188,68 +137,100 @@ public class Partida implements IPartida {
                 jugador2.getNombre();
     }
     
-    @Override
-    public String getIdGanador() {return idGanador;}
-    
     public String getNombreGanador() {
         if (idGanador == null)
             return null;
         return idGanador.equals(jugador1.getId()) ? jugador1.getNombre() : jugador2.getNombre();
     }
     
-    public boolean hayGanador() {return idGanador != null;}
+    @Override
+    public boolean verificarJugadorTurno(String idJugador) {return getIdJugadorEnTurno().equals(idJugador);}
     
     @Override
-    public boolean ambosJugadoresListos() {return navesColocadasJugador1 && navesColocadasJugador2;}
-
-    @Override
-    public int getTiempoRestante() {return tiempoRestante;}
+    public boolean validarDisparo(String idJugador, CoordenadaDTO coordenada) throws ModelException {
+        IJugador jugador = getJugador(idJugador);
+        return jugador.validarDisparo(CoordenadaMapper.toEntity(coordenada));
+    }
     
     // EN PROCESO DE ORGANIZACIÓN, POR LO QUE PUEDE CONTENER ERRORES
     @Override
     public synchronized DisparoDTO procesarDisparo(String idJugadorDispara, CoordenadaDTO coordenada) throws ModelException {
-        // Validar que sea el turno del jugador (puede que este se pase al subsistema)
-        if (!idJugadorDispara.equals(idJugadorEnTurno))
-            return null;
         
-        IJugador jugador = obtenerJugadorOponente(idJugadorDispara);
+        /*
+            El subsistema valida el turno del jugador, aunque podría incluirse 
+            para una mayor integrida en caso de reutilización de la clase
+        */
+        IJugador jugador = getJugadorOponente(idJugadorDispara);
         
+        // Coordenadas
         int x = coordenada.getX();
         int y = coordenada.getY();
 
         // Validar coordenadas
-        if (x < 0 || x >= TAMANO_TABLERO || y < 0 || y >= TAMANO_TABLERO)
-            return null;
+        if (x < 0 || x >= TAMANO_TABLERO || y < 0 || y >= TAMANO_TABLERO) return null;
         
+        // DTO con la información del disparo
         DisparoDTO disparo = new DisparoDTO(coordenada, jugador.getNombre());
-        ResultadoDisparo resultadoDisparo;
-        EstadoCasilla estadoCasilla = jugador.recibirDisparo(CoordenadaMapper.toEntity(coordenada));
+        
+        // Mapea la coordenada
+        Coordenada coordenadaImpacto = CoordenadaMapper.toEntity(coordenada);
+        
+        // Ejecuta el disparo en el tablero del oponente
+        EstadoCasilla estadoCasilla = jugador.recibirDisparo(coordenadaImpacto);
+        
+        // Mensaje personalizado con información del resultado
         String mensaje;
+        
+        // Guarda el resultado del disparo
+        ResultadoDisparo resultadoDisparo;
         
         switch(estadoCasilla){
             case IMPACTADA_AVERIADA -> {
+                // Se actualiza el estado del resultado del disparo
                 resultadoDisparo = ResultadoDisparo.IMPACTO_AVERIADA;
-                mensaje = "¡Nave averiada!"; // Después puede que implemente un método para devolver una nave como en la otra clase
+                
+                // Se obtiene la nave impactada
+                Nave naveImpactada = jugador.getTableroNaves().encontrarNaveEnCoordenada(coordenadaImpacto);
+                mensaje = "¡Impacto en " + naveImpactada.getTipo() + "!"; // Después puede que implemente un método para devolver una nave como en la otra clase
+                
             } case IMPACTADA_HUNDIDA -> {
+                // Se actualiza el estado del resultado del disparo
                 resultadoDisparo = ResultadoDisparo.IMPACTO_HUNDIDA;
-                mensaje = "¡Nave hundida!"; // Después puede que implemente un método para devolver una nave como en la otra clase
+                
+                // Se obtiene el tablero de naves del jugador oponente
+                ITableroNaves tableroNaves = jugador.getTableroNaves();
+                
+                // Se obtiene la nave hundida
+                Nave naveHundida = tableroNaves.encontrarNaveEnCoordenada(coordenadaImpacto);
+                mensaje = "¡" + naveHundida.getTipo() + " hundido!"; // Después puede que implemente un método para devolver una nave como en la otra clase
+                
+                // Si todas las naves fueron hundidas, se finaliza la partida
+                if(tableroNaves.todasNavesHundidas())
+                    finalizarPartida(idJugadorDispara);
+                
             } default -> {
+                // Se actualiza el estado del resultado del disparo
                 resultadoDisparo = ResultadoDisparo.AGUA;
+                // Se cambia el turno del jugador
+                cambiarTurno();
+                
                 mensaje = "¡Agua!";
             }
         }
+        // Se agregan al disparo tanto su resultado como el mensaje personalizado
         disparo.setResultado(resultadoDisparo);
         disparo.setMensaje(mensaje);
         
-        // Cambiar turno si es agua
-        if (resultadoDisparo == ResultadoDisparo.AGUA) 
-            cambiarTurno();
-        else 
-            // Reiniciar tiempo pero mantener turno
-            tiempoRestante = TIEMPO_TURNO;
+//        // Cambiar turno si es agua
+//        if (resultadoDisparo == ResultadoDisparo.AGUA) 
+//            cambiarTurno();
+//        else 
+//            // Reiniciar tiempo pero mantener turno
+//            tiempoRestante = TIEMPO_TURNO;
         
         System.out.println("[PARTIDA] Disparo: " + coordenada.toStringCoord() + " - " + resultadoDisparo);
         
+        // Finalmente se regresa el resultado
         return disparo;
     }
 
@@ -266,18 +247,20 @@ public class Partida implements IPartida {
             return false;
         
         if(jugadorNaves.colocarNaves(naves)){
+            // Falta validar si ya están todas las naves colocadas...
             if(esJugador1)
                 navesColocadasJugador1 = true;
             else
                 navesColocadasJugador2 = true;
+            
             System.out.println("[PARTIDA] Naves colocadas para " + jugadorNaves.getNombre());
             
             // Si ambos jugadores han colocado naves, iniciar el juego
-        if (navesColocadasJugador1 && navesColocadasJugador2)
-            iniciarJuego();
-        
-        return true;
-        
+            if (navesColocadasJugador1 && navesColocadasJugador2)
+                iniciarJuego();
+            
+            return true;
+            
         } else
             return false;
     }
@@ -293,12 +276,13 @@ public class Partida implements IPartida {
     }
     
     private void cambiarTurno(){
-        if (idJugadorEnTurno.equals(jugador1.getId())) {
-            idJugadorEnTurno = jugador2.getId();
-        } else {
-            idJugadorEnTurno = jugador1.getId();
-        }
+        
+        idJugadorEnTurno = (idJugadorEnTurno.equals(jugador1.getId())) ? 
+                jugador2.getId() : 
+                jugador1.getId();
+        
         tiempoRestante = TIEMPO_TURNO;
+        
         System.out.println("[PARTIDA] Cambio de turno. Ahora juega: " + getNombreJugadorEnTurno());
     }
     
@@ -351,12 +335,11 @@ public class Partida implements IPartida {
     }
 
     @Override
-    public void limpiarRecursos() {
+    public void liberarRecursos() {
         detenerTemporizador();
         if (timerExecutor != null && !timerExecutor.isShutdown()) {
             timerExecutor.shutdown();
             System.out.println("[PARTIDA] Executor del timer cerrado");
         }
     }
-
 }

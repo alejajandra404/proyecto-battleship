@@ -33,42 +33,33 @@ public class TableroDisparosServidor extends Tablero implements ITableroDisparos
      */
     @Override
     public void añadirDisparo(Disparo disparo) throws ModelException{
-        validarDisparo(disparo);
+        if(disparo == null)
+            throw new ModelException("Disparo inválido");
+        
+        validarDisparo(disparo.obtenerCoordenada());
+        
         this.disparos.add(disparo);
     }
     
-    /**
-     * Valida si ya se ha disparado a una coordenada previamente
-     * @param disparo Disparo a validar
-     * @return true si la coordenada está libre, false si ya fue disparada
-     * @throws ModelException
-     */
     @Override
-    public boolean validarDisparo(Disparo disparo) throws ModelException {
+    public boolean validarDisparo(Coordenada coordenada) throws ModelException {
         // Si el disparo no existe
-        if(disparo == null)
+        if(coordenada == null)
             throw new ModelException("Disparo inválido.");
-        // Si la coordenada del disparo no existe
-        if(disparo.obtenerCoordenada() == null)
-            throw new ModelException("El disparo carece de una coordenada.");
-        // Si el resultado del disparo no existe
-        if(disparo.obtenerResultado() == null)
-            throw new ModelException("El disparo carece de un resultado.");
+        
+        // Si la coordenada está fuera de los límites del tablero
+        if(!super.validarCoordenada(coordenada))
+            throw new ModelException("Coordenada del disparo fuera de los límites del tablero");
+        
         // Verifica las coordenadas de cada disparo
-        for (Disparo d : disparos) {
-            if (d.obtenerCoordenada().equals(disparo.obtenerCoordenada()))
-                throw new ModelException("Ya existe otro disparo con la misma coordenada.");   
-        }
+        for (Disparo d : disparos) 
+            if (d.obtenerCoordenada().equals(coordenada))
+                throw new ModelException("Ya existe otro disparo con la misma coordenada.");
+        
         // Verdadero si pasa todas las validaciones
         return true;
     }
     
-    /**
-     * Verifica si ya se disparó en una coordenada 
-     * 
-     * @param coordenada
-     * @return 
-     */
     @Override
     public boolean yaDisparado(Coordenada coordenada) {
         for (Disparo disparo : disparos) {

@@ -34,18 +34,22 @@ public class NaveMapper {
     
     public static List<Nave> toEntityList(List<NaveDTO> navesDTO) throws ModelException{
         List<Nave> naves = new ArrayList<>();
-        for(NaveDTO naveDTO: navesDTO){
-            Nave nave = toEntity(naveDTO);
-            naves.add(nave);
+        if(navesDTO != null){
+            for(NaveDTO naveDTO: navesDTO){
+                Nave nave = toEntity(naveDTO);
+                naves.add(nave);
+            }
         }
         return naves;
     }
     
     public static List<NaveDTO> toDTOList(List<Nave> naves) throws ModelException{
         List<NaveDTO> navesDTO = new ArrayList<>();
-        for(Nave nave: naves){
-            NaveDTO naveDTO = toDTO(nave);
-            navesDTO.add(naveDTO);
+        if(naves != null){
+            for(Nave nave: naves){
+                NaveDTO naveDTO = toDTO(nave);
+                navesDTO.add(naveDTO);
+            }
         }
         return navesDTO;
     }

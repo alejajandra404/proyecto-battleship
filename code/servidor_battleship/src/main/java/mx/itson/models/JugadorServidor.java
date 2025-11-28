@@ -1,5 +1,6 @@
 package mx.itson.models;
 
+import java.awt.Color;
 import java.util.List;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
@@ -21,7 +22,7 @@ public class JugadorServidor implements IJugador{
     
     private final String idJugador;
     private final String nombre;
-    private String color;
+    private Color color;
     public boolean enPartida;
     private final ITableroNaves tableroNaves;
     private final ITableroDisparos tableroDisparos;
@@ -46,7 +47,7 @@ public class JugadorServidor implements IJugador{
     public String getNombre() {return this.nombre;}
 
     @Override
-    public String getColor() {return this.color;}
+    public Color getColor() {return this.color;}
     
     @Override
     public boolean isEnPartida(){return enPartida;}
@@ -57,7 +58,7 @@ public class JugadorServidor implements IJugador{
     @Override
     public ITableroDisparos getTableroDisparos() {return this.tableroDisparos;}
     
-    public void setColor(String color) {this.color = color;}
+    public void setColor(Color color) {this.color = color;}
 
     public void setEnPartida(boolean enPartida) {this.enPartida = enPartida;}
     
@@ -68,7 +69,7 @@ public class JugadorServidor implements IJugador{
     public EstadoCasilla recibirDisparo(Coordenada coordenada) throws ModelException {return this.tableroNaves.recibirImpacto(coordenada);}
     
     @Override
-    public boolean validarDisparo(Disparo disparo) throws ModelException {return this.tableroDisparos.validarDisparo(disparo);}
+    public boolean validarDisparo(Coordenada coordenada) throws ModelException {return this.tableroDisparos.validarDisparo(coordenada);}
 
     @Override
     public boolean añadirNave(Nave nave) throws ModelException {return this.tableroNaves.añadirNave(nave);}

@@ -16,8 +16,7 @@ public class TableroFactory {
         return new TableroDisparosServidor(tamanio);
     }
     
-    public static ITableroNaves crearTableroNaves(int tamanio) throws ModelException{
-        return new TableroNavesServidor(tamanio);
+    public static ITableroNaves crearTableroNaves(int tamanio, int totalNaves) throws ModelException{
+        return new TableroNavesServidor(tamanio, totalNaves);
     }
-    
 }

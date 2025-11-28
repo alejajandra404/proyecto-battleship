@@ -28,17 +28,15 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     
     private Set<Nave> naves;
     private final Casilla[][] casillas;
+    private int navesHundidas;
+    private final int totalNaves;
     
-    public TableroNavesServidor(int tamanio) throws ModelException {
+    public TableroNavesServidor(int tamanio, int totalNaves) throws ModelException {
         super(tamanio);
+        this.totalNaves = totalNaves;
         this.casillas = new Casilla[tamanio][tamanio];
         this.naves = new HashSet<>();
-    }
-    
-    public TableroNavesServidor(int tamanio, Set<Nave> naves) throws ModelException {
-        super(tamanio);
-        this.naves = naves;
-        this.casillas = new Casilla[tamanio][tamanio];
+        inicializarCasillas();
     }
     
     @Override
@@ -78,6 +76,7 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
         
         // Obtiene las coordenadas de la nave a eliminar
         Coordenada[] coordenadasNave = nave.obtenerCoordenadas();
+        
         // Recorre cada nave del conjunto de naves del tablero
         for(Nave naveActual: naves){
             // Guarda si la nave actual del conjunto de naves es igual a la nave recibida
@@ -118,15 +117,16 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
                 // Agrega la nave a la lista de naves agregadas
                 navesAgregadas.add(nave);
             }
+            
             return true;
             
         } catch (ModelException e) {
             // Si la lista de naves agregadas no está vacía
-            if(!navesAgregadas.isEmpty()){
+            if(!navesAgregadas.isEmpty())
                 // Elimina cada nave agregada del tablero
                 for(Nave naveAgregada : navesAgregadas)
                     eliminarNave(naveAgregada);
-            }
+            
             throw new ModelException("No se pudieron agregar todas las naves al tablero. Verifique la posición de cada una.");
         }
     }
@@ -152,6 +152,15 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
 //
 //        return true;
 //    }
+    
+    @Override
+    public Nave encontrarNaveEnCoordenada(Coordenada coordenada){
+        for (Nave nave : naves) 
+            for (Coordenada coord : nave.obtenerCoordenadas()) 
+                if (coord.equals(coordenada)) 
+                    return nave;
+        return null;
+    }
     
     @Override
     public EstadoCasilla recibirImpacto(Coordenada coordenada) throws ModelException {
@@ -181,6 +190,8 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
                             casillaActual.marcarImpactoHundida();
                         }
                     }
+                    // Incrementa contador de naves hundidas
+                    navesHundidas++;
                     // Se regresa el estado IMPACTADA_HUNDIDA
                     return EstadoCasilla.IMPACTADA_HUNDIDA;
                 // Si la nave solo fue averiada, se actualiza el estado de la casilla como IMPACTADA_AVERIADA
@@ -201,12 +212,10 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     /**
      * Inicializa la matriz de casillas vacías 
      */
-    public void inicializarCasillas() {
-        for (int i = 0; i < getTamanio(); i++) {
-            for (int j = 0; j < getTamanio(); j++) {
+    private void inicializarCasillas() {
+        for (int i = 0; i < getTamanio(); i++) 
+            for (int j = 0; j < getTamanio(); j++) 
                 casillas[i][j] = new Casilla(new Coordenada(i, j));
-            }
-        }
     }
     
     /**
@@ -262,5 +271,29 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     }
     
     @Override
-    public boolean navesColocadas(){return naves.size() == tamanio;}
+    public boolean navesColocadas(){return naves.size() == totalNaves;}
+
+    @Override
+    public int getNavesHundidas() {return navesHundidas;}
+
+    @Override
+    public List<Nave> getNaves() {
+        if(!naves.isEmpty()){
+            List<Nave> navesLista = new ArrayList<>();
+            naves.forEach(nave -> {
+                navesLista.add(nave);
+            });
+            return navesLista;
+        } else
+            return null;
+    }
+
+    @Override
+    public Casilla[][] getCasillas() {return casillas;}
+
+    @Override
+    public int getTotalNaves() {return totalNaves;}
+
+    @Override
+    public boolean todasNavesHundidas() {return totalNaves > 0 && navesHundidas >= totalNaves;}
 }

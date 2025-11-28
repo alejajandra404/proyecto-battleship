@@ -1,5 +1,6 @@
 package mx.itson.models;
 
+import java.awt.Color;
 import java.util.List;
 import mx.itson.utils.enums.EstadoCasilla;
 import mx.itson.exceptions.ModelException;
@@ -34,7 +35,7 @@ public interface IJugador {
      * 
      * @return 
      */
-    public String getColor();
+    public Color getColor();
     
     /**
      * 
@@ -73,11 +74,11 @@ public interface IJugador {
     /**
      * Valida si un disparo en una coordenada es válido (por ejemplo, si no se ha
      * disparado antes en esa misma casilla)
-     * @param disparo Disparo a validar.
+     * @param coordenada
      * @return true si el disparo es válido, false en caso contrario
      * @throws ModelException
      */
-    public boolean validarDisparo(Disparo disparo) throws ModelException;
+    public boolean validarDisparo(Coordenada coordenada) throws ModelException;
     
     /**
      * 

@@ -45,6 +45,13 @@ public interface ITableroNaves {
     /**
      * 
      * @param coordenada
+     * @return 
+     */
+    public Nave encontrarNaveEnCoordenada(Coordenada coordenada);
+    
+    /**
+     * 
+     * @param coordenada
      * @return
      * @throws ModelException 
      */
@@ -55,4 +62,34 @@ public interface ITableroNaves {
      * @return 
      */
     public boolean navesColocadas();
+    
+    /**
+     * 
+     * @return 
+     */
+    public int getNavesHundidas();
+    
+    /**
+     * 
+     * @return 
+     */
+    public List<Nave> getNaves();
+    
+    /**
+     * 
+     * @return 
+     */
+    public Casilla[][] getCasillas();
+    
+    /**
+     * 
+     * @return 
+     */
+    public int getTotalNaves();
+    
+    /**
+     * 
+     * @return 
+     */
+    public boolean todasNavesHundidas();
 }

@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.dtos.CoordenadaDTO;
 import mx.itson.utils.dtos.DisparoDTO;
-import mx.itson.utils.dtos.NaveDTO;
+import mx.itson.utils.enums.EstadoPartida;
 
 /**
  *
@@ -27,6 +27,13 @@ public interface IPartida {
      * @return 
      */
     public String getIdPartida();
+    
+    /**
+     * 
+     * @param idJugador
+     * @return 
+     */
+    public IJugador getJugador(String idJugador);
     
     /**
      * 
@@ -56,6 +63,12 @@ public interface IPartida {
      * 
      * @return 
      */
+    public boolean hayGanador();
+    
+    /**
+     * 
+     * @return 
+     */
     public boolean ambosJugadoresListos();
     
     /**
@@ -68,7 +81,23 @@ public interface IPartida {
      * 
      * @return 
      */
-//    public String getIdGanador();
+    public EstadoPartida getEstadoPartida();
+    
+    /**
+     * 
+     * @param idJugador
+     * @return 
+     */
+    public boolean verificarJugadorTurno(String idJugador);
+    
+    /**
+     * 
+     * @param idJugador
+     * @param coordenada
+     * @return 
+     * @throws mx.itson.exceptions.ModelException 
+     */
+    public boolean validarDisparo(String idJugador, CoordenadaDTO coordenada) throws ModelException;
     
     /**
      * 
@@ -130,5 +159,5 @@ public interface IPartida {
     /**
      * 
      */
-    public void limpiarRecursos();
+    public void liberarRecursos();
 }
