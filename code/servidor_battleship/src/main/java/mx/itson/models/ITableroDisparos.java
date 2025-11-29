@@ -25,11 +25,11 @@ public interface ITableroDisparos {
     
     /**
      * 
-     * @param disparo
+     * @param coordenada
      * @return
      * @throws ModelException 
      */
-    public boolean validarDisparo(Disparo disparo) throws ModelException;
+    public boolean validarDisparo(Coordenada coordenada) throws ModelException;
     
     /**
      * 

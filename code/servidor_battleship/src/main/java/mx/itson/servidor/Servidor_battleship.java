@@ -1,6 +1,8 @@
 package mx.itson.servidor;
 
 import java.util.Scanner;
+import mx.itson.factory.GestorPartidasFactory;
+import mx.itson.subsistema_gestor_partidas.IGestorPartidas;
 
 /**
  * Clase principal del Servidor Battleship
@@ -17,7 +19,7 @@ public class Servidor_battleship {
     private static ServidorDescubrimiento servidorDiscovery;
     private static ServidorTCP servidorTCP;
     private static GestorJugadores gestorJugadores;
-    private static GestorPartidas gestorPartidas;
+    private static IGestorPartidas gestorPartidas;
 
     public static void main(String[] args) {
         System.out.println("═══════════════════════════════════════════════════");
@@ -46,7 +48,7 @@ public class Servidor_battleship {
         System.out.println("[SERVIDOR] ✓ Gestor de jugadores creado");
 
         // 2. Crear gestor de partidas
-        gestorPartidas = new GestorPartidas();
+        gestorPartidas = GestorPartidasFactory.crearGestorPartidas();
         System.out.println("[SERVIDOR] ✓ Gestor de partidas creado");
 
         // 3. Iniciar servidor UDP de descubrimiento
