@@ -39,10 +39,15 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     private JTextArea txtLog;
     private JButton[][] botonesTableroPropio;
     private JButton[][] botonesTableroOponente;
+    private JButton btnAbandonar;
     
     //Paneles contenedores de los tableros
     private PanelTableroConImagenes panelTableroPropio; 
     private JPanel panelTableroOponente;
+    private JPanel panelMarcador;
+    
+    //Lista de componentes visuales para el marcador
+    private List<PanelEstadoNave> listaPanelesEstado = new ArrayList<>();
 
     private static final int TAMANO_TABLERO = 10;
     private static final int TAMANO_CASILLA = 40;
@@ -56,6 +61,11 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     private static final Color COLOR_HUNDIDO = new Color(245, 132, 132);
     private static final Color COLOR_FALLO = new Color(255, 255, 255, 100);
 
+    //Colores para el marcador
+    private static final Color ESTADO_INTACTO = new Color(50, 205, 50);
+    private static final Color ESTADO_AVERIADO = new Color(255, 215, 0);
+    private static final Color ESTADO_HUNDIDO = new Color(220, 20, 60);
+    
     private boolean miTurno = false;
     
     // Imágenes
@@ -163,6 +173,85 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         return rotada;
     }
 
+    // --- CLASE INTERNA: PANEL INDIVIDUAL PARA CADA NAVE EN EL MARCADOR ---
+    private class PanelEstadoNave extends JPanel {
+        private NaveDTO naveRef;
+        private BufferedImage imagen;
+        private Color colorEstado = ESTADO_INTACTO; // Empieza Verde
+
+        public PanelEstadoNave(NaveDTO nave) {
+            this.naveRef = nave;
+            
+            // Buscar imagen horizontal
+            String claveTipo = "";
+            switch(nave.getTipo()) {
+                case PORTAAVIONES: claveTipo = "portaaviones"; break;
+                case CRUCERO: claveTipo = "crucero"; break;
+                case SUBMARINO: claveTipo = "submarino"; break;
+                case BARCO: claveTipo = "barco"; break;
+            }
+            this.imagen = cacheImagenes.get(claveTipo + "_H");
+
+            // Tamaño ajustado: Ancho según nave (escalado a 20px por celda para que quepa) + margen
+            int ancho = (nave.getLongitudTotal() * 25) + 10; 
+            setPreferredSize(new Dimension(ancho, 50));
+            setOpaque(false);
+        }
+
+        // Método para verificar salud de la nave revisando el tablero
+        public void actualizarEstado(TableroDTO tablero) {
+            if (tablero == null) return;
+
+            int casillasDañadas = 0;
+            int casillasHundidas = 0;
+            int longitud = naveRef.getLongitudTotal();
+
+            // Revisamos cada coordenada de esta nave en el tablero actual
+            for (CoordenadaDTO coord : naveRef.getCoordenadas()) {
+                EstadoCasilla estado = tablero.getCasillas()[coord.getX()][coord.getY()];
+                if (estado == EstadoCasilla.IMPACTADA_AVERIADA) casillasDañadas++;
+                if (estado == EstadoCasilla.IMPACTADA_HUNDIDA) casillasHundidas++;
+            }
+
+            if (casillasHundidas > 0 || (casillasDañadas + casillasHundidas) == longitud) {
+                colorEstado = ESTADO_HUNDIDO; // Rojo
+            } else if (casillasDañadas > 0) {
+                colorEstado = ESTADO_AVERIADO; // Amarillo
+            } else {
+                colorEstado = ESTADO_INTACTO; // Verde
+            }
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // 1. Dibujar imagen de la nave (escalada un poco más pequeña para el marcador)
+            if (imagen != null) {
+                int anchoImg = naveRef.getLongitudTotal() * 25;
+                int altoImg = 25;
+                // Centrar horizontalmente
+                int x = (getWidth() - anchoImg) / 2;
+                g2d.drawImage(imagen, x, 5, anchoImg, altoImg, this);
+            }
+
+            // 2. Dibujar Círculo de Estado debajo
+            int diametro = 12;
+            int circuloX = (getWidth() - diametro) / 2;
+            int circuloY = 35; // Debajo de la imagen
+
+            g2d.setColor(colorEstado);
+            g2d.fillOval(circuloX, circuloY, diametro, diametro);
+            
+            // Borde del círculo
+            g2d.setColor(Color.DARK_GRAY);
+            g2d.drawOval(circuloX, circuloY, diametro, diametro);
+        }
+    }
+    
     /**
      * Panel personalizado que gestiona las "capas" es decir 
      * que imagen va encima de cual
@@ -282,7 +371,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         JPanel contenedorPropio = new JPanel(new BorderLayout());
         contenedorPropio.setOpaque(false);
         contenedorPropio.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Tu Tablero"),
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Tu Tablero - " + jugadorLocal.getNombre()),
             BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2)));
 
         // Panel personalizado
@@ -306,6 +395,24 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         panelTableros.add(contenedorPropio);
         panelTableros.add(contenedorOponente);
 
+        // Panel del marcador
+        JPanel panelDerecho = new JPanel(new BorderLayout(0, 10));
+        panelDerecho.setOpaque(false);
+        panelDerecho.setPreferredSize(new Dimension(200, 0));
+        panelMarcador = crearPanelMarcador();
+        panelDerecho.add(panelMarcador, BorderLayout.CENTER);
+
+        // Botón Abandonar (Estilo Rojo)
+        btnAbandonar = new JButton("Abandonar Partida");
+        btnAbandonar.setFont(new Font("Arial", Font.BOLD, 14));
+        btnAbandonar.setBackground(new Color(220, 20, 60));
+        btnAbandonar.setForeground(Color.WHITE);
+        btnAbandonar.setFocusPainted(false);
+        btnAbandonar.setPreferredSize(new Dimension(0, 40));
+        btnAbandonar.addActionListener(e -> abandonarPartida());
+        
+        panelDerecho.add(btnAbandonar, BorderLayout.SOUTH);
+        
         txtLog = new JTextArea(8, 60);
         txtLog.setEditable(false);
         txtLog.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -316,7 +423,93 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
 
         add(panelSuperior, BorderLayout.NORTH);
         add(panelTableros, BorderLayout.CENTER);
+        add(panelDerecho, BorderLayout.EAST);
         add(scrollLog, BorderLayout.SOUTH);
+    }
+    
+    /**
+     * Método que crea el panel lateral con el estado de las naves
+     */
+    private JPanel crearPanelMarcador() {
+        JPanel panel = new JPanel();
+        // Usar un GridLayout de 2 columnas para acomodar las imágenes de las naves y sus estados
+        panel.setLayout(new GridLayout(0, 2, 5, 5)); 
+        panel.setBorder(BorderFactory.createTitledBorder("Marcador de tu Flota"));
+        panel.setBackground(new Color(240, 248, 255));
+        
+        listaPanelesEstado.clear();
+
+        if (misNaves != null) {
+            // Separé naves por su tipo
+            List<NaveDTO> portaavioness = new ArrayList<>();
+            List<NaveDTO> cruceros = new ArrayList<>();
+            List<NaveDTO> submarinos = new ArrayList<>();
+            List<NaveDTO> barcos = new ArrayList<>();
+
+            for (NaveDTO nave : misNaves) {
+                switch(nave.getTipo()) {
+                    case PORTAAVIONES: portaavioness.add(nave); break;
+                    case CRUCERO:      cruceros.add(nave); break;
+                    case SUBMARINO:    submarinos.add(nave); break;
+                    case BARCO:        barcos.add(nave); break;
+                }
+            }
+
+            // Agregar en orden cada nave
+            
+            // Fila 1: Portaaviones - Crucero
+            agregarAlMarcador(panel, obtenerNave(portaavioness, 0));
+            agregarAlMarcador(panel, obtenerNave(cruceros, 0));
+            
+            // Fila 2: Portaaviones - Crucero
+            agregarAlMarcador(panel, obtenerNave(portaavioness, 1));
+            agregarAlMarcador(panel, obtenerNave(cruceros, 1));
+            
+            // Fila 3: Submarino - Submarino 
+            agregarAlMarcador(panel, obtenerNave(submarinos, 0));
+            agregarAlMarcador(panel, obtenerNave(submarinos, 1));
+            
+            // Fila 4: Submarino - Submarino
+            agregarAlMarcador(panel, obtenerNave(submarinos, 2));
+            agregarAlMarcador(panel, obtenerNave(submarinos, 3));
+            
+            // Fila 5: Barco - Barco
+            agregarAlMarcador(panel, obtenerNave(barcos, 0));
+            agregarAlMarcador(panel, obtenerNave(barcos, 1));
+            
+            // Fila 6: Barco 3 - Nada jaja
+            agregarAlMarcador(panel, obtenerNave(barcos, 2));
+        }
+        return panel;
+    }
+
+    // Método auxiliar que obtiene las naves de la lista de navesDTO
+    private NaveDTO obtenerNave(List<NaveDTO> lista, int indice) {
+        if (indice < lista.size()) {
+            return lista.get(indice);
+        }
+        return null;
+    }
+
+    // Método auxiliar para crear el panel del marcador y agregarlo a la vista
+    private void agregarAlMarcador(JPanel panelContenedor, NaveDTO nave) {
+        if (nave != null) {
+            PanelEstadoNave pEstado = new PanelEstadoNave(nave);
+            listaPanelesEstado.add(pEstado);
+            panelContenedor.add(pEstado);
+        } else {
+            // Si no hay naves se agrega un espacio vacío transparente para que no haya problemas con el acomodo del grid
+            JPanel hueco = new JPanel();
+            hueco.setOpaque(false);
+            panelContenedor.add(hueco);
+        }
+    }
+    
+    /**
+     * TODO Método para abandonar partida 
+     */
+    private void abandonarPartida(){
+        
     }
     
     /**
@@ -441,6 +634,11 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
                     }
                 }
                 if (panelTableroPropio != null) panelTableroPropio.repaint();
+                
+                //Actualizar el marcador
+                for (PanelEstadoNave pEstado : listaPanelesEstado) {
+                    pEstado.actualizarEstado(miTablero);
+                }
             }
 
             // Tablero del oponente
