@@ -608,11 +608,11 @@ public class ManejadorCliente implements Runnable {
                 ? partida.getJugador2() : partida.getJugador1();
             
             // --- INICIO: GENERAR ESTADÍSTICAS ---
-            //Solucionar Casteo
+            //Solucionar Casteo || SI FUNCIONA || pero hay que quitarlo
             IJugador objJugador1 = (IJugador) partida.getJugador1();
             IJugador objJugador2 = (IJugador) partida.getJugador2();
 
-            // 2. Identificar quién es el ganador y quién el perdedor en los objetos Modelo
+            //Identificar quién es el ganador y quién el perdedor en los objetos Modelo
             IJugador ganadorModel = null;
             IJugador perdedorModel = null;
 
@@ -626,6 +626,10 @@ public class ManejadorCliente implements Runnable {
             
             EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, 5);
             EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, 0);
+            
+            List<EstadisticaDTO> reporteFinal = new ArrayList<>();
+            reporteFinal.add(statsGanador);
+            reporteFinal.add(statsPerdedor);
             
             // Notificar al ganador
             ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());

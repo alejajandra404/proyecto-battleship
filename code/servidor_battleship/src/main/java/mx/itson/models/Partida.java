@@ -4,6 +4,7 @@ import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
 import mx.itson.utils.enums.EstadoPartida;
 import mx.itson.utils.enums.ResultadoDisparo;
+import mx.itson.utils.dtos.JugadorDTO;
 
 /**
  *
@@ -25,6 +26,7 @@ public class Partida implements IPartida {
     private final IJugador jugador1;
     private final IJugador jugador2;
     private IJugador ganador;
+    private String idPartida;
     
     /**
      * Constructor para iniciar una nueva partida
@@ -48,6 +50,7 @@ public class Partida implements IPartida {
         this.jugador2 = jugador2;
         this.ganador = ganador;
         this.estado = EstadoPartida.EN_CURSO;
+        this.idPartida = jugador1.getId() + "-" + jugador2.getId();
     }
     
     public IJugador getJugador1() {return jugador1;}
@@ -131,5 +134,15 @@ public class Partida implements IPartida {
     @Override
     public void quitarNave(Coordenada[] coordenadas, IJugador jugador) throws ModelException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
+    public IJugador getJugadorModeloPorId(String idBusqueda) {
+        if (this.jugador1.getId().equals(idBusqueda)) {
+            return this.jugador1;
+        }
+        if (this.jugador2.getId().equals(idBusqueda)) {
+            return this.jugador2;
+        }
+        return null;
     }
 }
