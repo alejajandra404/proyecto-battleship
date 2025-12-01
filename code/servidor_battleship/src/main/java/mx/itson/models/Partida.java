@@ -160,7 +160,7 @@ public class Partida implements IPartida {
             para una mayor integrida en caso de reutilización de la clase
         */
         IJugador jugador = getJugadorOponente(idJugadorDispara);
-        
+                
         // Coordenadas
         int x = coordenada.getX();
         int y = coordenada.getY();
@@ -364,5 +364,15 @@ public class Partida implements IPartida {
             timerExecutor.shutdown();
             System.out.println("[PARTIDA] Executor del timer cerrado");
         }
+    }
+    
+    public IJugador getJugadorModeloPorId(String idBusqueda) {
+        if (this.jugador1.getId().equals(idBusqueda)) {
+            return this.jugador1;
+        }
+        if (this.jugador2.getId().equals(idBusqueda)) {
+            return this.jugador2;
+        }
+        return null;
     }
 }

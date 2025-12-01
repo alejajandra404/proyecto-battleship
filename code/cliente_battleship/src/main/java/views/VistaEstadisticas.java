@@ -74,12 +74,8 @@ public class VistaEstadisticas extends JPanel{
         }
 
         lblDisparosTotales.setText("Disparos Totales: " + stats.getTotalDisparos());
-        lblAciertos.setText("Aciertos: " + stats.getAciertos());
-        
-        // Formatear la precisión a 2 decimales
-        String precisionStr = String.format("%.2f", stats.getPorcentajePrecision());
-        lblPrecision.setText("Precisión: " + precisionStr + "%");
-        
+        lblAciertos.setText("Aciertos Totales: " + stats.getAciertos());
         lblBarcosHundidos.setText("Barcos Hundidos: " + stats.getBarcosHundidos());
+        lblPrecision.setText("Precisión: " + stats.getPorcentajePrecision() + "%");
     }
 }

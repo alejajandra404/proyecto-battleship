@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author Usuario
+ * @author Jesús Ernesto López Ibarra - 252663
  */
 public class EstadisticaDTO implements Serializable {
     
@@ -15,15 +15,15 @@ public class EstadisticaDTO implements Serializable {
     private int barcosHundidos;
     private double porcentajePrecision;
     
-    public EstadisticaDTO(String nombreJugador, boolean esGanador, int totalDisparos, int aciertos, int barcosHundidos) {
+    public EstadisticaDTO(String nombreJugador, boolean esGanador, int totalDisparos, int aciertos ,int barcosHundidos) {
         this.nombreJugador = nombreJugador;
         this.esGanador = esGanador;
-        this.totalDisparos = totalDisparos;
         this.aciertos = aciertos;
+        this.totalDisparos = totalDisparos;
         this.barcosHundidos = barcosHundidos;
         
         if (totalDisparos > 0) {
-            this.porcentajePrecision = (double) aciertos / totalDisparos * 100.0;
+            this.porcentajePrecision = (double) barcosHundidos / totalDisparos * 100.0;
         } else {
             this.porcentajePrecision = 0.0;
         }

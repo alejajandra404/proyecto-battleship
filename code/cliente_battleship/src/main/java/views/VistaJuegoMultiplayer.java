@@ -173,7 +173,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         g2d.dispose();
         return rotada;
     }
-
+    
     // --- CLASE INTERNA: PANEL INDIVIDUAL PARA CADA NAVE EN EL MARCADOR ---
     private class PanelEstadoNave extends JPanel {
         private NaveDTO naveRef;
@@ -513,13 +513,6 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     }
     
     /**
-     * TODO Método para abandonar partida 
-     */
-    private void abandonarPartida(){
-        
-    }
-    
-    /**
      * Método que crea la matriz de botones para los tableros
      * @param panel Panel contenedor
      * @param esOponente
@@ -777,13 +770,102 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             JOptionPane.showMessageDialog(this, error);
         });
     }
-
+    
     @Override
-    public void partidaFinalizada(boolean gane, JugadorDTO ganador) {
-        JOptionPane.showMessageDialog(this, gane ? "¡GANASTE!" : "PERDISTE");
-        FlujoVista.mostrarListaJugadores(
-            controlador.getServicioConexion(),
-            controlador.getJugadorLocal()
-        );
+    public void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas) {
+        SwingUtilities.invokeLater(() -> {
+            
+            // --- CORRECCIÓN: Variable auxiliar interna ---
+            // Copiamos el parámetro a una variable local que SÍ podemos modificar dentro de la lambda
+            EstadisticaDTO statsFinales = misEstadisticas;
+            // ---------------------------------------------
+
+            String titulo = gane ? "¡VICTORIA!" : "DERROTA";
+            String mensaje = gane ?
+                    "¡Felicidades! Has ganado la partida contra " + oponente.getNombre() :
+                    "Has perdido contra " + ganador.getNombre() + ". ¡Mejor suerte la próxima vez!";
+
+            log("========================================");
+            log(titulo);
+            log(mensaje);
+            log("========================================");
+
+            // Deshabilitar botones
+            for (int i = 0; i < TAMANO_TABLERO; i++) {
+                for (int j = 0; j < TAMANO_TABLERO; j++) {
+                    botonesTableroOponente[i][j].setEnabled(false);
+                }
+            }
+
+            lblTurno.setText("PARTIDA FINALIZADA - " + titulo);
+            lblTurno.setForeground(gane ? new Color(0, 128, 0) : Color.RED);
+            
+            JOptionPane.showMessageDialog(null, 
+                mensaje,
+                titulo, 
+                gane ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+            
+            log("Partida finalizada. Intentando mostrar Estadísticas...");
+
+            //DIAGNÓSTICO *sonidos de ambulancia*
+            System.out.println("[DEBUG VISTA] Preparando cambio de pantalla...");
+            
+            if (controlador == null) {
+                System.err.println("[ERROR CRÍTICO] El controlador es NULL.");
+            }
+            
+            // Usamos 'statsFinales' en lugar de 'misEstadisticas'
+            if (statsFinales == null) {
+                System.err.println("[ERROR CRÍTICO] Las estadísticas llegaron NULL.");
+                System.err.println("[DEBUG] Nombre esperado (Local): " + jugadorLocal.getNombre());
+                
+                // AQUÍ YA NO DARÁ ERROR, porque modificamos la variable local
+                statsFinales = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 0, 0, 0); 
+            } else {
+                System.out.println("[DEBUG] Stats válidas. Disparos: " + statsFinales.getTotalDisparos());
+            }
+
+            try {
+                // Pasamos la variable corregida
+                FlujoVista.mostrarEstadisticas(controlador, statsFinales);
+                System.out.println("[DEBUG] Cambio de vista solicitado exitosamente.");
+            } catch (Exception e) {
+                System.err.println("[ERROR FATAL] Explotó al crear VistaEstadisticas:");
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error al abrir estadísticas: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Método para abandonar partida / rendirse
+     */
+    private void abandonarPartida(){
+        SwingUtilities.invokeLater(() -> {
+            String titulo = "Partida Cancelada";
+            String mensaje = "Un jugador se ha rendido, por lo que la partída ha terminado.";
+
+            log("========================================");
+            log(titulo);
+            log(mensaje);
+            log("========================================");
+
+            // Deshabilitar todos los botones
+                for (int i = 0; i < TAMANO_TABLERO; i++) {
+                    for (int j = 0; j < TAMANO_TABLERO; j++) {
+                        botonesTableroOponente[i][j].setEnabled(false);
+                    }
+                }
+
+            lblTurno.setText("PARTIDA FINALIZADA - " + titulo);
+            JOptionPane.showMessageDialog(null, 
+                mensaje,
+                titulo, 
+                JOptionPane.INFORMATION_MESSAGE);
+            log("Partida finalizada. Mostrando Estadísticas...");
+            //Desde la pantalla de las estadísticas se va a la lista de los jugadores
+            FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
+                controlador.getJugadorLocal());;
+        });
     }
 }

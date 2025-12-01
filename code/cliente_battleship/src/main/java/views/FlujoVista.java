@@ -152,6 +152,8 @@ public class FlujoVista {
 
     /**
      * Muestra la vista de las estadísticas de la partida
+     * @param controlador
+     * @param misEstadisticas
      * @param stats 
      */
     public static void mostrarEstadisticas(ControladorJuego controlador, EstadisticaDTO misEstadisticas) {

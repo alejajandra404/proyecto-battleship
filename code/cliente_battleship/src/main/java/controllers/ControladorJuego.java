@@ -341,11 +341,11 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
             case PARTIDA_GANADA:
             case PARTIDA_PERDIDA:
                 Object datosRecibidos = mensaje.getDatos();
-
+                EstadisticaDTO misStats = null;
+                
                 if (datosRecibidos instanceof List) {
                     List<EstadisticaDTO> listaStats = (List<EstadisticaDTO>) datosRecibidos;
 
-                    EstadisticaDTO misStats = null;
                     for (EstadisticaDTO s : listaStats) {
                         if (s.getNombreJugador().equals(jugadorLocal.getNombre())) {
                             misStats = s;
@@ -361,14 +361,16 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                     }
 
                 } else if (datosRecibidos instanceof JugadorDTO) {
-                    System.err.println("ERROR CRÍTICO: El servidor envió un JugadorDTO en lugar de las Estadísticas.");
+                    System.err.println("ERROR CRÍTICO: El servidor envió un JugadorDTO "
+                            + "en lugar de las Estadísticas.");
                     System.err.println("Por favor actualiza el código del Servidor.");
 
                     boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
-                    EstadisticaDTO statsFake = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 0, 0, 0);
+                    EstadisticaDTO statsF = new EstadisticaDTO(
+                            jugadorLocal.getNombre(), gane, 0, 0,0);
 
                     if (vistaJuego != null) {
-                        vistaJuego.partidaFinalizada(gane, (JugadorDTO)datosRecibidos, statsFake);
+                        vistaJuego.partidaFinalizada(gane, (JugadorDTO) datosRecibidos, statsF);
                     }
                 }
                 break;

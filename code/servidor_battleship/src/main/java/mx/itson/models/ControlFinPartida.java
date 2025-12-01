@@ -1,7 +1,7 @@
 package mx.itson.models;
 
 import mx.itson.servidor.GestorJugadores;
-import mx.itson.servidor.GestorPartidas;
+import mx.itson.subsistema_gestor_partidas.GestorPartidas;
 import mx.itson.utils.enums.EstadoPartida;
 
 /**
@@ -41,7 +41,7 @@ public class ControlFinPartida {
     public void desconexionJugador(IJugador jugador, Partida partida) {
         System.out.println("CONTROL (Servidor): Jugador desconectado.");
 
-        if (partida.getEstado() == EstadoPartida.FINALIZADA) {
+        if (partida.getEstadoPartida()== EstadoPartida.FINALIZADA) {
             return;
         }
 
