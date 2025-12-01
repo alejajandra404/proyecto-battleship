@@ -36,6 +36,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     // Componentes UI
     private JLabel lblTitulo;
     private JLabel lblTurno;
+    private JLabel lblTiempo;
     private JTextArea txtLog;
     private JButton[][] botonesTableroPropio;
     private JButton[][] botonesTableroOponente;
@@ -361,8 +362,14 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         lblTurno = new JLabel("Esperando turno...", SwingConstants.CENTER);
         lblTurno.setFont(new Font("Arial", Font.BOLD, 16));
         lblTurno.setForeground(Color.DARK_GRAY);
+
+        lblTiempo = new JLabel("⏱️ Tiempo: 30s", SwingConstants.CENTER);
+        lblTiempo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTiempo.setForeground(new Color(0, 150, 0));
+
         panelSuperior.add(lblTitulo);
         panelSuperior.add(lblTurno);
+        panelSuperior.add(lblTiempo);
 
         JPanel panelTableros = new JPanel(new GridLayout(1, 2, 20, 0));
         panelTableros.setOpaque(false);
@@ -729,6 +736,8 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
                 lblTurno.setForeground(Color.GRAY);
                 bloquearOponente(true);
             }
+            // Resetear el label del tiempo cuando cambia el turno
+            actualizarTiempoTurno(30);
         });
     }
     
@@ -741,6 +750,22 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
                 }
             }
         }
+    }
+
+    @Override
+    public void actualizarTiempoTurno(int tiempoRestante) {
+        SwingUtilities.invokeLater(() -> {
+            lblTiempo.setText("⏱️ Tiempo: " + tiempoRestante + "s");
+
+            // Cambiar color según el tiempo restante
+            if (tiempoRestante <= 10) {
+                lblTiempo.setForeground(Color.RED);
+            } else if (tiempoRestante <= 20) {
+                lblTiempo.setForeground(new Color(255, 165, 0)); // Naranja
+            } else {
+                lblTiempo.setForeground(new Color(0, 150, 0)); // Verde
+            }
+        });
     }
 
     @Override public void mostrarMensaje(String mensaje) { log("INFO: " + mensaje); }

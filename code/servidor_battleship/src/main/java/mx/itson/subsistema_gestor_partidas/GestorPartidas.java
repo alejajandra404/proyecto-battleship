@@ -178,7 +178,13 @@ public class GestorPartidas implements IGestorPartidas{
     @Override
     public void establecerRespuestaTiempoAgotado(String idPartida, Consumer<String> callback){
         IPartida partida = partidas.get(idPartida);
-        if(partida != null) partida.establecerRespuestaTiempoAgotado(callback); 
+        if(partida != null) partida.establecerRespuestaTiempoAgotado(callback);
+    }
+
+    @Override
+    public void establecerCallbackActualizacionTiempo(String idPartida, Consumer<Integer> callback){
+        IPartida partida = partidas.get(idPartida);
+        if(partida != null) partida.establecerCallbackActualizacionTiempo(callback);
     }
 
     @Override

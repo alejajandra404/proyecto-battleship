@@ -62,6 +62,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
         void actualizarTableros(TableroDTO miTablero, TableroDTO tableroOponente);
         void mostrarResultadoDisparo(DisparoDTO disparo);
         void actualizarTurno(boolean miTurno, JugadorDTO jugadorEnTurno);
+        void actualizarTiempoTurno(int tiempoRestante);
         void mostrarMensaje(String mensaje);
         void mostrarError(String error);
         void partidaFinalizada(boolean gane, JugadorDTO ganador);
@@ -263,6 +264,14 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                 System.out.println("[CONTROLADOR_JUEGO] Timeout de turno: " + mensaje.getContenido());
                 if (vistaJuego != null) {
                     vistaJuego.mostrarMensaje("⏱️ " + mensaje.getContenido());
+                }
+                break;
+
+            case ACTUALIZAR_TIEMPO_TURNO:
+                Integer tiempoRestante = (Integer) mensaje.getDatos();
+                System.out.println("[CONTROLADOR_JUEGO] Actualización tiempo: " + tiempoRestante + "s");
+                if (vistaJuego != null) {
+                    vistaJuego.actualizarTiempoTurno(tiempoRestante);
                 }
                 break;
 

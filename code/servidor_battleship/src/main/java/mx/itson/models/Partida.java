@@ -45,8 +45,7 @@ public class Partida implements IPartida {
     // Control de turno
     private String idJugadorEnTurno;
     private int tiempoRestante;
-    private EstadoPartida estadoPartida;
-    
+
     // Ganador
     private String idGanador;
 
@@ -54,7 +53,8 @@ public class Partida implements IPartida {
     private final ScheduledExecutorService timerExecutor;
     private ScheduledFuture<?> tareaTimer;
     private Consumer<String> callbackTimeout; // Callback para notificar timeout
-    
+    private Consumer<Integer> callbackActualizacionTiempo; // Callback para actualizaciones periódicas del tiempo
+
     /**
      * Constructor para iniciar una nueva partida
      * @param idPartida ID de la partida
@@ -122,7 +122,7 @@ public class Partida implements IPartida {
      */
     private void finalizarPartida(String idGanador) {
         this.idGanador = idGanador;
-        this.estadoPartida = EstadoPartida.FINALIZADA;
+        this.estado = EstadoPartida.FINALIZADA;
         System.out.println("[PARTIDA] Partida finalizada. Ganador: " + getNombreGanador());
     }
     
@@ -295,6 +295,11 @@ public class Partida implements IPartida {
     public void establecerRespuestaTiempoAgotado(Consumer<String> callback) {this.callbackTimeout = callback;}
 
     @Override
+    public void establecerCallbackActualizacionTiempo(Consumer<Integer> callback) {
+        this.callbackActualizacionTiempo = callback;
+    }
+
+    @Override
     public synchronized void iniciarTemporizador() {
         // Cancelar timer anterior si existe
         detenerTemporizador();
@@ -304,25 +309,44 @@ public class Partida implements IPartida {
         System.out.println("[PARTIDA] Timer iniciado para el turno de: " +
             (idJugadorEnTurno.equals(jugador1.getId()) ? jugador1.getNombre() : jugador2.getNombre()));
 
-        // Crear nueva tarea que se ejecuta después de TIEMPO_TURNO segundos
-        tareaTimer = timerExecutor.schedule(() -> {
-            synchronized (this) {
-                if (estadoPartida == EstadoPartida.EN_CURSO && !hayGanador()) {
-                    System.out.println("[PARTIDA] ¡TIMEOUT! Jugador " +
-                        (idJugadorEnTurno.equals(jugador1.getId()) ? jugador1.getNombre() : jugador2.getNombre()) +
-                        " se quedó sin tiempo");
+        // Crear tarea que se ejecuta cada segundo
+        tareaTimer = timerExecutor.scheduleAtFixedRate(() -> {
+            try {
+                synchronized (this) {
+                    if (estado == EstadoPartida.EN_CURSO && !hayGanador()) {
+                        // Decrementar tiempo restante
+                        tiempoRestante--;
 
-                    String idJugadorQuePerdiTurno = idJugadorEnTurno;
+                        // Enviar actualización periódica al cliente (cada 5 segundos)
+                        if (tiempoRestante % 5 == 0 && callbackActualizacionTiempo != null) {
+                            callbackActualizacionTiempo.accept(tiempoRestante);
+                        }
 
-                    // Cambiar turno automáticamente
-                    cambiarTurno();
+                        // Verificar timeout
+                        if (tiempoRestante <= 0) {
+                            System.out.println("[PARTIDA] Timeout para jugador " +
+                                (idJugadorEnTurno.equals(jugador1.getId()) ? jugador1.getNombre() : jugador2.getNombre()));
 
-                    // Notificar al manejador si hay callback
-                    if (callbackTimeout != null) 
-                        callbackTimeout.accept(idJugadorQuePerdiTurno);
+                            String idJugadorQuePerdiTurno = idJugadorEnTurno;
+
+                            // Cambiar turno automáticamente
+                            cambiarTurno();
+
+                            // Detener el timer actual
+                            detenerTemporizador();
+
+                            // Notificar al manejador si hay callback
+                            if (callbackTimeout != null) {
+                                callbackTimeout.accept(idJugadorQuePerdiTurno);
+                            }
+                        }
+                    }
                 }
+            } catch (Exception e) {
+                System.err.println("[PARTIDA] Error en timer: " + e.getMessage());
+                e.printStackTrace();
             }
-        }, TIEMPO_TURNO, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS); // Ejecutar cada 1 segundo, empezando después de 1 segundo
     }
 
     @Override

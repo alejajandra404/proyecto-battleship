@@ -28,7 +28,9 @@ public interface IGestorPartidas {
     public PartidaDTO colocarNaves(String idPartida, String idJugador, List<NaveDTO> naves) throws GestorPartidasException;
     
     public void establecerRespuestaTiempoAgotado(String idPartida, Consumer<String> callback);
-    
+
+    public void establecerCallbackActualizacionTiempo(String idPartida, Consumer<Integer> callback);
+
     public void iniciarTemporizador(String idPartida);
     
     public void liberarRecursos(String idPartida);

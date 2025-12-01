@@ -504,8 +504,12 @@ public class ManejadorCliente implements Runnable {
 
                 // Configurar callback de timeout
                 gestorPartidas.establecerRespuestaTiempoAgotado(partida.getIdPartida(), idJugadorTimeout -> {
-                    System.out.println("[MANEJADOR] Timeout para jugador: " + idJugadorTimeout);
                     manejarTimeout(partida);
+                });
+
+                // Configurar callback de actualización periódica del tiempo
+                gestorPartidas.establecerCallbackActualizacionTiempo(partida.getIdPartida(), tiempoRestante -> {
+                    enviarActualizacionTiempoAJugadores(partida, tiempoRestante);
                 });
 
                 // Iniciar timer del primer turno
@@ -683,19 +687,19 @@ public class ManejadorCliente implements Runnable {
      * Maneja el timeout de un turno
      */
     private void manejarTimeout(PartidaDTO partida) {
-        System.out.println("[MANEJADOR] Manejando timeout de partida " + partida.getIdPartida());
-
-        // Obtener jugador en turno actual
+        // Obtener jugador en turno actual (ya cambió en Partida)
         String idEnTurno = partida.getIdJugadorEnTurno();
         JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
             ? partida.getJugador1() : partida.getJugador2();
+
+        System.out.println("[MANEJADOR] Timeout - Nuevo turno: " + jugadorEnTurno.getNombre());
 
         // Obtener manejadores
         ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
         ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
 
         // Notificar timeout a ambos jugadores
-        String mensajeTimeout = jugadorEnTurno.getNombre() + " se quedó sin tiempo. Cambio de turno.";
+        String mensajeTimeout = "Tiempo agotado. Cambio de turno a " + jugadorEnTurno.getNombre();
 
         if (manejador1 != null) {
             manejador1.enviarMensaje(new MensajeDTO(
@@ -711,11 +715,7 @@ public class ManejadorCliente implements Runnable {
             ));
         }
 
-        // El turno ya cambió en la partida, notificar al nuevo jugador en turno
-        idEnTurno = partida.getIdJugadorEnTurno();
-        jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
-            ? partida.getJugador1() : partida.getJugador2();
-
+        // Notificar al nuevo jugador en turno
         ManejadorCliente manejadorEnTurno = gestorJugadores.obtenerManejador(idEnTurno);
         if (manejadorEnTurno != null) {
             manejadorEnTurno.enviarMensaje(new MensajeDTO(
@@ -728,6 +728,9 @@ public class ManejadorCliente implements Runnable {
         // Notificar al otro jugador
         String idOtro = partida.getJugador1().getId().equals(idEnTurno)
             ? partida.getJugador2().getId() : partida.getJugador1().getId();
+        JugadorDTO otroJugador = partida.getJugador1().getId().equals(idOtro)
+            ? partida.getJugador1() : partida.getJugador2();
+
         ManejadorCliente manejadorOtro = gestorJugadores.obtenerManejador(idOtro);
         if (manejadorOtro != null) {
             manejadorOtro.enviarMensaje(new MensajeDTO(
@@ -739,6 +742,32 @@ public class ManejadorCliente implements Runnable {
 
         // Reiniciar timer para el nuevo turno
         gestorPartidas.iniciarTemporizador(partida.getIdPartida());
+    }
+
+    /**
+     * Envía actualización del tiempo restante a ambos jugadores
+     * @param partida La partida actual
+     * @param tiempoRestante Tiempo restante en segundos
+     */
+    private void enviarActualizacionTiempoAJugadores(PartidaDTO partida, int tiempoRestante) {
+        ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
+        ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
+
+        if (manejador1 != null) {
+            manejador1.enviarMensaje(new MensajeDTO(
+                TipoMensaje.ACTUALIZAR_TIEMPO_TURNO,
+                "Tiempo restante: " + tiempoRestante + "s",
+                tiempoRestante
+            ));
+        }
+
+        if (manejador2 != null) {
+            manejador2.enviarMensaje(new MensajeDTO(
+                TipoMensaje.ACTUALIZAR_TIEMPO_TURNO,
+                "Tiempo restante: " + tiempoRestante + "s",
+                tiempoRestante
+            ));
+        }
     }
 
     /**

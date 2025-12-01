@@ -141,13 +141,19 @@ public interface IPartida {
     public void manejarTiempoAgotado();
     
     /**
-     * 
-     * @param callback 
+     *
+     * @param callback
      */
     public void establecerRespuestaTiempoAgotado(Consumer<String> callback);
-    
+
     /**
-     * 
+     * Establece el callback para actualización periódica del tiempo
+     * @param callback Consumer que recibe el tiempo restante
+     */
+    public void establecerCallbackActualizacionTiempo(Consumer<Integer> callback);
+
+    /**
+     *
      */
     public void iniciarTemporizador();
     
