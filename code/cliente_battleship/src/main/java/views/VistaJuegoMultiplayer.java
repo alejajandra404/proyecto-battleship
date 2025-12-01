@@ -803,6 +803,10 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             
             log("Partida finalizada. Intentando mostrar Estadísticas...");
 
+            statsFinales = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 
+                        statsFinales.getTotalDisparos(), statsFinales.getAciertos(), 
+                        statsFinales.getBarcosHundidos());
+            
             //DIAGNÓSTICO *sonidos de ambulancia*
             System.out.println("[DEBUG VISTA] Preparando cambio de pantalla...");
             
@@ -813,10 +817,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             if (statsFinales == null) {
                 System.err.println("[ERROR CRÍTICO] Las estadísticas llegaron NULL.");
                 System.err.println("[DEBUG] Nombre esperado (Local): " + jugadorLocal.getNombre());
-                
-                statsFinales = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 
-                        statsFinales.getTotalDisparos(), statsFinales.getAciertos(), 
-                        statsFinales.getBarcosHundidos()); 
+
             } else {
                 System.out.println("[DEBUG] Stats válidas. Disparos: " + statsFinales.getTotalDisparos());
             }
