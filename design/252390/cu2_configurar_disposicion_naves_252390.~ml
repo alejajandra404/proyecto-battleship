@@ -40773,7 +40773,7 @@ ListenerServidor
 <XPD:ATTR name="Height" type="integer">769</XPD:ATTR>
 <XPD:REF name="Model">jr6K67525keh3lKGdPpApwAA</XPD:REF>
 <XPD:OBJ name="NameLabel" type="LabelView" guid="ePziPEDEeUeXLO71ke64hAAA">
-<XPD:ATTR name="Text" type="string">Flujo Alternativo 1 - Servidor</XPD:ATTR>
+<XPD:ATTR name="Text" type="string">Flujo Principal - Servidor</XPD:ATTR>
 </XPD:OBJ>
 <XPD:OBJ name="FrameTypeLabel" type="LabelView" guid="nviz6gPAe0iuCqSxRaqlbQAA">
 <XPD:ATTR name="FontStyle" type="integer">1</XPD:ATTR>
@@ -41756,7 +41756,7 @@ ListenerServidor
 </XPD:OBJ>
 <XPD:ATTR name="#OwnedFrames" type="integer">1</XPD:ATTR>
 <XPD:OBJ name="OwnedFrames[0]" type="UMLFrame" guid="jr6K67525keh3lKGdPpApwAA">
-<XPD:ATTR name="Name" type="string">Flujo Alternativo 1 - Servidor</XPD:ATTR>
+<XPD:ATTR name="Name" type="string">Flujo Principal - Servidor</XPD:ATTR>
 <XPD:ATTR name="FrameKind" type="string">sd</XPD:ATTR>
 <XPD:REF name="InteractionInstanceSet">R6OeaWjwEEy7pCdGYuTOywAA</XPD:REF>
 <XPD:ATTR name="#Views" type="integer">1</XPD:ATTR>
@@ -41876,7 +41876,7 @@ ListenerServidor
 <XPD:ATTR name="Height" type="integer">769</XPD:ATTR>
 <XPD:REF name="Model">VBn0rw7luEOzgW163xXOXAAA</XPD:REF>
 <XPD:OBJ name="NameLabel" type="LabelView" guid="MlofBV/EqkGkM55T3/tZ5gAA">
-<XPD:ATTR name="Text" type="string">Flujo Alternativo 2 - Servidor</XPD:ATTR>
+<XPD:ATTR name="Text" type="string">Flujo Principal - Servidor</XPD:ATTR>
 </XPD:OBJ>
 <XPD:OBJ name="FrameTypeLabel" type="LabelView" guid="ZRbCiMwi+UGh9nQ8MXBx0gAA">
 <XPD:ATTR name="FontStyle" type="integer">1</XPD:ATTR>
@@ -42859,7 +42859,7 @@ ListenerServidor
 </XPD:OBJ>
 <XPD:ATTR name="#OwnedFrames" type="integer">1</XPD:ATTR>
 <XPD:OBJ name="OwnedFrames[0]" type="UMLFrame" guid="VBn0rw7luEOzgW163xXOXAAA">
-<XPD:ATTR name="Name" type="string">Flujo Alternativo 2 - Servidor</XPD:ATTR>
+<XPD:ATTR name="Name" type="string">Flujo Principal - Servidor</XPD:ATTR>
 <XPD:ATTR name="FrameKind" type="string">sd</XPD:ATTR>
 <XPD:REF name="InteractionInstanceSet">Eo3+iFXQQE2yaFCOFxJPMgAA</XPD:REF>
 <XPD:ATTR name="#Views" type="integer">1</XPD:ATTR>
@@ -42979,7 +42979,7 @@ ListenerServidor
 <XPD:ATTR name="Height" type="integer">1101</XPD:ATTR>
 <XPD:REF name="Model">YBUNT/oyeUaiubuu/C80wwAA</XPD:REF>
 <XPD:OBJ name="NameLabel" type="LabelView" guid="9/ptwyAi8U63crmDJigQgQAA">
-<XPD:ATTR name="Text" type="string">Flujo Alternativo 3 - Servidor</XPD:ATTR>
+<XPD:ATTR name="Text" type="string">Flujo Principal - Servidor</XPD:ATTR>
 </XPD:OBJ>
 <XPD:OBJ name="FrameTypeLabel" type="LabelView" guid="QRPmid8mMUOxi+ynB+W0XgAA">
 <XPD:ATTR name="FontStyle" type="integer">1</XPD:ATTR>
@@ -44459,7 +44459,7 @@ ListenerServidor
 </XPD:OBJ>
 <XPD:ATTR name="#OwnedFrames" type="integer">1</XPD:ATTR>
 <XPD:OBJ name="OwnedFrames[0]" type="UMLFrame" guid="YBUNT/oyeUaiubuu/C80wwAA">
-<XPD:ATTR name="Name" type="string">Flujo Alternativo 3 - Servidor</XPD:ATTR>
+<XPD:ATTR name="Name" type="string">Flujo Principal - Servidor</XPD:ATTR>
 <XPD:ATTR name="FrameKind" type="string">sd</XPD:ATTR>
 <XPD:REF name="InteractionInstanceSet">kae/rpSwT0y6iaZIm5SAyAAA</XPD:REF>
 <XPD:ATTR name="#Views" type="integer">1</XPD:ATTR>
