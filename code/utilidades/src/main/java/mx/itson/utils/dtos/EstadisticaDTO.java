@@ -23,7 +23,7 @@ public class EstadisticaDTO implements Serializable {
         this.barcosHundidos = barcosHundidos;
         
         if (totalDisparos > 0) {
-            this.porcentajePrecision = (double) barcosHundidos / totalDisparos * 100.0;
+            this.porcentajePrecision = (double) aciertos / totalDisparos * 100.0;
         } else {
             this.porcentajePrecision = 0.0;
         }

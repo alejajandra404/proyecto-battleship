@@ -634,11 +634,10 @@ public class ManejadorCliente implements Runnable {
 
                 EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, 5);
                 EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, 0);
-
+                
                 List<EstadisticaDTO> reporteFinal = new ArrayList<>();
                 reporteFinal.add(statsGanador);
                 reporteFinal.add(statsPerdedor);
-
                 
                 // Notificar al ganador
                 ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());

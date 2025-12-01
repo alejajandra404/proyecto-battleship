@@ -774,11 +774,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     @Override
     public void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas) {
         SwingUtilities.invokeLater(() -> {
-            
-            // --- CORRECCIÓN: Variable auxiliar interna ---
-            // Copiamos el parámetro a una variable local que SÍ podemos modificar dentro de la lambda
             EstadisticaDTO statsFinales = misEstadisticas;
-            // ---------------------------------------------
 
             String titulo = gane ? "¡VICTORIA!" : "DERROTA";
             String mensaje = gane ?
@@ -814,19 +810,18 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
                 System.err.println("[ERROR CRÍTICO] El controlador es NULL.");
             }
             
-            // Usamos 'statsFinales' en lugar de 'misEstadisticas'
             if (statsFinales == null) {
                 System.err.println("[ERROR CRÍTICO] Las estadísticas llegaron NULL.");
                 System.err.println("[DEBUG] Nombre esperado (Local): " + jugadorLocal.getNombre());
                 
-                // AQUÍ YA NO DARÁ ERROR, porque modificamos la variable local
-                statsFinales = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 0, 0, 0); 
+                statsFinales = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 
+                        statsFinales.getTotalDisparos(), statsFinales.getAciertos(), 
+                        statsFinales.getBarcosHundidos()); 
             } else {
                 System.out.println("[DEBUG] Stats válidas. Disparos: " + statsFinales.getTotalDisparos());
             }
 
             try {
-                // Pasamos la variable corregida
                 FlujoVista.mostrarEstadisticas(controlador, statsFinales);
                 System.out.println("[DEBUG] Cambio de vista solicitado exitosamente.");
             } catch (Exception e) {
