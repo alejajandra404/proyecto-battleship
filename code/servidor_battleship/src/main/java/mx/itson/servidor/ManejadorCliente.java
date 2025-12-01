@@ -632,7 +632,7 @@ public class ManejadorCliente implements Runnable {
                     perdedorModel = objJugador1;
                 }
 
-                EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, 5);
+                EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, 11);
                 EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, 0);
                 
                 List<EstadisticaDTO> reporteFinal = new ArrayList<>();
