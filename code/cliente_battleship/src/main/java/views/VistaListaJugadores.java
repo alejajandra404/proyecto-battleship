@@ -88,7 +88,7 @@ public class VistaListaJugadores extends JPanel implements IVistaListaJugadores 
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Hacer tabla no editable
+                return false;
             }
         };
 

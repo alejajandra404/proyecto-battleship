@@ -7,8 +7,8 @@ import java.net.Socket;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
-import mx.itson.models.IJugador;
-import mx.itson.models.JugadorServidor;
+import mx.itson.exceptions.GestorPartidasException;
+import mx.itson.subsistema_gestor_partidas.IGestorPartidas;
 
 /**
  * Maneja la comunicación con un cliente conectado
@@ -24,7 +24,7 @@ public class ManejadorCliente implements Runnable {
 
     private final Socket socket;
     private final GestorJugadores gestorJugadores;
-    private final GestorPartidas gestorPartidas;
+    private final IGestorPartidas gestorPartidas;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
     private JugadorDTO jugadorAsociado;
@@ -36,7 +36,7 @@ public class ManejadorCliente implements Runnable {
      * @param gestorJugadores Gestor de jugadores del servidor
      * @param gestorPartidas Gestor de partidas del servidor
      */
-    public ManejadorCliente(Socket socket, GestorJugadores gestorJugadores, GestorPartidas gestorPartidas) {
+    public ManejadorCliente(Socket socket, GestorJugadores gestorJugadores, IGestorPartidas gestorPartidas) {
         this.socket = socket;
         this.gestorJugadores = gestorJugadores;
         this.gestorPartidas = gestorPartidas;
@@ -74,40 +74,23 @@ public class ManejadorCliente implements Runnable {
         System.out.println("[MANEJADOR] Mensaje recibido: " + mensaje.getTipo());
 
         switch (mensaje.getTipo()) {
-            case REGISTRO_JUGADOR:
-                procesarRegistro(mensaje);
-                break;
+            case REGISTRO_JUGADOR -> procesarRegistro(mensaje);
 
-            case SOLICITAR_JUGADORES:
-                enviarListaJugadores();
-                break;
+            case SOLICITAR_JUGADORES -> enviarListaJugadores();
 
-            case SOLICITAR_PARTIDA:
-                procesarSolicitudPartida(mensaje);
-                break;
+            case SOLICITAR_PARTIDA -> procesarSolicitudPartida(mensaje);
 
-            case ACEPTAR_PARTIDA:
-                procesarAceptarPartida(mensaje);
-                break;
+            case ACEPTAR_PARTIDA -> procesarAceptarPartida(mensaje);
 
-            case RECHAZAR_PARTIDA:
-                procesarRechazarPartida(mensaje);
-                break;
+            case RECHAZAR_PARTIDA -> procesarRechazarPartida(mensaje);
 
-            case COLOCAR_NAVES:
-                procesarColocacionNaves(mensaje);
-                break;
+            case COLOCAR_NAVES -> procesarColocacionNaves(mensaje);
 
-            case ENVIAR_DISPARO:
-                procesarDisparo(mensaje);
-                break;
+            case ENVIAR_DISPARO -> procesarDisparo(mensaje);
 
-            case DESCONEXION:
-                conectado = false;
-                break;
+            case DESCONEXION -> conectado = false;
 
-            default:
-                System.err.println("[MANEJADOR] Tipo de mensaje no manejado: " + mensaje.getTipo());
+            default -> System.err.println("[MANEJADOR] Tipo de mensaje no manejado: " + mensaje.getTipo());
         }
     }
 
@@ -202,9 +185,8 @@ public class ManejadorCliente implements Runnable {
      * Llamado por el GestorJugadores cuando un nuevo jugador se conecta
      */
     public void notificarJugadorDisponible() {
-        if (jugadorAsociado != null && !jugadorAsociado.isEnPartida()) {
+        if (jugadorAsociado != null && !jugadorAsociado.isEnPartida())
             enviarListaJugadores();
-        }
     }
 
     /**
@@ -288,60 +270,67 @@ public class ManejadorCliente implements Runnable {
             return;
         }
 
-        System.out.println("[MANEJADOR] Partida aceptada: " +
-                          solicitud.getNombreSolicitante() + " vs " + solicitud.getNombreInvitado());
+        try {
+            System.out.println("[MANEJADOR] Partida aceptada: " +
+                                solicitud.getNombreSolicitante() + " vs " + solicitud.getNombreInvitado());
 
-        // Marcar ambos jugadores como en partida
-        gestorJugadores.marcarEnPartida(solicitud.getIdSolicitante());
-        gestorJugadores.marcarEnPartida(solicitud.getIdInvitado());
+            // Marcar ambos jugadores como en partida
+            gestorJugadores.marcarEnPartida(solicitud.getIdSolicitante());
+            gestorJugadores.marcarEnPartida(solicitud.getIdInvitado());
 
-        // Obtener jugadores completos
-        JugadorDTO jugador1 = gestorJugadores.obtenerJugador(solicitud.getIdSolicitante());
-        JugadorDTO jugador2 = gestorJugadores.obtenerJugador(solicitud.getIdInvitado());
+            // Obtener jugadores completos
+            JugadorDTO jugador1 = gestorJugadores.obtenerJugador(solicitud.getIdSolicitante());
+            JugadorDTO jugador2 = gestorJugadores.obtenerJugador(solicitud.getIdInvitado());
 
-        // Crear partida
-        Partida partida = gestorPartidas.crearPartida(jugador1, jugador2);
+            // Crear partida
+            PartidaDTO partida = gestorPartidas.crearPartida(jugador1, jugador2);
 
-        System.out.println("[MANEJADOR] Partida creada: " + partida.getIdPartida());
+            System.out.println("[MANEJADOR] Partida creada: " + partida.getIdPartida());
 
-        // Notificar al solicitante
-        ManejadorCliente manejadorSolicitante = gestorJugadores.obtenerManejador(solicitud.getIdSolicitante());
-        if (manejadorSolicitante != null) {
-            manejadorSolicitante.enviarMensaje(new MensajeDTO(
-                TipoMensaje.PARTIDA_ACEPTADA,
-                solicitud.getNombreInvitado() + " aceptó tu invitación",
-                solicitud
-            ));
-        }
+            // Notificar al solicitante
+            ManejadorCliente manejadorSolicitante = gestorJugadores.obtenerManejador(solicitud.getIdSolicitante());
+            if (manejadorSolicitante != null) {
+                manejadorSolicitante.enviarMensaje(new MensajeDTO(
+                    TipoMensaje.PARTIDA_ACEPTADA,
+                    solicitud.getNombreInvitado() + " aceptó tu invitación",
+                    solicitud
+                ));
+            }
 
-        // Notificar al invitado (este cliente)
-        enviarMensaje(new MensajeDTO(
-            TipoMensaje.PARTIDA_INICIADA,
-            "Partida iniciada con " + solicitud.getNombreSolicitante(),
-            solicitud
-        ));
-
-        // Notificar al solicitante que la partida inicia
-        if (manejadorSolicitante != null) {
-            manejadorSolicitante.enviarMensaje(new MensajeDTO(
+            // Notificar al invitado (este cliente)
+            enviarMensaje(new MensajeDTO(
                 TipoMensaje.PARTIDA_INICIADA,
-                "Partida iniciada con " + solicitud.getNombreInvitado(),
+                "Partida iniciada con " + solicitud.getNombreSolicitante(),
                 solicitud
             ));
-        }
 
-        // Enviar mensaje para colocar naves
-        enviarMensaje(new MensajeDTO(
-            TipoMensaje.COLOCAR_NAVES,
-            "Coloca tus naves en el tablero",
-            partida.getIdPartida()
-        ));
+            // Notificar al solicitante que la partida inicia
+            if (manejadorSolicitante != null) {
+                manejadorSolicitante.enviarMensaje(new MensajeDTO(
+                    TipoMensaje.PARTIDA_INICIADA,
+                    "Partida iniciada con " + solicitud.getNombreInvitado(),
+                    solicitud
+                ));
+            }
 
-        if (manejadorSolicitante != null) {
-            manejadorSolicitante.enviarMensaje(new MensajeDTO(
+            // Enviar mensaje para colocar naves
+            enviarMensaje(new MensajeDTO(
                 TipoMensaje.COLOCAR_NAVES,
                 "Coloca tus naves en el tablero",
                 partida.getIdPartida()
+            ));
+
+            if (manejadorSolicitante != null) {
+                manejadorSolicitante.enviarMensaje(new MensajeDTO(
+                    TipoMensaje.COLOCAR_NAVES,
+                    "Coloca tus naves en el tablero",
+                    partida.getIdPartida()
+                ));
+            }
+        } catch (GestorPartidasException e) {
+            enviarMensaje(new MensajeDTO(
+                TipoMensaje.ERROR,
+                e.getMessage()
             ));
         }
     }
@@ -389,6 +378,7 @@ public class ManejadorCliente implements Runnable {
      * @param mensaje Mensaje con las naves colocadas
      */
     private void procesarColocacionNaves(MensajeDTO mensaje) {
+        
         if (jugadorAsociado == null) {
             enviarMensaje(new MensajeDTO(
                 TipoMensaje.ERROR,
@@ -397,131 +387,144 @@ public class ManejadorCliente implements Runnable {
             return;
         }
 
-        // Obtener partida del jugador
-        Partida partida = gestorPartidas.obtenerPartidaDeJugador(jugadorAsociado.getId());
-        if (partida == null) {
-            enviarMensaje(new MensajeDTO(
-                TipoMensaje.ERROR,
-                "No estás en una partida activa"
-            ));
-            return;
-        }
-
-        // Obtener lista de naves del mensaje
-        @SuppressWarnings("unchecked")
-        List<NaveDTO> naves = (List<NaveDTO>) mensaje.getDatos();
-
-        System.out.println("[MANEJADOR] Recibidas " + naves.size() + " naves de " + jugadorAsociado.getNombre());
-
-        // Colocar naves en la partida
-        boolean colocadas = partida.colocarNaves(jugadorAsociado.getId(), naves);
-
-        if (!colocadas) {
-            enviarMensaje(new MensajeDTO(
-                TipoMensaje.ERROR,
-                "Error al colocar naves. Verifica que sean válidas."
-            ));
-            return;
-        }
-
-        // Confirmar colocación
-        enviarMensaje(new MensajeDTO(
-            TipoMensaje.NAVES_COLOCADAS,
-            "Naves colocadas correctamente"
-        ));
-
-        // Verificar si ambos jugadores ya colocaron sus naves
-        if (partida.ambosJugadoresListos()) {
-            System.out.println("[MANEJADOR] Ambos jugadores listos. Iniciando partida " + partida.getIdPartida());
-
-            // Obtener manejadores de ambos jugadores
-            ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
-            ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
-
-            // Notificar que ambos están listos
-            if (manejador1 != null) {
-                manejador1.enviarMensaje(new MensajeDTO(
-                    TipoMensaje.AMBOS_LISTOS,
-                    "Ambos jugadores han colocado sus naves. ¡Iniciando batalla!"
+        try {
+            if (!gestorPartidas.verificarJugadorPartidaActiva(jugadorAsociado.getId())) {
+                enviarMensaje(new MensajeDTO(
+                    TipoMensaje.ERROR,
+                    "No estás en una partida activa"
                 ));
+                return;
             }
 
-            if (manejador2 != null) {
-                manejador2.enviarMensaje(new MensajeDTO(
-                    TipoMensaje.AMBOS_LISTOS,
-                    "Ambos jugadores han colocado sus naves. ¡Iniciando batalla!"
+            // Obtener lista de naves del mensaje
+            @SuppressWarnings("unchecked")
+            List<NaveDTO> naves = (List<NaveDTO>) mensaje.getDatos();
+
+            System.out.println("[MANEJADOR] Recibidas " + naves.size() + " naves de " + jugadorAsociado.getNombre());
+
+            // Colocar naves en la partida
+            PartidaDTO partida = gestorPartidas.colocarNaves(
+                    gestorPartidas.obtenerPartidaDeJugador(jugadorAsociado.getId()).getIdPartida(), 
+                    jugadorAsociado.getId(), 
+                    naves
+            );
+
+            if (partida == null) {
+                enviarMensaje(new MensajeDTO(
+                    TipoMensaje.ERROR,
+                    "Error al colocar naves. Verifica que sean válidas."
                 ));
+                return;
             }
 
-            // Dar tiempo para que las vistas se inicialicen
-            try {
-                Thread.sleep(500); // 500ms de delay
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            // Confirmar colocación
+            enviarMensaje(new MensajeDTO(
+                TipoMensaje.NAVES_COLOCADAS,
+                "Naves colocadas correctamente"
+            ));
 
-            // Iniciar turno del primer jugador
-            String idEnTurno = partida.getIdJugadorEnTurno();
-            JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
-                ? partida.getJugador1() : partida.getJugador2();
+            // Verificar si ambos jugadores ya colocaron sus naves
+            if (partida.isAmbosJugadoresListos()) {
+                System.out.println("[MANEJADOR] Ambos jugadores listos. Iniciando partida " + partida.getIdPartida());
 
-            System.out.println("[MANEJADOR] Enviando TURNO_INICIADO a: " + jugadorEnTurno.getNombre() + " (ID: " + idEnTurno + ")");
+                // Obtener manejadores de ambos jugadores
+                ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
+                ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
 
-            // Enviar TURNO_INICIADO solo al jugador que tiene el turno
-            if (partida.getJugador1().getId().equals(idEnTurno)) {
+                // Notificar que ambos están listos
                 if (manejador1 != null) {
                     manejador1.enviarMensaje(new MensajeDTO(
-                        TipoMensaje.TURNO_INICIADO,
-                        "Es tu turno. Realiza un disparo.",
-                        jugadorEnTurno
+                        TipoMensaje.AMBOS_LISTOS,
+                        "Ambos jugadores han colocado sus naves. ¡Iniciando batalla!"
                     ));
-                    System.out.println("[MANEJADOR] TURNO_INICIADO enviado a jugador 1");
                 }
-                // Enviar CAMBIO_TURNO al jugador 2
+
                 if (manejador2 != null) {
                     manejador2.enviarMensaje(new MensajeDTO(
-                        TipoMensaje.CAMBIO_TURNO,
-                        "Turno de " + jugadorEnTurno.getNombre(),
-                        jugadorEnTurno
+                        TipoMensaje.AMBOS_LISTOS,
+                        "Ambos jugadores han colocado sus naves. ¡Iniciando batalla!"
                     ));
-                    System.out.println("[MANEJADOR] CAMBIO_TURNO enviado a jugador 2");
                 }
+
+                // Dar tiempo para que las vistas se inicialicen
+                try {
+                    Thread.sleep(500); // 500ms de delay
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                // Iniciar turno del primer jugador
+                String idEnTurno = partida.getIdJugadorEnTurno();
+                JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
+                    ? partida.getJugador1() : partida.getJugador2();
+
+                System.out.println("[MANEJADOR] Enviando TURNO_INICIADO a: " + jugadorEnTurno.getNombre() + " (ID: " + idEnTurno + ")");
+
+                // Enviar TURNO_INICIADO solo al jugador que tiene el turno
+                if (partida.getJugador1().getId().equals(idEnTurno)) {
+                    if (manejador1 != null) {
+                        manejador1.enviarMensaje(new MensajeDTO(
+                            TipoMensaje.TURNO_INICIADO,
+                            "Es tu turno. Realiza un disparo.",
+                            jugadorEnTurno
+                        ));
+                        System.out.println("[MANEJADOR] TURNO_INICIADO enviado a jugador 1");
+                    }
+                    // Enviar CAMBIO_TURNO al jugador 2
+                    if (manejador2 != null) {
+                        manejador2.enviarMensaje(new MensajeDTO(
+                            TipoMensaje.CAMBIO_TURNO,
+                            "Turno de " + jugadorEnTurno.getNombre(),
+                            jugadorEnTurno
+                        ));
+                        System.out.println("[MANEJADOR] CAMBIO_TURNO enviado a jugador 2");
+                    }
+                } else {
+                    if (manejador2 != null) {
+                        manejador2.enviarMensaje(new MensajeDTO(
+                            TipoMensaje.TURNO_INICIADO,
+                            "Es tu turno. Realiza un disparo.",
+                            jugadorEnTurno
+                        ));
+                        System.out.println("[MANEJADOR] TURNO_INICIADO enviado a jugador 2");
+                    }
+                    // Enviar CAMBIO_TURNO al jugador 1
+                    if (manejador1 != null) {
+                        manejador1.enviarMensaje(new MensajeDTO(
+                            TipoMensaje.CAMBIO_TURNO,
+                            "Turno de " + jugadorEnTurno.getNombre(),
+                            jugadorEnTurno
+                        ));
+                        System.out.println("[MANEJADOR] CAMBIO_TURNO enviado a jugador 1");
+                    }
+                }
+
+                // Enviar tableros iniciales
+                enviarTablerosAJugadores(partida);
+
+                // Configurar callback de timeout
+                gestorPartidas.establecerRespuestaTiempoAgotado(partida.getIdPartida(), idJugadorTimeout -> {
+                    manejarTimeout(partida);
+                });
+
+                // Configurar callback de actualización periódica del tiempo
+                gestorPartidas.establecerCallbackActualizacionTiempo(partida.getIdPartida(), tiempoRestante -> {
+                    enviarActualizacionTiempoAJugadores(partida, tiempoRestante);
+                });
+
+                // Iniciar timer del primer turno
+                gestorPartidas.iniciarTemporizador(partida.getIdPartida());
             } else {
-                if (manejador2 != null) {
-                    manejador2.enviarMensaje(new MensajeDTO(
-                        TipoMensaje.TURNO_INICIADO,
-                        "Es tu turno. Realiza un disparo.",
-                        jugadorEnTurno
-                    ));
-                    System.out.println("[MANEJADOR] TURNO_INICIADO enviado a jugador 2");
-                }
-                // Enviar CAMBIO_TURNO al jugador 1
-                if (manejador1 != null) {
-                    manejador1.enviarMensaje(new MensajeDTO(
-                        TipoMensaje.CAMBIO_TURNO,
-                        "Turno de " + jugadorEnTurno.getNombre(),
-                        jugadorEnTurno
-                    ));
-                    System.out.println("[MANEJADOR] CAMBIO_TURNO enviado a jugador 1");
-                }
+                // Notificar que está esperando al oponente
+                enviarMensaje(new MensajeDTO(
+                    TipoMensaje.ESPERANDO_OPONENTE_NAVES,
+                    "Esperando a que tu oponente coloque sus naves..."
+                ));
             }
-
-            // Enviar tableros iniciales
-            enviarTablerosAJugadores(partida);
-
-            // Configurar callback de timeout
-            partida.setCallbackTimeout(idJugadorTimeout -> {
-                System.out.println("[MANEJADOR] Timeout para jugador: " + idJugadorTimeout);
-                manejarTimeout(partida);
-            });
-
-            // Iniciar timer del primer turno
-            partida.iniciarTimer();
-        } else {
-            // Notificar que está esperando al oponente
+        } catch (GestorPartidasException e) {
             enviarMensaje(new MensajeDTO(
-                TipoMensaje.ESPERANDO_OPONENTE_NAVES,
-                "Esperando a que tu oponente coloque sus naves..."
+                TipoMensaje.ERROR,
+                e.getMessage()
             ));
         }
     }
@@ -531,6 +534,7 @@ public class ManejadorCliente implements Runnable {
      * @param mensaje Mensaje con las coordenadas del disparo
      */
     private void procesarDisparo(MensajeDTO mensaje) {
+        
         if (jugadorAsociado == null) {
             enviarMensaje(new MensajeDTO(
                 TipoMensaje.ERROR,
@@ -539,178 +543,163 @@ public class ManejadorCliente implements Runnable {
             return;
         }
 
-        // Obtener partida del jugador
-        Partida partida = gestorPartidas.obtenerPartidaDeJugador(jugadorAsociado.getId());
-        if (partida == null) {
-            enviarMensaje(new MensajeDTO(
-                TipoMensaje.ERROR,
-                "No estás en una partida activa"
-            ));
-            return;
-        }
-
-        // Verificar que es el turno del jugador
-        if (!partida.getIdJugadorEnTurno().equals(jugadorAsociado.getId())) {
-            enviarMensaje(new MensajeDTO(
-                TipoMensaje.ERROR,
-                "No es tu turno"
-            ));
-            return;
-        }
-
-        // Obtener coordenada del disparo
-        CoordenadaDTO coordenada = (CoordenadaDTO) mensaje.getDatos();
-
-        System.out.println("[MANEJADOR] Disparo de " + jugadorAsociado.getNombre() +
-                          " en (" + coordenada.getX() + "," + coordenada.getY() + ")");
-
-        // Procesar disparo en la partida
-        DisparoDTO disparo = partida.procesarDisparo(jugadorAsociado.getId(), coordenada);
-
-        if (disparo == null) {
-            enviarMensaje(new MensajeDTO(
-                TipoMensaje.ERROR,
-                "Coordenada inválida o ya disparada"
-            ));
-            return;
-        }
-
-        // Obtener manejadores de ambos jugadores
-        ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
-        ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
-
-        // Enviar resultado del disparo a ambos jugadores
-        if (manejador1 != null) {
-            manejador1.enviarMensaje(new MensajeDTO(
-                TipoMensaje.RESULTADO_DISPARO,
-                "Resultado del disparo",
-                disparo
-            ));
-        }
-
-        if (manejador2 != null) {
-            manejador2.enviarMensaje(new MensajeDTO(
-                TipoMensaje.RESULTADO_DISPARO,
-                "Resultado del disparo",
-                disparo
-            ));
-        }
-
-        // Enviar tableros actualizados
-        enviarTablerosAJugadores(partida);
-
-        // Verificar si hay ganador (PARTE DE FINALIZAR PARTIDA)
-        if (partida.hayGanador()) {
-            System.out.println("[MANEJADOR] ¡Partida finalizada! Ganador: " + partida.getGanador().getNombre());
-
-            JugadorDTO ganador = partida.getGanador();
-            JugadorDTO perdedor = partida.getJugador1().getId().equals(ganador.getId())
-                ? partida.getJugador2() : partida.getJugador1();
+        try {
             
-            // --- INICIO: GENERAR ESTADÍSTICAS ---
-            //Solucionar Casteo || SI FUNCIONA || pero hay que quitarlo
-            IJugador objJugador1 = (IJugador) partida.getJugador1();
-            IJugador objJugador2 = (IJugador) partida.getJugador2();
+            // Obtiene el id del jugador asociado
+            String idJugador = jugadorAsociado.getId();
+            
+            // Verifica que se encuentre en una partida activa
+            if (!gestorPartidas.verificarJugadorPartidaActiva(idJugador)) {
+                enviarMensaje(new MensajeDTO(
+                    TipoMensaje.ERROR,
+                    "No estás en una partida activa"
+                ));
+                return;
+            }
 
-            //Identificar quién es el ganador y quién el perdedor en los objetos Modelo
-            IJugador ganadorModel = null;
-            IJugador perdedorModel = null;
+            // Obtener coordenada del disparo
+            CoordenadaDTO coordenada = (CoordenadaDTO) mensaje.getDatos();
 
-            if (objJugador1.getId().equals(ganador.getId())) {
-                ganadorModel = objJugador1;
-                perdedorModel = objJugador2;
+            System.out.println("[MANEJADOR] Disparo de " + jugadorAsociado.getNombre() +
+                              " en (" + coordenada.getX() + "," + coordenada.getY() + ")");
+
+            // Procesar disparo en la partida
+            DisparoDTO disparo = gestorPartidas.procesarDisparo(
+                    gestorPartidas.obtenerPartidaDeJugador(idJugador).getIdPartida(), 
+                    idJugador, 
+                    coordenada
+            );
+            
+            // Verifica que el disparo no sea null
+            if (disparo == null) {
+                enviarMensaje(new MensajeDTO(
+                    TipoMensaje.ERROR,
+                    "Coordenada inválida o ya disparada"
+                ));
+                return;
+            }
+            
+            // Obtiene la partida después de haber procesado el disparo
+            PartidaDTO partida = gestorPartidas.obtenerPartidaDeJugador(idJugador);
+            
+            // Obtener manejadores de ambos jugadores
+            ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
+            ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
+
+            // Enviar resultado del disparo a ambos jugadores
+            if (manejador1 != null) {
+                manejador1.enviarMensaje(new MensajeDTO(
+                    TipoMensaje.RESULTADO_DISPARO,
+                    "Resultado del disparo",
+                    disparo
+                ));
+            }
+
+            if (manejador2 != null) {
+                manejador2.enviarMensaje(new MensajeDTO(
+                    TipoMensaje.RESULTADO_DISPARO,
+                    "Resultado del disparo",
+                    disparo
+                ));
+            }
+
+            // Enviar tableros actualizados
+            enviarTablerosAJugadores(partida);
+
+            // Verificar si hay ganador
+            if (partida.hayGanador()) {
+                System.out.println("[MANEJADOR] ¡Partida finalizada! Ganador: " + partida.getGanador().getNombre());
+
+                JugadorDTO ganador = partida.getGanador();
+                JugadorDTO perdedor = partida.getJugador1().getId().equals(ganador.getId())
+                    ? partida.getJugador2() : partida.getJugador1();
+
+                // Notificar al ganador
+                ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());
+                if (manejadorGanador != null) {
+                    manejadorGanador.enviarMensaje(new MensajeDTO(
+                        TipoMensaje.PARTIDA_GANADA,
+                        "¡Felicidades! Has ganado la partida",
+                        ganador
+                    ));
+                }
+
+                // Notificar al perdedor
+                ManejadorCliente manejadorPerdedor = gestorJugadores.obtenerManejador(perdedor.getId());
+                if (manejadorPerdedor != null) {
+                    manejadorPerdedor.enviarMensaje(new MensajeDTO(
+                        TipoMensaje.PARTIDA_PERDIDA,
+                        "Has perdido la partida. ¡Mejor suerte la próxima vez!",
+                        perdedor
+                    ));
+                }
+
+                // Detener timer y limpiar recursos
+                gestorPartidas.liberarRecursos(partida.getIdPartida());
+
+                // Marcar jugadores como disponibles
+                gestorJugadores.marcarDisponible(partida.getJugador1().getId());
+                gestorJugadores.marcarDisponible(partida.getJugador2().getId());
+
+                // Eliminar partida
+                gestorPartidas.eliminarPartida(partida.getIdPartida());
+
             } else {
-                ganadorModel = objJugador2;
-                perdedorModel = objJugador1;
+                // Continuar juego - notificar cambio de turno si cambió
+                String idEnTurno = partida.getIdJugadorEnTurno();
+                JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
+                    ? partida.getJugador1() : partida.getJugador2();
+
+                // Notificar al jugador en turno
+                ManejadorCliente manejadorEnTurno = gestorJugadores.obtenerManejador(idEnTurno);
+                if (manejadorEnTurno != null) {
+                    manejadorEnTurno.enviarMensaje(new MensajeDTO(
+                        TipoMensaje.TURNO_INICIADO,
+                        "Es tu turno. Realiza un disparo.",
+                        jugadorEnTurno
+                    ));
+                }
+
+                // Notificar al otro jugador
+                String idOtro = partida.getJugador1().getId().equals(idEnTurno)
+                    ? partida.getJugador2().getId() : partida.getJugador1().getId();
+                ManejadorCliente manejadorOtro = gestorJugadores.obtenerManejador(idOtro);
+                if (manejadorOtro != null) {
+                    manejadorOtro.enviarMensaje(new MensajeDTO(
+                        TipoMensaje.CAMBIO_TURNO,
+                        "Turno de " + jugadorEnTurno.getNombre(),
+                        jugadorEnTurno
+                    ));
+                }
+
+                // Reiniciar timer para el nuevo turno
+                gestorPartidas.iniciarTemporizador(partida.getIdPartida());
             }
-            
-            EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, 5);
-            EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, 0);
-            
-            List<EstadisticaDTO> reporteFinal = new ArrayList<>();
-            reporteFinal.add(statsGanador);
-            reporteFinal.add(statsPerdedor);
-            
-            // Notificar al ganador
-            ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());
-            if (manejadorGanador != null) {
-                manejadorGanador.enviarMensaje(new MensajeDTO(
-                    TipoMensaje.PARTIDA_GANADA,
-                    "¡Felicidades! Has ganado la partida",
-                    statsGanador
-                ));
-            }
-
-            // Notificar al perdedor
-            ManejadorCliente manejadorPerdedor = gestorJugadores.obtenerManejador(perdedor.getId());
-            if (manejadorPerdedor != null) {
-                manejadorPerdedor.enviarMensaje(new MensajeDTO(
-                    TipoMensaje.PARTIDA_PERDIDA,
-                    "Has perdido la partida. ¡Mejor suerte la próxima vez!",
-                        statsPerdedor
-                ));
-            }
-
-            // Detener timer y limpiar recursos
-            partida.limpiarRecursos();
-
-            // Marcar jugadores como disponibles
-            gestorJugadores.marcarDisponible(partida.getJugador1().getId());
-            gestorJugadores.marcarDisponible(partida.getJugador2().getId());
-
-            // Eliminar partida
-            gestorPartidas.eliminarPartida(partida.getIdPartida());
-
-        } else {
-            // Continuar juego - notificar cambio de turno si cambió
-            String idEnTurno = partida.getIdJugadorEnTurno();
-            JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
-                ? partida.getJugador1() : partida.getJugador2();
-
-            // Notificar al jugador en turno
-            ManejadorCliente manejadorEnTurno = gestorJugadores.obtenerManejador(idEnTurno);
-            if (manejadorEnTurno != null) {
-                manejadorEnTurno.enviarMensaje(new MensajeDTO(
-                    TipoMensaje.TURNO_INICIADO,
-                    "Es tu turno. Realiza un disparo.",
-                    jugadorEnTurno
-                ));
-            }
-
-            // Notificar al otro jugador
-            String idOtro = partida.getJugador1().getId().equals(idEnTurno)
-                ? partida.getJugador2().getId() : partida.getJugador1().getId();
-            ManejadorCliente manejadorOtro = gestorJugadores.obtenerManejador(idOtro);
-            if (manejadorOtro != null) {
-                manejadorOtro.enviarMensaje(new MensajeDTO(
-                    TipoMensaje.CAMBIO_TURNO,
-                    "Turno de " + jugadorEnTurno.getNombre(),
-                    jugadorEnTurno
-                ));
-            }
-
-            // Reiniciar timer para el nuevo turno
-            partida.iniciarTimer();
+        } catch (GestorPartidasException e) {
+            enviarMensaje(new MensajeDTO(
+                TipoMensaje.ERROR,
+                e.getMessage()
+            ));
         }
     }
 
     /**
      * Maneja el timeout de un turno
      */
-    private void manejarTimeout(Partida partida) {
-        System.out.println("[MANEJADOR] Manejando timeout de partida " + partida.getIdPartida());
-
-        // Obtener jugador en turno actual
+    private void manejarTimeout(PartidaDTO partida) {
+        // Obtener jugador en turno actual (ya cambió en Partida)
         String idEnTurno = partida.getIdJugadorEnTurno();
         JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
             ? partida.getJugador1() : partida.getJugador2();
+
+        System.out.println("[MANEJADOR] Timeout - Nuevo turno: " + jugadorEnTurno.getNombre());
 
         // Obtener manejadores
         ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
         ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
 
         // Notificar timeout a ambos jugadores
-        String mensajeTimeout = jugadorEnTurno.getNombre() + " se quedó sin tiempo. Cambio de turno.";
+        String mensajeTimeout = "Tiempo agotado. Cambio de turno a " + jugadorEnTurno.getNombre();
 
         if (manejador1 != null) {
             manejador1.enviarMensaje(new MensajeDTO(
@@ -726,11 +715,7 @@ public class ManejadorCliente implements Runnable {
             ));
         }
 
-        // El turno ya cambió en la partida, notificar al nuevo jugador en turno
-        idEnTurno = partida.getIdJugadorEnTurno();
-        jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
-            ? partida.getJugador1() : partida.getJugador2();
-
+        // Notificar al nuevo jugador en turno
         ManejadorCliente manejadorEnTurno = gestorJugadores.obtenerManejador(idEnTurno);
         if (manejadorEnTurno != null) {
             manejadorEnTurno.enviarMensaje(new MensajeDTO(
@@ -743,6 +728,9 @@ public class ManejadorCliente implements Runnable {
         // Notificar al otro jugador
         String idOtro = partida.getJugador1().getId().equals(idEnTurno)
             ? partida.getJugador2().getId() : partida.getJugador1().getId();
+        JugadorDTO otroJugador = partida.getJugador1().getId().equals(idOtro)
+            ? partida.getJugador1() : partida.getJugador2();
+
         ManejadorCliente manejadorOtro = gestorJugadores.obtenerManejador(idOtro);
         if (manejadorOtro != null) {
             manejadorOtro.enviarMensaje(new MensajeDTO(
@@ -753,22 +741,48 @@ public class ManejadorCliente implements Runnable {
         }
 
         // Reiniciar timer para el nuevo turno
-        partida.iniciarTimer();
+        gestorPartidas.iniciarTemporizador(partida.getIdPartida());
+    }
+
+    /**
+     * Envía actualización del tiempo restante a ambos jugadores
+     * @param partida La partida actual
+     * @param tiempoRestante Tiempo restante en segundos
+     */
+    private void enviarActualizacionTiempoAJugadores(PartidaDTO partida, int tiempoRestante) {
+        ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
+        ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
+
+        if (manejador1 != null) {
+            manejador1.enviarMensaje(new MensajeDTO(
+                TipoMensaje.ACTUALIZAR_TIEMPO_TURNO,
+                "Tiempo restante: " + tiempoRestante + "s",
+                tiempoRestante
+            ));
+        }
+
+        if (manejador2 != null) {
+            manejador2.enviarMensaje(new MensajeDTO(
+                TipoMensaje.ACTUALIZAR_TIEMPO_TURNO,
+                "Tiempo restante: " + tiempoRestante + "s",
+                tiempoRestante
+            ));
+        }
     }
 
     /**
      * Envía los tableros actualizados a ambos jugadores
      * @param partida La partida actual
      */
-    private void enviarTablerosAJugadores(Partida partida) {
+    private void enviarTablerosAJugadores(PartidaDTO partida) {
         System.out.println("[MANEJADOR] ========== ENVIANDO TABLEROS ==========");
 
         ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());
         ManejadorCliente manejador2 = gestorJugadores.obtenerManejador(partida.getJugador2().getId());
 
         // Obtener tableros originales
-        TableroDTO tablero1Original = partida.getTableroJugador(partida.getJugador1().getId());
-        TableroDTO tablero2Original = partida.getTableroJugador(partida.getJugador2().getId());
+        TableroDTO tablero1Original = partida.getTableroDeJugador(partida.getJugador1().getId());
+        TableroDTO tablero2Original = partida.getTableroDeJugador(partida.getJugador2().getId());
 
         System.out.println("[MANEJADOR] Tablero1 ID: " + tablero1Original.getIdJugador());
         System.out.println("[MANEJADOR] Tablero2 ID: " + tablero2Original.getIdJugador());
@@ -811,9 +825,8 @@ public class ManejadorCliente implements Runnable {
                 "Tableros actualizados",
                 tableros
             ));
-        } else {
+        } else 
             System.err.println("[MANEJADOR] ERROR: manejador1 es null!");
-        }
 
         // Enviar ambos tableros al jugador 2 (crear nuevas copias para evitar problemas de referencia)
         if (manejador2 != null) {
@@ -826,10 +839,9 @@ public class ManejadorCliente implements Runnable {
                 "Tableros actualizados",
                 tableros
             ));
-        } else {
+        } else
             System.err.println("[MANEJADOR] ERROR: manejador2 es null!");
-        }
-
+        
         System.out.println("[MANEJADOR] ========== TABLEROS ENVIADOS ==========");
     }
 
@@ -840,9 +852,8 @@ public class ManejadorCliente implements Runnable {
         try {
             conectado = false;
 
-            if (jugadorAsociado != null) {
+            if (jugadorAsociado != null) 
                 gestorJugadores.eliminarJugador(jugadorAsociado.getId());
-            }
 
             if (entrada != null) entrada.close();
             if (salida != null) salida.close();
@@ -859,7 +870,5 @@ public class ManejadorCliente implements Runnable {
      * Obtiene el jugador asociado a este manejador
      * @return JugadorDTO
      */
-    public JugadorDTO getJugadorAsociado() {
-        return jugadorAsociado;
-    }
+    public JugadorDTO getJugadorAsociado() {return jugadorAsociado;}
 }

@@ -3,7 +3,6 @@ package views;
 import controllers.ControlDisparo;
 import dtos.CoordenadaDTO;
 import dtos.NaveDTO;
-import dtos.TurnoDTO;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -19,13 +18,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.border.LineBorder;
 import models.IObserver;
 import static views.ConstantesVista.COLOR_AGUA;
 import static views.ConstantesVista.COLOR_BORDE;
 import static views.ConstantesVista.COLOR_FONDO;
-import views.VistaMarcador;
 
 /**
  * Vista principal del juego - Caso de Uso: Realizar Disparo
@@ -46,17 +43,13 @@ import views.VistaMarcador;
  * @author Daniel Miramontes Iribe ID: 00000252801
  */
 public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObserver {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VistaConfiguracionNaves.class.getName());
-    
+        
     // Componentes visuales
     private VistaTableroNaves panelTableroPropio;
     private VistaTableroDisparos panelTableroDisparos;
-    private JLabel lblTurnoActual;
-    private JLabel lblTemporizador;
     private JLabel lblNombreJugador;
     private JLabel lblNombreOponente;
-    private JPanel panelMarcador;
+    private VistaArrastreNaves panelNaves;
     private JTextArea txtNotificaciones;
     
     // Controlador (único punto de comunicación)
@@ -86,14 +79,11 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
         // Cargar los recursos y elementos del panel
         inicializarComponentes();
         
+        
+        
         // Registrarse como observador
         controlador.getPartida().agregarObserver(this);
-        
-        // Inicializar el temporizador
-        controlador.iniciarTemporizador();
 
-        // Configurar observador para actualizaciones
-        configurarObservador();
     }
     
     public void nuevaPartida(String nombreJugador, String nombreOponente, NaveDTO[] naves){
@@ -106,13 +96,6 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
         
         // Carga nuevamente los recursos del panel.
         inicializarComponentes();
-        
-        // Inicializar el temporizador
-        // Deberá cambiar a iniciarPatida, o la partida ya deberá haber iniciado.
-        controlador.iniciarTemporizador();
-        
-        // Configurar observador para actualizaciones
-        configurarObservador();
     }
     
     private void configurarVentana() {
@@ -123,7 +106,7 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
     private void inicializarComponentes() {
         add(crearPanelSuperior(), BorderLayout.NORTH);
         add(crearPanelCentral(), BorderLayout.CENTER);
-        add(crearPanelMarcador(), BorderLayout.EAST);
+        add(crearPanelNaves(), BorderLayout.EAST);
         add(crearPanelInferior(), BorderLayout.SOUTH);
     }
 
@@ -149,26 +132,7 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
         panelJugador.add(lblNombreJugador);
         panelJugador.add(lblNombreOponente);
 
-        lblTurnoActual = new JLabel("Esperando turno...", SwingConstants.CENTER);
-        lblTurnoActual.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTurnoActual.setForeground(Color.DARK_GRAY);
-
-        JPanel panelTemporizador = new JPanel(new BorderLayout());
-        panelTemporizador.setBackground(COLOR_FONDO);
-
-        JLabel lblTiempoLabel = new JLabel("⏱️ TIEMPO:", SwingConstants.RIGHT);
-        lblTiempoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-
-        lblTemporizador = new JLabel("30s", SwingConstants.CENTER);
-        lblTemporizador.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTemporizador.setForeground(new Color(0, 150, 0));
-
-        panelTemporizador.add(lblTiempoLabel, BorderLayout.NORTH);
-        panelTemporizador.add(lblTemporizador, BorderLayout.CENTER);
-
-        panel.add(panelJugador, BorderLayout.WEST);
-        panel.add(lblTurnoActual, BorderLayout.CENTER);
-        panel.add(panelTemporizador, BorderLayout.EAST);
+        panel.add(panelJugador, BorderLayout.CENTER);
 
         return panel;
     }
@@ -209,9 +173,9 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
         
     }
     
-    private JPanel crearPanelMarcador() {
-        JPanel panel = new VistaMarcador();
-        panelMarcador = panel;
+    private JPanel crearPanelNaves() {
+        VistaArrastreNaves panel = new VistaArrastreNaves();
+        panelNaves = panel;
         return panel;
     }
 
@@ -227,7 +191,7 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         panelBotones.setBackground(COLOR_FONDO);
 
-        JButton btnAbandonar = new JButton("Abandonar Batalla");
+        JButton btnAbandonar = new JButton("Abandonar Partida");
         btnAbandonar.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnAbandonar.setBackground(new Color(220, 53, 69));
         btnAbandonar.setForeground(Color.WHITE);
@@ -235,8 +199,18 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
         btnAbandonar.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         btnAbandonar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnAbandonar.addActionListener(e -> botonAbandonarBatallaActionPerformed(e));
+        
+        JButton btnListo = new JButton("Listo");
+        btnListo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnListo.setBackground(Color.GREEN);
+        btnListo.setForeground(Color.WHITE);
+        btnListo.setFocusPainted(false);
+        btnListo.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btnListo.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnListo.setEnabled(false);
 
         panelBotones.add(btnAbandonar);
+        panelBotones.add(btnListo);
 
         // Panel de notificaciones
         JPanel panelNotificaciones = new JPanel(new BorderLayout());
@@ -284,46 +258,12 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
     }
 
     /**
-     * Actualiza el turno usando un TurnoDTO
-     * @param turnoDTO TurnoDTO con la información del turno actual.
-     */
-    public void actualizarTurnoDesdeDTO(TurnoDTO turnoDTO) {
-        SwingUtilities.invokeLater(() -> {
-            boolean esMiTurno = turnoDTO.getNombreJugadorTurno().equals(nombreJugadorActual);
-
-            if (esMiTurno) {
-                lblTurnoActual.setText("¡TU TURNO!");
-                lblTurnoActual.setForeground(new Color(0, 150, 0));
-            } else {
-                lblTurnoActual.setText("Turno de: " + turnoDTO.getNombreJugadorTurno());
-                lblTurnoActual.setForeground(Color.RED);
-            }
-
-            panelTableroDisparos.habilitarTableroDisparos(esMiTurno);
-            actualizarTemporizador(turnoDTO.getTiempoRestante());
-        });
-    }
-
-    /**
      * Actualiza el marcador usando DTOs
      * 
      * @param navesOponente
      */
     public void actualizarMarcadorDesdeDTO(NaveDTO[] navesOponente) {
         // pendiente...y seguramente será removido de esta clase...
-    }
-
-    private void actualizarTemporizador(int segundos) {
-        SwingUtilities.invokeLater(() -> {
-            lblTemporizador.setText(segundos + "s");
-            if (segundos <= 10) {
-                lblTemporizador.setForeground(Color.RED);
-            } else if (segundos <= 20) {
-                lblTemporizador.setForeground(new Color(255, 165, 0));
-            } else {
-                lblTemporizador.setForeground(new Color(0, 150, 0));
-            }
-        });
     }
 
     public void agregarNotificacion(String mensaje) {
@@ -338,32 +278,11 @@ public class VistaConfiguracionNaves extends javax.swing.JPanel implements IObse
             JOptionPane.showMessageDialog(this, mensaje, titulo, tipo);
         });
     }
-
-    // CONFIGURACIÓN DE OBSERVADOR 
-    private void configurarObservador() {
-        // Timer para actualizar el temporizador desde el controlador
-        Timer timer = new Timer(1000, e -> {
-            int tiempoRestante = controlador.getTiempoRestante();
-            actualizarTemporizador(tiempoRestante);
-        });
-        timer.start();
-    }
     
     @Override
     public void notificar(String mensaje, String nombreJugadorTurno) {
         SwingUtilities.invokeLater(() -> {
-            agregarNotificacion(mensaje);
-
-            // Si el mensaje es de tiempo agotado
-            if (mensaje.contains("Tiempo agotado")) {
-                mostrarDialogo("Tiempo Agotado",
-                        "El tiempo se ha agotado. Turno perdido.",
-                        JOptionPane.WARNING_MESSAGE);
-            }
-
-            // Actualizar el turno en la interfaz
-            TurnoDTO turnoDTO = controlador.obtenerTurnoActual();
-            actualizarTurnoDesdeDTO(turnoDTO);
+            
         });
     }
     /**

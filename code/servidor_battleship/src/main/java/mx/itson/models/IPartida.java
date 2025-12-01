@@ -1,6 +1,11 @@
 package mx.itson.models;
 
+import java.util.List;
+import java.util.function.Consumer;
 import mx.itson.exceptions.ModelException;
+import mx.itson.utils.dtos.CoordenadaDTO;
+import mx.itson.utils.dtos.DisparoDTO;
+import mx.itson.utils.enums.EstadoPartida;
 
 /**
  *
@@ -16,57 +21,149 @@ import mx.itson.exceptions.ModelException;
  * ID: 00000252801
  */
 public interface IPartida {
-    /**
-     * 
-     * @throws ModelException 
-     */
-    public void iniciarPartida() throws ModelException;
     
     /**
      * 
+     * @return 
+     */
+    public String getIdPartida();
+    
+    /**
+     * 
+     * @param idJugador
+     * @return 
+     */
+    public IJugador getJugador(String idJugador);
+    
+    /**
+     * 
+     * @return 
+     */
+    public IJugador getJugador1();
+    
+    /**
+     * 
+     * @return 
+     */
+    public IJugador getJugador2();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String getIdJugadorEnTurno();
+    
+    /**
+     * 
+     * @return 
+     */
+    public String getIdGanador();
+    
+    /**
+     * 
+     * @return 
+     */
+    public boolean hayGanador();
+    
+    /**
+     * 
+     * @return 
+     */
+    public boolean ambosJugadoresListos();
+    
+    /**
+     * 
+     * @return 
+     */
+    public int getTiempoRestante();
+    
+    /**
+     * 
+     * @return 
+     */
+    public EstadoPartida getEstadoPartida();
+    
+    /**
+     * 
+     * @param idJugador
+     * @return 
+     */
+    public boolean verificarJugadorTurno(String idJugador);
+    
+    /**
+     * 
+     * @param idJugador
+     * @param coordenada
+     * @return 
+     * @throws mx.itson.exceptions.ModelException 
+     */
+    public boolean validarDisparo(String idJugador, CoordenadaDTO coordenada) throws ModelException;
+    
+    /**
+     * 
+     * @param idJugadorDispara
+     * @param coordenada
+     * @return
      * @throws ModelException 
      */
-    public void cambiarTurno() throws ModelException;
+    public DisparoDTO procesarDisparo(String idJugadorDispara, CoordenadaDTO coordenada) throws ModelException;
     
     /**
-     * Valida si un disparo es legal (turno correcto y casilla no repetida)
-     * @param disparo El disparo a validar
-     * @param jugador El jugador que intenta disparar
-     * @return true si el disparo es válido
-     * @throws ModelException
+     * 
+     * @param idJugador
+     * @param naves
+     * @return
+     * @throws ModelException 
      */
-    public boolean validarDisparo(Disparo disparo, IJugador jugador) throws ModelException;
-    
-    /**
-     * Procesa un disparo de un jugador a otro
-     * @param coordenada La coordenada del disparo
-     * @param jugadorAtacante El jugador que realiza el disparo
-     * @return true si el disparo fue procesado, false si no fue válido
-     * @throws ModelException
-     */
-    public boolean recibirDisparo(Coordenada coordenada, IJugador jugadorAtacante) throws ModelException;
-    
-    /**
-     * Verifica si el jugador proporcionado es el que tiene el turno actual
-     * @param jugador El jugador a verificar
-     * @return true si es el turno de ese jugador
-     * @throws ModelException
-     */
-    public boolean verificarJugadorTurno(IJugador jugador) throws ModelException;
+    public boolean colocarNaves(String idJugador, List<Nave> naves) throws ModelException;
     
     /**
      * 
      * @param naveNueva
-     * @param jugador
+     * @param idJugador
+     * @return 
      * @throws ModelException 
      */
-    public void agregarNave(Nave naveNueva, IJugador jugador) throws ModelException;
+    public boolean agregarNave(Nave naveNueva, String idJugador) throws ModelException;
     
     /**
      * 
      * @param coordenadas
-     * @param jugador
+     * @param idJugador
+     * @return 
      * @throws ModelException 
      */
-    public void quitarNave(Coordenada[] coordenadas, IJugador jugador) throws ModelException;
+    public boolean quitarNave(Coordenada[] coordenadas, String idJugador) throws ModelException;
+    
+    /**
+     * 
+     */
+    public void manejarTiempoAgotado();
+    
+    /**
+     *
+     * @param callback
+     */
+    public void establecerRespuestaTiempoAgotado(Consumer<String> callback);
+
+    /**
+     * Establece el callback para actualización periódica del tiempo
+     * @param callback Consumer que recibe el tiempo restante
+     */
+    public void establecerCallbackActualizacionTiempo(Consumer<Integer> callback);
+
+    /**
+     *
+     */
+    public void iniciarTemporizador();
+    
+    /**
+     * 
+     */
+    public void detenerTemporizador();
+    
+    /**
+     * 
+     */
+    public void liberarRecursos();
 }

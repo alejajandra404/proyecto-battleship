@@ -494,6 +494,7 @@ public class Partida {
 
     /**
      * Limpia recursos del timer cuando termina la partida
+     * // ¿Por qué no tiene synchronized también?
      */
     public void limpiarRecursos() {
         detenerTimer();

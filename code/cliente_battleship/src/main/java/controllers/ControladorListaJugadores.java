@@ -191,6 +191,7 @@ public class ControladorListaJugadores implements ListenerServidor.ICallbackMens
                 case TURNO_INICIADO:
                 case CAMBIO_TURNO:
                 case TURNO_TIMEOUT:
+                case ACTUALIZAR_TIEMPO_TURNO:
                 case RESULTADO_DISPARO:
                 case ACTUALIZAR_TABLEROS:
                 case PARTIDA_GANADA:

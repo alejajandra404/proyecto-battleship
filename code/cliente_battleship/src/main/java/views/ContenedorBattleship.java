@@ -1,8 +1,5 @@
 package views;
 
-import java.awt.CardLayout;
-import javax.swing.JPanel;
-
 /**
  * Única ventana de la aplicación, que será la contenedora de cada vista.
  * @author Leonardo Flores Leyva ID: 00000252390
@@ -18,7 +15,6 @@ public class ContenedorBattleship extends javax.swing.JFrame {
      */
     public ContenedorBattleship() {
         initComponents();
-        setSize(1216, 680);
         setResizable(false);
         FlujoVista.setContenedor(contenedorPaneles);
     }
@@ -39,8 +35,9 @@ public class ContenedorBattleship extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(1216, 680));
         setResizable(false);
 
-        contenedorPaneles.setMaximumSize(new java.awt.Dimension(1216, 680));
-        contenedorPaneles.setMinimumSize(new java.awt.Dimension(1216, 680));
+        contenedorPaneles.setMaximumSize(new java.awt.Dimension(1366, 768));
+        contenedorPaneles.setMinimumSize(new java.awt.Dimension(1366, 768));
+        contenedorPaneles.setPreferredSize(new java.awt.Dimension(1366, 768));
         contenedorPaneles.setLayout(new java.awt.BorderLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

@@ -5,111 +5,421 @@ import mx.itson.utils.dtos.*;
 import mx.itson.utils.enums.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-
+import java.awt.image.BufferedImage;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.imageio.ImageIO;
 /**
- * Vista principal del juego multijugador
- * Muestra ambos tableros y permite realizar disparos
- *
+ * Vista principal del juego multijugador.
+ * 
  * @author Leonardo Flores Leyva ID: 00000252390
  * @author Yuri Germán García López ID: 00000252583
  * @author Alejandra García Preciado ID: 00000252444
  * @author Jesús Ernesto López Ibarra ID: 00000252663
  * @author Daniel Miramontes Iribe ID: 00000252801
- */
+*/
 public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IVistaJuego {
+
+    // Lista que guarda las naves colocadas en la vista VistaColocacionNavesVisual
+    public static List<NaveDTO> navesParaTransferir = new ArrayList<>();
 
     private final ControladorJuego controlador;
     private final JugadorDTO jugadorLocal;
     private final JugadorDTO oponente;
+    
+    // Lista de naves propias (naves colocadas en el tablero propio)
+    private List<NaveDTO> misNaves; 
 
     // Componentes UI
     private JLabel lblTitulo;
     private JLabel lblTurno;
+    private JLabel lblTiempo;
     private JTextArea txtLog;
     private JButton[][] botonesTableroPropio;
     private JButton[][] botonesTableroOponente;
-    private JPanel panelTableroPropio;
+    private JButton btnAbandonar;
+    
+    //Paneles contenedores de los tableros
+    private PanelTableroConImagenes panelTableroPropio; 
     private JPanel panelTableroOponente;
+    private JPanel panelMarcador;
+    
+    //Lista de componentes visuales para el marcador
+    private List<PanelEstadoNave> listaPanelesEstado = new ArrayList<>();
 
     private static final int TAMANO_TABLERO = 10;
+    private static final int TAMANO_CASILLA = 40;
+    
+    // Colores
     private static final Color COLOR_AGUA = new Color(100, 149, 237);
-    private static final Color COLOR_NAVE = new Color(128, 128, 128);
-    private static final Color COLOR_IMPACTO = new Color(220, 20, 60);
-    private static final Color COLOR_HUNDIDO = new Color(139, 0, 0);
-    private static final Color COLOR_FALLO = new Color(173, 216, 230);
+    private static final Color COLOR_FONDO_TABLERO = new Color(9, 117, 197);
+    private static final Color COLOR_TITLE_BORDER = new Color(162, 212, 248);
+    private static final Color COLOR_BORDE_TABLERO = new Color(134, 74, 52);
+    private static final Color COLOR_IMPACTO = new Color(220, 20, 60, 200); 
+    private static final Color COLOR_HUNDIDO = new Color(245, 132, 132);
+    private static final Color COLOR_FALLO = new Color(255, 255, 255, 100);
 
+    //Colores para el marcador
+    private static final Color ESTADO_INTACTO = new Color(50, 205, 50);
+    private static final Color ESTADO_AVERIADO = new Color(255, 215, 0);
+    private static final Color ESTADO_HUNDIDO = new Color(220, 20, 60);
+    
     private boolean miTurno = false;
+    
+    // Imágenes
+    private Map<String, BufferedImage> cacheImagenes = new HashMap<>();
+    private ImageIcon iconoAgua;
+    private ImageIcon iconoImpacto;
+    private String sufijoColor;
 
     /**
-     * Constructor
-     */
+     * Método constructor de la vista.
+     * Inicializa componentes, carga recursos y recupera las naves colocadas en el tablero
+     * @param jugadorLocal Datos del jugador local
+     * @param oponente Datos del oponente
+     * @param controlador Controlador de la lógica del juego
+     */ 
     public VistaJuegoMultiplayer(JugadorDTO jugadorLocal, JugadorDTO oponente,
-                                ControladorJuego controlador) {
+                                 ControladorJuego controlador) {
         this.jugadorLocal = jugadorLocal;
         this.oponente = oponente;
         this.controlador = controlador;
+        this.misNaves = new ArrayList<>(navesParaTransferir);
 
-        // Registrar esta vista en el controlador
+        determinarSufijoColor();
+        cargarRecursos(); 
+        
         controlador.setVistaJuego(this);
 
         inicializarComponentes();
         log("¡Batalla iniciada!");
         log("Esperando asignación de turno...");
     }
+    
+    /**
+     * Método que actualiza la lista de naves locales y repinta el tablero
+     * @param naves Lista de naves a dibujar
+     */
+    public void setNavesLocales(List<NaveDTO> naves) {
+        this.misNaves = naves;
+        if (panelTableroPropio != null) panelTableroPropio.repaint();
+    }
 
     /**
-     * Inicializa los componentes de la UI
+     * Método que ayuda a determinar el sufijo de 
+     * archivo de imagen según el color del jugador (rojo/azul)
+     */
+    private void determinarSufijoColor() {
+        Color c = jugadorLocal.getColor();
+        if (c != null && c.getRed() > 200 && c.getBlue() < 100) {
+            this.sufijoColor = "_rojo";
+        } else {
+            this.sufijoColor = "_azul";
+        }
+    }
+
+    /**
+     * Método que carga las imágenes de las naves y los iconos de eventos (agua/impacto) en memoria
+     */
+    private void cargarRecursos() {
+        try {
+            // Cargar Naves
+            String[] tipos = {"portaaviones", "crucero", "submarino", "barco"};
+            for (String tipo : tipos) {
+                String nombreBase = tipo + sufijoColor + ".png";
+                URL url = getClass().getResource("/" + nombreBase);
+                if (url == null) url = getClass().getResource("/imgs/" + nombreBase);
+                
+                if (url != null) {
+                    BufferedImage imgH = ImageIO.read(url);
+                    cacheImagenes.put(tipo + "_H", imgH);
+                    cacheImagenes.put(tipo + "_V", crearVersionVertical(imgH));
+                }
+            }
+
+            // Cargar Iconos
+            URL urlAgua = getClass().getResource("/agua.png");
+            if (urlAgua == null) urlAgua = getClass().getResource("/imgs/agua.png");
+            if (urlAgua != null) {
+                Image img = ImageIO.read(urlAgua).getScaledInstance(TAMANO_CASILLA - 8, TAMANO_CASILLA - 8, Image.SCALE_SMOOTH);
+                iconoAgua= new ImageIcon(img);
+            }
+
+            URL urlImpacto = getClass().getResource("/impacto.png");
+            if (urlImpacto == null) urlImpacto = getClass().getResource("/imgs/impacto.png");
+            if (urlImpacto != null) {
+                Image img = ImageIO.read(urlImpacto).getScaledInstance(TAMANO_CASILLA - 5, TAMANO_CASILLA - 5, Image.SCALE_SMOOTH);
+                iconoImpacto = new ImageIcon(img);
+            }
+
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+    
+    /**
+     * Método que rota una imagen 90 grados para usarla en orientación vertical
+     */
+    private BufferedImage crearVersionVertical(BufferedImage original) {
+        int w = original.getWidth();
+        int h = original.getHeight();
+        BufferedImage rotada = new BufferedImage(h, w, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = rotada.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g2d.translate(h, 0);
+        g2d.rotate(Math.toRadians(90));
+        g2d.drawImage(original, 0, 0, null);
+        g2d.dispose();
+        return rotada;
+    }
+
+    // --- CLASE INTERNA: PANEL INDIVIDUAL PARA CADA NAVE EN EL MARCADOR ---
+    private class PanelEstadoNave extends JPanel {
+        private NaveDTO naveRef;
+        private BufferedImage imagen;
+        private Color colorEstado = ESTADO_INTACTO; // Empieza Verde
+
+        public PanelEstadoNave(NaveDTO nave) {
+            this.naveRef = nave;
+            
+            // Buscar imagen horizontal
+            String claveTipo = "";
+            switch(nave.getTipo()) {
+                case PORTAAVIONES: claveTipo = "portaaviones"; break;
+                case CRUCERO: claveTipo = "crucero"; break;
+                case SUBMARINO: claveTipo = "submarino"; break;
+                case BARCO: claveTipo = "barco"; break;
+            }
+            this.imagen = cacheImagenes.get(claveTipo + "_H");
+
+            // Tamaño ajustado: Ancho según nave (escalado a 20px por celda para que quepa) + margen
+            int ancho = (nave.getLongitudTotal() * 25) + 10; 
+            setPreferredSize(new Dimension(ancho, 50));
+            setOpaque(false);
+        }
+
+        // Método para verificar salud de la nave revisando el tablero
+        public void actualizarEstado(TableroDTO tablero) {
+            if (tablero == null) return;
+
+            int casillasDañadas = 0;
+            int casillasHundidas = 0;
+            int longitud = naveRef.getLongitudTotal();
+
+            // Revisamos cada coordenada de esta nave en el tablero actual
+            for (CoordenadaDTO coord : naveRef.getCoordenadas()) {
+                EstadoCasilla estado = tablero.getCasillas()[coord.getX()][coord.getY()];
+                if (estado == EstadoCasilla.IMPACTADA_AVERIADA) casillasDañadas++;
+                if (estado == EstadoCasilla.IMPACTADA_HUNDIDA) casillasHundidas++;
+            }
+
+            if (casillasHundidas > 0 || (casillasDañadas + casillasHundidas) == longitud) {
+                colorEstado = ESTADO_HUNDIDO; // Rojo
+            } else if (casillasDañadas > 0) {
+                colorEstado = ESTADO_AVERIADO; // Amarillo
+            } else {
+                colorEstado = ESTADO_INTACTO; // Verde
+            }
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // 1. Dibujar imagen de la nave (escalada un poco más pequeña para el marcador)
+            if (imagen != null) {
+                int anchoImg = naveRef.getLongitudTotal() * 25;
+                int altoImg = 25;
+                // Centrar horizontalmente
+                int x = (getWidth() - anchoImg) / 2;
+                g2d.drawImage(imagen, x, 5, anchoImg, altoImg, this);
+            }
+
+            // 2. Dibujar Círculo de Estado debajo
+            int diametro = 12;
+            int circuloX = (getWidth() - diametro) / 2;
+            int circuloY = 35; // Debajo de la imagen
+
+            g2d.setColor(colorEstado);
+            g2d.fillOval(circuloX, circuloY, diametro, diametro);
+            
+            // Borde del círculo
+            g2d.setColor(Color.DARK_GRAY);
+            g2d.drawOval(circuloX, circuloY, diametro, diametro);
+        }
+    }
+    
+    /**
+     * Panel personalizado que gestiona las "capas" es decir 
+     * que imagen va encima de cual
+     * 1. Fondo
+     * 2. Casillas
+     * 3. Naves
+     */
+    private class PanelTableroConImagenes extends JPanel {
+
+        public PanelTableroConImagenes(LayoutManager layout) {
+            super(layout);
+        }
+
+        @Override
+        protected void paintChildren(Graphics g) {
+            Graphics2D g2d = (Graphics2D) g;
+            
+            // Pintar el fondo del tablero y el color de las casillas
+            g2d.setColor(COLOR_FONDO_TABLERO); 
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+
+            g2d.setColor(COLOR_AGUA);
+            if (botonesTableroPropio != null) {
+                for (int i = 0; i < TAMANO_TABLERO; i++) {
+                    for (int j = 0; j < TAMANO_TABLERO; j++) {
+                        JButton btn = botonesTableroPropio[i][j];
+                        if (btn != null) {
+                            g2d.fillRect(btn.getX(), btn.getY(), btn.getWidth(), btn.getHeight());
+                        }
+                    }
+                }
+            }
+
+            // Pintar los botones (casillas)
+            super.paintChildren(g);
+
+            // Pintar las naves por enicma de los botones (casillas)
+            if (misNaves != null && !misNaves.isEmpty()) {
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                
+                for (NaveDTO nave : misNaves) {
+                    String claveTipo = "";
+                    switch(nave.getTipo()) {
+                        case PORTAAVIONES: claveTipo = "portaaviones"; break;
+                        case CRUCERO: claveTipo = "crucero"; break;
+                        case SUBMARINO: claveTipo = "submarino"; break;
+                        case BARCO: claveTipo = "barco"; break;
+                    }
+                    
+                    boolean esHorizontal = (nave.getOrientacion() == OrientacionNave.HORIZONTAL);
+                    BufferedImage img = cacheImagenes.get(claveTipo + (esHorizontal ? "_H" : "_V"));
+
+                    if (img != null && nave.getCoordenadas().length > 0) {
+                        CoordenadaDTO origen = nave.getCoordenadas()[0]; 
+                        int f = origen.getX();
+                        int c = origen.getY();
+                        
+                        if (f >= 0 && f < TAMANO_TABLERO && c >= 0 && c < TAMANO_TABLERO && 
+                            botonesTableroPropio != null && botonesTableroPropio[f][c] != null) {
+                            
+                            JButton btnRef = botonesTableroPropio[f][c];
+                            int x = btnRef.getX();
+                            int y = btnRef.getY();
+                            int anchoCelda = btnRef.getWidth();
+                            int altoCelda = btnRef.getHeight();
+                            int padding = 0; 
+
+                            if (esHorizontal) {
+                                g2d.drawImage(img, x+padding, y+padding, (anchoCelda*nave.getLongitudTotal())-(padding*2), altoCelda-(padding*2), this);
+                            } else {
+                                g2d.drawImage(img, x+padding, y+padding, anchoCelda-(padding*2), (altoCelda*nave.getLongitudTotal())-(padding*2), this);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Repintar las imágenes de los impactos para que queden pintados encima de las naves
+            if (botonesTableroPropio != null) {
+                 for (int i = 0; i < TAMANO_TABLERO; i++) {
+                    for (int j = 0; j < TAMANO_TABLERO; j++) {
+                        JButton btn = botonesTableroPropio[i][j];
+                        if (btn != null && (btn.getIcon() != null || btn.isContentAreaFilled())) {
+                             Graphics gBtn = g.create(btn.getX(), btn.getY(), btn.getWidth(), btn.getHeight());
+                             btn.paint(gBtn);
+                             gBtn.dispose();
+                        }
+                    }
+                 }
+            }
+        }
+    }
+
+    /**
+     * Método que inicializa todos los componentes visuales y layouts
      */
     private void inicializarComponentes() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         setBackground(new Color(240, 248, 255));
 
-        // Panel superior con título y turno
         JPanel panelSuperior = new JPanel(new GridLayout(2, 1, 5, 5));
         panelSuperior.setOpaque(false);
-
-        lblTitulo = new JLabel("BATALLA NAVAL - " + jugadorLocal.getNombre() + " vs " + oponente.getNombre(),
-                              SwingConstants.CENTER);
+        lblTitulo = new JLabel("BATALLA NAVAL - " + jugadorLocal.getNombre() + " vs " + oponente.getNombre(), SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
         lblTitulo.setForeground(new Color(0, 51, 102));
-
         lblTurno = new JLabel("Esperando turno...", SwingConstants.CENTER);
         lblTurno.setFont(new Font("Arial", Font.BOLD, 16));
         lblTurno.setForeground(Color.DARK_GRAY);
 
+        lblTiempo = new JLabel("⏱️ Tiempo: 30s", SwingConstants.CENTER);
+        lblTiempo.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTiempo.setForeground(new Color(0, 150, 0));
+
         panelSuperior.add(lblTitulo);
         panelSuperior.add(lblTurno);
+        panelSuperior.add(lblTiempo);
 
-        // Panel central con ambos tableros
         JPanel panelTableros = new JPanel(new GridLayout(1, 2, 20, 0));
         panelTableros.setOpaque(false);
 
-        // Tablero propio (izquierda)
+        // Tablero propio
         JPanel contenedorPropio = new JPanel(new BorderLayout());
-        contenedorPropio.setBorder(BorderFactory.createTitledBorder("Tu Tablero - " + jugadorLocal.getNombre()));
         contenedorPropio.setOpaque(false);
+        contenedorPropio.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Tu Tablero - " + jugadorLocal.getNombre()),
+            BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2)));
 
-        panelTableroPropio = crearPanelTablero(false);
-        botonesTableroPropio = extraerBotones(panelTableroPropio);
-
+        // Panel personalizado
+        panelTableroPropio = new PanelTableroConImagenes(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 0, 0));
+        panelTableroPropio.setOpaque(false); 
+        botonesTableroPropio = llenarPanelTablero(panelTableroPropio, false);
         contenedorPropio.add(panelTableroPropio, BorderLayout.CENTER);
 
-        // Tablero oponente (derecha)
+        // Tablero del oponente
         JPanel contenedorOponente = new JPanel(new BorderLayout());
-        contenedorOponente.setBorder(BorderFactory.createTitledBorder("Tablero Enemigo - " + oponente.getNombre()));
         contenedorOponente.setOpaque(false);
+        contenedorOponente.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Enemigo - " + oponente.getNombre()),
+            BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2)));
 
-        panelTableroOponente = crearPanelTablero(true);
-        botonesTableroOponente = extraerBotones(panelTableroOponente);
-
+        panelTableroOponente = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 0, 0));
+        panelTableroOponente.setBackground(COLOR_FONDO_TABLERO);
+        botonesTableroOponente = llenarPanelTablero(panelTableroOponente, true); 
         contenedorOponente.add(panelTableroOponente, BorderLayout.CENTER);
 
         panelTableros.add(contenedorPropio);
         panelTableros.add(contenedorOponente);
 
-        // Panel inferior con log
+        // Panel del marcador
+        JPanel panelDerecho = new JPanel(new BorderLayout(0, 10));
+        panelDerecho.setOpaque(false);
+        panelDerecho.setPreferredSize(new Dimension(200, 0));
+        panelMarcador = crearPanelMarcador();
+        panelDerecho.add(panelMarcador, BorderLayout.CENTER);
+
+        // Botón Abandonar (Estilo Rojo)
+        btnAbandonar = new JButton("Abandonar Partida");
+        btnAbandonar.setFont(new Font("Arial", Font.BOLD, 14));
+        btnAbandonar.setBackground(new Color(220, 20, 60));
+        btnAbandonar.setForeground(Color.WHITE);
+        btnAbandonar.setFocusPainted(false);
+        btnAbandonar.setPreferredSize(new Dimension(0, 40));
+        btnAbandonar.addActionListener(e -> abandonarPartida());
+        
+        panelDerecho.add(btnAbandonar, BorderLayout.SOUTH);
+        
         txtLog = new JTextArea(8, 60);
         txtLog.setEditable(false);
         txtLog.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -118,98 +428,286 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         JScrollPane scrollLog = new JScrollPane(txtLog);
         scrollLog.setBorder(BorderFactory.createTitledBorder("Registro de Batalla"));
 
-        // Agregar componentes
         add(panelSuperior, BorderLayout.NORTH);
         add(panelTableros, BorderLayout.CENTER);
+        add(panelDerecho, BorderLayout.EAST);
         add(scrollLog, BorderLayout.SOUTH);
     }
-
+    
     /**
-     * Crea un panel de tablero con grid de botones
+     * Método que crea el panel lateral con el estado de las naves
      */
-    private JPanel crearPanelTablero(boolean paraDisparar) {
-        JPanel panel = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 1, 1));
-        panel.setBackground(Color.DARK_GRAY);
+    private JPanel crearPanelMarcador() {
+        JPanel panel = new JPanel();
+        // Usar un GridLayout de 2 columnas para acomodar las imágenes de las naves y sus estados
+        panel.setLayout(new GridLayout(0, 2, 5, 5)); 
+        panel.setBorder(BorderFactory.createTitledBorder("Marcador de tu Flota"));
+        panel.setBackground(new Color(240, 248, 255));
+        
+        listaPanelesEstado.clear();
 
-        // Encabezados de columnas (A-J)
-        panel.add(new JLabel("")); // Esquina superior izquierda
-        for (int col = 0; col < TAMANO_TABLERO; col++) {
-            JLabel lbl = new JLabel(String.valueOf((char) ('A' + col)), SwingConstants.CENTER);
-            lbl.setFont(new Font("Arial", Font.BOLD, 12));
-            panel.add(lbl);
-        }
+        if (misNaves != null) {
+            // Separé naves por su tipo
+            List<NaveDTO> portaavioness = new ArrayList<>();
+            List<NaveDTO> cruceros = new ArrayList<>();
+            List<NaveDTO> submarinos = new ArrayList<>();
+            List<NaveDTO> barcos = new ArrayList<>();
 
-        // Filas con números
-        for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
-            // Número de fila
-            JLabel lblFila = new JLabel(String.valueOf(fila + 1), SwingConstants.CENTER);
-            lblFila.setFont(new Font("Arial", Font.BOLD, 12));
-            panel.add(lblFila);
-
-            // Casillas
-            for (int col = 0; col < TAMANO_TABLERO; col++) {
-                JButton btn = new JButton();
-                btn.setBackground(COLOR_AGUA);
-                btn.setPreferredSize(new Dimension(40, 40));
-                btn.setMargin(new Insets(0, 0, 0, 0));
-                btn.setFocusPainted(false);
-
-                if (paraDisparar) {
-                    // Solo el tablero oponente tiene acciones de disparo
-                    final int x = fila;
-                    final int y = col;
-                    btn.putClientProperty("x", x);
-                    btn.putClientProperty("y", y);
-                    btn.addActionListener(e -> realizarDisparo(x, y));
-                } else {
-                    btn.setEnabled(false);
+            for (NaveDTO nave : misNaves) {
+                switch(nave.getTipo()) {
+                    case PORTAAVIONES: portaavioness.add(nave); break;
+                    case CRUCERO:      cruceros.add(nave); break;
+                    case SUBMARINO:    submarinos.add(nave); break;
+                    case BARCO:        barcos.add(nave); break;
                 }
-
-                panel.add(btn);
             }
-        }
 
+            // Agregar en orden cada nave
+            
+            // Fila 1: Portaaviones - Crucero
+            agregarAlMarcador(panel, obtenerNave(portaavioness, 0));
+            agregarAlMarcador(panel, obtenerNave(cruceros, 0));
+            
+            // Fila 2: Portaaviones - Crucero
+            agregarAlMarcador(panel, obtenerNave(portaavioness, 1));
+            agregarAlMarcador(panel, obtenerNave(cruceros, 1));
+            
+            // Fila 3: Submarino - Submarino 
+            agregarAlMarcador(panel, obtenerNave(submarinos, 0));
+            agregarAlMarcador(panel, obtenerNave(submarinos, 1));
+            
+            // Fila 4: Submarino - Submarino
+            agregarAlMarcador(panel, obtenerNave(submarinos, 2));
+            agregarAlMarcador(panel, obtenerNave(submarinos, 3));
+            
+            // Fila 5: Barco - Barco
+            agregarAlMarcador(panel, obtenerNave(barcos, 0));
+            agregarAlMarcador(panel, obtenerNave(barcos, 1));
+            
+            // Fila 6: Barco 3 - Nada jaja
+            agregarAlMarcador(panel, obtenerNave(barcos, 2));
+        }
         return panel;
     }
 
+    // Método auxiliar que obtiene las naves de la lista de navesDTO
+    private NaveDTO obtenerNave(List<NaveDTO> lista, int indice) {
+        if (indice < lista.size()) {
+            return lista.get(indice);
+        }
+        return null;
+    }
+
+    // Método auxiliar para crear el panel del marcador y agregarlo a la vista
+    private void agregarAlMarcador(JPanel panelContenedor, NaveDTO nave) {
+        if (nave != null) {
+            PanelEstadoNave pEstado = new PanelEstadoNave(nave);
+            listaPanelesEstado.add(pEstado);
+            panelContenedor.add(pEstado);
+        } else {
+            // Si no hay naves se agrega un espacio vacío transparente para que no haya problemas con el acomodo del grid
+            JPanel hueco = new JPanel();
+            hueco.setOpaque(false);
+            panelContenedor.add(hueco);
+        }
+    }
+    
     /**
-     * Extrae la matriz de botones de un panel de tablero
+     * TODO Método para abandonar partida 
      */
-    private JButton[][] extraerBotones(JPanel panelTablero) {
+    private void abandonarPartida(){
+        
+    }
+    
+    /**
+     * Método que crea la matriz de botones para los tableros
+     * @param panel Panel contenedor
+     * @param esOponente
+     * @return Matriz de botones creados
+     */
+    private JButton[][] llenarPanelTablero(JPanel panel, boolean esOponente) {
         JButton[][] botones = new JButton[TAMANO_TABLERO][TAMANO_TABLERO];
-        Component[] components = panelTablero.getComponents();
-
-        // Los primeros TAMANO_TABLERO + 1 componentes son los encabezados
-        int idx = TAMANO_TABLERO + 1;
-
-        for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
-            idx++; // Saltar el label de número de fila
-            for (int col = 0; col < TAMANO_TABLERO; col++) {
-                botones[fila][col] = (JButton) components[idx++];
-            }
+        
+        panel.add(new JLabel("")); 
+        for (int col = 0; col < TAMANO_TABLERO; col++) {
+            JLabel lbl = new JLabel(String.valueOf((char) ('A' + col)), SwingConstants.CENTER);
+            lbl.setForeground(Color.WHITE);
+            lbl.setFont(new Font("Arial", Font.BOLD, 15));
+            panel.add(lbl);
         }
 
+        for (int fila = 0; fila < TAMANO_TABLERO; fila++) {
+            JLabel lblF = new JLabel(String.valueOf(fila + 1), SwingConstants.CENTER);
+            lblF.setForeground(Color.WHITE);
+            lblF.setFont(new Font("Arial", Font.BOLD, 15));
+            panel.add(lblF);
+
+            for (int col = 0; col < TAMANO_TABLERO; col++) {
+                JButton btn = new JButton();
+                btn.setPreferredSize(new Dimension(TAMANO_CASILLA, TAMANO_CASILLA));
+                btn.setMargin(new Insets(0,0,0,0));
+                btn.setFocusPainted(false);
+                btn.setBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1));
+
+                if (esOponente) {
+                    btn.setBackground(COLOR_AGUA);
+                    btn.setOpaque(true);
+                    final int x = fila;
+                    final int y = col;
+                    btn.addActionListener(e -> realizarDisparo(x, y));
+                } else {
+                    btn.setContentAreaFilled(false);
+                    btn.setOpaque(false);
+                    btn.setEnabled(false);
+                }
+                
+                botones[fila][col] = btn;
+                panel.add(btn);
+            }
+        }
         return botones;
     }
 
-    /**
-     * Realiza un disparo en las coordenadas especificadas
-     */
     private void realizarDisparo(int x, int y) {
         if (!miTurno) {
             mostrarError("¡No es tu turno!");
             return;
         }
-
-        CoordenadaDTO coordenada = new CoordenadaDTO(x, y);
-        log("Disparando a " + coordenada.toStringCoord());
-
-        controlador.realizarDisparo(coordenada);
+        controlador.realizarDisparo(new CoordenadaDTO(x, y));
     }
 
     /**
-     * Agrega un mensaje al log
+     * Actualiza el estado visual de ambos tableros basándose en la información del servidor
+     * Maneja iconos de impacto, agua y estados de hundido
      */
+    @Override
+    public void actualizarTableros(TableroDTO miTablero, TableroDTO tableroOponente) {
+        SwingUtilities.invokeLater(() -> {
+            // Tablero propio
+            if (miTablero != null) {
+                for (int i = 0; i < TAMANO_TABLERO; i++) {
+                    for (int j = 0; j < TAMANO_TABLERO; j++) {
+                        EstadoCasilla estado = miTablero.getCasillas()[i][j];
+                        JButton btn = botonesTableroPropio[i][j];
+                        
+                        btn.setIcon(null);
+                        btn.setText("");
+                        btn.setBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 2));
+
+                        switch (estado) {
+                            case VACIA:
+                            case OCUPADA:
+                                btn.setContentAreaFilled(false);
+                                btn.setOpaque(false);
+                                break;
+                                
+                            case IMPACTADA_VACIA:
+                                if (iconoAgua != null) {
+                                    btn.setIcon(iconoAgua);
+                                    btn.setDisabledIcon(iconoAgua);
+                                    btn.setBackground(COLOR_AGUA);
+                                } else {
+                                    btn.setContentAreaFilled(true);
+                                    btn.setBackground(COLOR_FALLO);
+                                    btn.setText("o");
+                                }
+                                break;
+
+                            case IMPACTADA_AVERIADA:
+                                if (iconoImpacto != null) {
+                                    btn.setIcon(iconoImpacto);
+                                    btn.setDisabledIcon(iconoImpacto);
+                                    btn.setContentAreaFilled(false); 
+                                    btn.setOpaque(false);
+                                } else {
+                                    btn.setContentAreaFilled(true);
+                                    btn.setBackground(COLOR_IMPACTO);
+                                    btn.setText("X");
+                                }
+                                break;
+
+                            case IMPACTADA_HUNDIDA:
+                                btn.setContentAreaFilled(true);
+                                btn.setOpaque(true);
+                                btn.setBackground(COLOR_HUNDIDO);
+                                if (iconoImpacto != null) {
+                                    btn.setIcon(iconoImpacto);
+                                    btn.setDisabledIcon(iconoImpacto);
+                                } else {
+                                    btn.setText("☠");
+                                }
+                                break;
+                        }
+                    }
+                }
+                if (panelTableroPropio != null) panelTableroPropio.repaint();
+                
+                //Actualizar el marcador
+                for (PanelEstadoNave pEstado : listaPanelesEstado) {
+                    pEstado.actualizarEstado(miTablero);
+                }
+            }
+
+            // Tablero del oponente
+            if (tableroOponente != null) {
+                for (int i = 0; i < TAMANO_TABLERO; i++) {
+                    for (int j = 0; j < TAMANO_TABLERO; j++) {
+                        EstadoCasilla estado = tableroOponente.getCasillas()[i][j];
+                        JButton btn = botonesTableroOponente[i][j];
+                        
+                        btn.setIcon(null);
+                        btn.setText("");
+                        btn.setBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 2));
+                        btn.setContentAreaFilled(true);
+                        btn.setOpaque(true);
+
+                        switch (estado) {
+                            case VACIA:
+                            case OCUPADA:
+                                btn.setBackground(COLOR_AGUA);
+                                break;
+                                
+                            case IMPACTADA_VACIA:
+                                btn.setEnabled(false);
+                                if (iconoAgua != null) {
+                                    btn.setIcon(iconoAgua);
+                                    btn.setDisabledIcon(iconoAgua);
+                                    btn.setBackground(COLOR_AGUA); 
+                                } else {
+                                    btn.setBackground(new Color(173, 216, 230));
+                                    btn.setText("o");
+                                }
+                                break;
+                                
+                            case IMPACTADA_AVERIADA:
+                                btn.setEnabled(false);
+                                if (iconoImpacto != null) {
+                                    btn.setIcon(iconoImpacto);
+                                    btn.setDisabledIcon(iconoImpacto);
+                                    btn.setBackground(COLOR_AGUA); 
+                                } else {
+                                    btn.setBackground(COLOR_IMPACTO);
+                                    btn.setText("X");
+                                }
+                                break;
+                                
+                            case IMPACTADA_HUNDIDA:
+                                btn.setEnabled(false);
+                                btn.setBackground(COLOR_HUNDIDO);
+                                if (iconoImpacto != null) {
+                                    btn.setIcon(iconoImpacto);
+                                    btn.setDisabledIcon(iconoImpacto);
+                                } else {
+                                    btn.setText("☠");
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     private void log(String mensaje) {
         SwingUtilities.invokeLater(() -> {
             txtLog.append("[" + System.currentTimeMillis() % 100000 + "] " + mensaje + "\n");
@@ -217,236 +715,75 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         });
     }
 
-    // Implementación de IVistaJuego
-
-    @Override
-    public void actualizarTableros(TableroDTO miTablero, TableroDTO tableroOponente) {
-        SwingUtilities.invokeLater(() -> {
-            System.out.println("[VISTA_JUEGO] ========== ACTUALIZANDO TABLEROS ==========");
-            System.out.println("[VISTA_JUEGO] Mi ID: " + jugadorLocal.getId());
-            System.out.println("[VISTA_JUEGO] Mi tablero: " + miTablero);
-            System.out.println("[VISTA_JUEGO] Otro tablero: " + tableroOponente);
-            log("Actualizando tableros...");
-
-            // Actualizar mi tablero
-            if (miTablero != null) {
-                System.out.println("[VISTA_JUEGO] Mi tablero - ID: " + miTablero.getIdJugador());
-                System.out.println("[VISTA_JUEGO] ===== CONTENIDO COMPLETO MI TABLERO (10x10) =====");
-
-                int contadorDisparos = 0;
-                for (int i = 0; i < TAMANO_TABLERO; i++) {
-                    StringBuilder fila = new StringBuilder("[VISTA_JUEGO] Fila " + i + ": ");
-                    for (int j = 0; j < TAMANO_TABLERO; j++) {
-                        EstadoCasilla estado = miTablero.getCasillas()[i][j];
-
-                        // Abreviaturas para visualización
-                        String abrev = "";
-                        switch (estado) {
-                            case VACIA: abrev = "·"; break;
-                            case OCUPADA: abrev = "■"; break;
-                            case IMPACTADA_VACIA: abrev = "○"; contadorDisparos++; break;
-                            case IMPACTADA_AVERIADA: abrev = "X"; contadorDisparos++; break;
-                            case IMPACTADA_HUNDIDA: abrev = "✖"; contadorDisparos++; break;
-                        }
-                        fila.append(abrev).append(" ");
-
-                        actualizarCasilla(botonesTableroPropio[i][j], estado, false);
-                    }
-                    System.out.println(fila.toString());
-                }
-                System.out.println("[VISTA_JUEGO] ===== FIN MI TABLERO - Total disparos: " + contadorDisparos + " =====");
-            } else {
-                System.err.println("[VISTA_JUEGO] ERROR: miTablero es null");
-            }
-
-            // Actualizar tablero oponente
-            if (tableroOponente != null) {
-                System.out.println("[VISTA_JUEGO] Tablero oponente - ID: " + tableroOponente.getIdJugador());
-                System.out.println("[VISTA_JUEGO] ===== CONTENIDO COMPLETO TABLERO OPONENTE (10x10) =====");
-
-                int contadorDisparos = 0;
-                for (int i = 0; i < TAMANO_TABLERO; i++) {
-                    StringBuilder fila = new StringBuilder("[VISTA_JUEGO] Fila " + i + ": ");
-                    for (int j = 0; j < TAMANO_TABLERO; j++) {
-                        EstadoCasilla estado = tableroOponente.getCasillas()[i][j];
-
-                        // Abreviaturas para visualización
-                        String abrev = "";
-                        switch (estado) {
-                            case VACIA: abrev = "·"; break;
-                            case OCUPADA: abrev = "■"; break;
-                            case IMPACTADA_VACIA: abrev = "○"; contadorDisparos++; break;
-                            case IMPACTADA_AVERIADA: abrev = "X"; contadorDisparos++; break;
-                            case IMPACTADA_HUNDIDA: abrev = "✖"; contadorDisparos++; break;
-                        }
-                        fila.append(abrev).append(" ");
-
-                        actualizarCasilla(botonesTableroOponente[i][j], estado, true);
-                    }
-                    System.out.println(fila.toString());
-                }
-                System.out.println("[VISTA_JUEGO] ===== FIN TABLERO OPONENTE - Total disparos: " + contadorDisparos + " =====");
-            } else {
-                System.err.println("[VISTA_JUEGO] ERROR: tableroOponente es null");
-            }
-
-            // Forzar repaint
-            panelTableroPropio.repaint();
-            panelTableroOponente.repaint();
-            System.out.println("[VISTA_JUEGO] ========== TABLEROS ACTUALIZADOS ==========");
-        });
-    }
-
-    /**
-     * Actualiza el color y estado de una casilla
-     */
-    private void actualizarCasilla(JButton boton, EstadoCasilla estado, boolean esOponente) {
-        Color colorAnterior = boton.getBackground();
-        String textoAnterior = boton.getText();
-
-        switch (estado) {
-            case VACIA:
-                boton.setBackground(COLOR_AGUA);
-                boton.setText("");
-                break;
-
-            case OCUPADA:
-                // En mi tablero muestra naves, en el del oponente no
-                if (!esOponente) {
-                    boton.setBackground(COLOR_NAVE);
-                    boton.setText("■");
-                } else {
-                    boton.setBackground(COLOR_AGUA);
-                    boton.setText("");
-                }
-                break;
-
-            case IMPACTADA_VACIA:
-                boton.setBackground(COLOR_FALLO);
-                boton.setText("○");
-                boton.setEnabled(false);
-                if (!textoAnterior.equals("○")) {
-                    System.out.println("[VISTA_JUEGO] Actualizando casilla a FALLO (○) - Oponente: " + esOponente);
-                }
-                break;
-
-            case IMPACTADA_AVERIADA:
-                boton.setBackground(COLOR_IMPACTO);
-                boton.setText("X");
-                boton.setEnabled(false);
-                if (!textoAnterior.equals("X")) {
-                    System.out.println("[VISTA_JUEGO] Actualizando casilla a IMPACTO (X) - Oponente: " + esOponente);
-                }
-                break;
-
-            case IMPACTADA_HUNDIDA:
-                boton.setBackground(COLOR_HUNDIDO);
-                boton.setText("✖");
-                boton.setEnabled(false);
-                if (!textoAnterior.equals("✖")) {
-                    System.out.println("[VISTA_JUEGO] Actualizando casilla a HUNDIDO (✖) - Oponente: " + esOponente);
-                }
-                break;
-        }
-    }
-
     @Override
     public void mostrarResultadoDisparo(DisparoDTO disparo) {
         SwingUtilities.invokeLater(() -> {
-            String mensaje = disparo.getNombreJugador() + " disparó a " +
-                           disparo.getCoordenada().toStringCoord() + ": " +
-                           disparo.getResultado();
-
-            if (disparo.getMensaje() != null) {
-                mensaje += " - " + disparo.getMensaje();
-            }
-
-            log(mensaje);
+            log(disparo.getNombreJugador() + " disparó a " +
+                disparo.getCoordenada().toStringCoord() + ": " + disparo.getResultado());
         });
     }
 
     @Override
     public void actualizarTurno(boolean miTurno, JugadorDTO jugadorEnTurno) {
+        this.miTurno = miTurno;
         SwingUtilities.invokeLater(() -> {
-            this.miTurno = miTurno;
-
             if (miTurno) {
                 lblTurno.setText("¡ES TU TURNO! - Dispara en el tablero enemigo");
                 lblTurno.setForeground(new Color(0, 128, 0));
-                log(">>> ES TU TURNO <<<");
-
-                // Habilitar tablero oponente solo en casillas no disparadas
-                for (int i = 0; i < TAMANO_TABLERO; i++) {
-                    for (int j = 0; j < TAMANO_TABLERO; j++) {
-                        String texto = botonesTableroOponente[i][j].getText();
-                        // Solo habilitar si no tiene marcas de disparo (○, X, ✖)
-                        if (texto.isEmpty()) {
-                            botonesTableroOponente[i][j].setEnabled(true);
-                        }
-                    }
-                }
+                bloquearOponente(false);
             } else {
-                lblTurno.setText("Turno de " + jugadorEnTurno.getNombre() + " - Esperando...");
-                lblTurno.setForeground(Color.RED);
-                log("Esperando turno del oponente...");
-
-                // Deshabilitar tablero oponente
-                for (int i = 0; i < TAMANO_TABLERO; i++) {
-                    for (int j = 0; j < TAMANO_TABLERO; j++) {
-                        botonesTableroOponente[i][j].setEnabled(false);
-                    }
+                lblTurno.setText("Turno de " + jugadorEnTurno.getNombre());
+                lblTurno.setForeground(Color.GRAY);
+                bloquearOponente(true);
+            }
+            // Resetear el label del tiempo cuando cambia el turno
+            actualizarTiempoTurno(30);
+        });
+    }
+    
+    private void bloquearOponente(boolean bloquear) {
+        for (int i = 0; i < TAMANO_TABLERO; i++) {
+            for (int j = 0; j < TAMANO_TABLERO; j++) {
+                if (botonesTableroOponente[i][j].getIcon() == null && 
+                    botonesTableroOponente[i][j].getText().isEmpty()) {
+                    botonesTableroOponente[i][j].setEnabled(!bloquear);
                 }
+            }
+        }
+    }
+
+    @Override
+    public void actualizarTiempoTurno(int tiempoRestante) {
+        SwingUtilities.invokeLater(() -> {
+            lblTiempo.setText("⏱️ Tiempo: " + tiempoRestante + "s");
+
+            // Cambiar color según el tiempo restante
+            if (tiempoRestante <= 10) {
+                lblTiempo.setForeground(Color.RED);
+            } else if (tiempoRestante <= 20) {
+                lblTiempo.setForeground(new Color(255, 165, 0)); // Naranja
+            } else {
+                lblTiempo.setForeground(new Color(0, 150, 0)); // Verde
             }
         });
     }
 
-    @Override
-    public void mostrarMensaje(String mensaje) {
-        log("INFO: " + mensaje);
-    }
+    @Override public void mostrarMensaje(String mensaje) { log("INFO: " + mensaje); }
 
     @Override
     public void mostrarError(String error) {
         SwingUtilities.invokeLater(() -> {
             log("ERROR: " + error);
-            JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, error);
         });
     }
 
-    //PARTE DE FINALIZAR PARTIDA
     @Override
-    public void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas) {
-        SwingUtilities.invokeLater(() -> {
-            String titulo = gane ? "¡VICTORIA!" : "DERROTA";
-            String mensaje = gane ?
-                "¡Felicidades! Has ganado la partida contra " + oponente.getNombre() :
-                "Has perdido contra " + ganador.getNombre() + ". ¡Mejor suerte la próxima vez!";
-
-            log("========================================");
-            log(titulo);
-            log(mensaje);
-            log("========================================");
-
-            // Deshabilitar todos los botones
-            for (int i = 0; i < TAMANO_TABLERO; i++) {
-                for (int j = 0; j < TAMANO_TABLERO; j++) {
-                    botonesTableroOponente[i][j].setEnabled(false);
-                }
-            }
-
-            lblTurno.setText("PARTIDA FINALIZADA - " + titulo);
-            lblTurno.setForeground(gane ? new Color(0, 128, 0) : Color.RED);
-
-            // Mostrar mensaje de fin de partida
-            JOptionPane.showMessageDialog(null, 
-            mensaje,
-            titulo,
-            gane ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
-
-            log("Partida finalizada. Mostrando Estadísticas...");
-
-            //PANTALLA DE ESTADÍSTICAS
-            FlujoVista.mostrarEstadisticas(controlador, misEstadisticas);
-        });
+    public void partidaFinalizada(boolean gane, JugadorDTO ganador) {
+        JOptionPane.showMessageDialog(this, gane ? "¡GANASTE!" : "PERDISTE");
+        FlujoVista.mostrarListaJugadores(
+            controlador.getServicioConexion(),
+            controlador.getJugadorLocal()
+        );
     }
 }

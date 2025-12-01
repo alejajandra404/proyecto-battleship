@@ -27,6 +27,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JComponent;
+import javax.swing.JLayeredPane;
+import javax.swing.JRootPane;
+import javax.swing.SwingUtilities;
 
 public class DraggableComponent extends JComponent {
 
@@ -39,8 +42,21 @@ public class DraggableComponent extends JComponent {
     /** If sets <b>TRUE</b> when dragging component, it will be painted over each other (z-Buffer change) */
     protected boolean overbearing = false;
     
+    /*
+        *----------------------------------Inicio de código personalizado------------------------------------------------*
+    */
+    
+    // Contenedor original padre y contenedor raiz
+    protected JComponent contenedorPadreOriginal;
+    protected JRootPane contenedorRaiz; // Para la ventana principal
+    
+    // Coordenadas del componente
     protected int positionX;
     protected int positionY;
+    
+    /*
+        *----------------------------------Fin de código personalizado------------------------------------------------*
+    */
     
     public DraggableComponent() {
         addDragListeners();
@@ -69,6 +85,79 @@ public class DraggableComponent extends JComponent {
     private void addDragListeners() {
         /** This handle is a reference to THIS beacause in next Mouse Adapter "this" is not allowed */
         final DraggableComponent handle = this;
+        
+        /*
+            *----------------------------------Inicio de código personalizado------------------------------------------------*
+        */
+        
+        // Mouse listener para el cambio de contenedor del componente
+        addMouseListener(new MouseAdapter() {
+            // Se mantiene seleccionado al componente (mouse presionado)
+            @Override
+            public void mousePressed(MouseEvent e) {
+                // Verifica que la opción de arrastrable esté activada (true) y el componente tenga un contendor
+                if (!draggable || getParent() == null) 
+                    return;
+                
+                // 1.- Guarda el contenedor padre
+                contenedorPadreOriginal = (JComponent) getParent();
+
+                // 2.- Obtiene el contenedor raíz
+                contenedorRaiz = handle.getRootPane();
+
+                // 3.- Obtiene el punto relativo al contenedor padre
+                Point ubicacionActual = SwingUtilities.convertPoint(contenedorPadreOriginal, handle.getLocation(), contenedorRaiz);
+
+                // 4.- Quita el componente de su padre original y lo repinta
+                contenedorPadreOriginal.remove(handle);
+                contenedorPadreOriginal.repaint();
+
+                // 5.- Agrega el componente al contenedor raíz
+                 if (contenedorRaiz != null) 
+                     contenedorRaiz.getLayeredPane().add(handle, JLayeredPane.DRAG_LAYER);
+                
+                // 5. Establece la nueva ubicación y hace que el nuevo padre lo repinte
+                handle.setLocation(ubicacionActual);
+                handle.repaint();
+
+                // Si la opción de overbearing está activada (superposición), se asegura que el componente esté en la capa superior.
+                if (overbearing && contenedorRaiz != null) 
+                     contenedorRaiz.getLayeredPane().setComponentZOrder(handle, 0);
+            }
+            
+            // Se deselecciona el componente (mouse suelto)
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                // Verifica que la opción de arrastrable esté activada (true) y el componente tenga un contendor
+                if (!draggable || contenedorPadreOriginal == null) 
+                    return;
+                // 1.- Se obtiene el contenedor actual, y se castea como LayeredPane
+                JLayeredPane currentParent = (JLayeredPane) getParent();
+
+                // 2.- Se obtiene la ubicación relativa al contenedor original
+                Point currentLoc = SwingUtilities.convertPoint(currentParent, handle.getLocation(), contenedorPadreOriginal);
+
+                // 3.- Se quita el componente del contenedor actual y se repinta
+                currentParent.remove(handle);
+                currentParent.repaint();
+
+                // 4.- Se agrega el componente a su contenedor original
+                contenedorPadreOriginal.add(handle);
+                contenedorPadreOriginal.revalidate();
+
+                // 5.- Se posiciona el componente en su ubicación original y se repinta
+                handle.setLocation(currentLoc);
+                handle.revalidate();
+                handle.repaint();
+
+                // 6.- Se resetea el contenedor padre original
+                contenedorPadreOriginal = null;
+            }
+        });
+        
+        /*
+            *----------------------------------Fin de código personalizado------------------------------------------------*
+        */
         addMouseMotionListener(new MouseAdapter() {
 
             @Override
@@ -85,8 +174,16 @@ public class DraggableComponent extends JComponent {
                 Point parentOnScreen = getParent().getLocationOnScreen();
                 Point mouseOnScreen = e.getLocationOnScreen();
                 
+                /*
+                    *----------------------------------Inicio de código personalizado------------------------------------------------*
+                */
+                
                 positionX = mouseOnScreen.x - parentOnScreen.x - anchorX;
                 positionY = mouseOnScreen.y - parentOnScreen.y - anchorY;
+                
+                /*
+                    *----------------------------------Fin de código personalizado------------------------------------------------*
+                */
                 
                 Point position = new Point(positionX, positionY);
                 setLocation(position);

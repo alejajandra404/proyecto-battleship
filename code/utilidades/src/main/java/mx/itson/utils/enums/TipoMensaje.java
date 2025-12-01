@@ -45,6 +45,7 @@ public enum TipoMensaje {
     ACTUALIZAR_TABLEROS, // Servidor envía estado actualizado de tableros
     CAMBIO_TURNO, // Servidor notifica cambio de turno
     TURNO_TIMEOUT, // Servidor notifica que se acabó el tiempo del turno
+    ACTUALIZAR_TIEMPO_TURNO, // Servidor envía actualización del tiempo restante del turno
 
     // Fin de partida
     PARTIDA_GANADA, // Servidor notifica al ganador
