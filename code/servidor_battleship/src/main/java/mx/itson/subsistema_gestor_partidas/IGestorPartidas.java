@@ -19,7 +19,7 @@ public interface IGestorPartidas {
     
     public PartidaDTO obtenerPartidaDeJugador(String idJugador) throws GestorPartidasException;
     
-    public PartidaDTO obtenerPartida(String idJugador) throws GestorPartidasException;
+    public PartidaDTO obtenerPartida(String idPartida) throws GestorPartidasException;
     
     public boolean verificarJugadorPartidaActiva(String idJugador);
     

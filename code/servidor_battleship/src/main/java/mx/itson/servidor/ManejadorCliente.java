@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 import mx.itson.exceptions.GestorPartidasException;
+import mx.itson.models.IJugador;
 import mx.itson.subsistema_gestor_partidas.IGestorPartidas;
 
 /**
@@ -614,14 +615,43 @@ public class ManejadorCliente implements Runnable {
                 JugadorDTO perdedor = partida.getJugador1().getId().equals(ganador.getId())
                     ? partida.getJugador2() : partida.getJugador1();
 
+                // --- INICIO: GENERAR ESTADÍSTICAS ---
+                //Solucionar Casteo || SI FUNCIONA || pero hay que quitarlo
+                IJugador objJugador1 = (IJugador) partida.getJugador1();
+                IJugador objJugador2 = (IJugador) partida.getJugador2();
+
+                //Identificar quién es el ganador y quién el perdedor en los objetos Modelo
+                IJugador ganadorModel = null;
+                IJugador perdedorModel = null;
+
+                if (objJugador1.getId().equals(ganador.getId())) {
+                    ganadorModel = objJugador1;
+                    perdedorModel = objJugador2;
+                } else {
+                    ganadorModel = objJugador2;
+                    perdedorModel = objJugador1;
+                }
+
+                int barcosTotales = 11;
+                int barcosPerdedor = 0;
+                
+                EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, barcosTotales);
+                EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, barcosPerdedor);
+
+                List<EstadisticaDTO> reporteFinal = new ArrayList<>();
+                reporteFinal.add(statsGanador);
+                reporteFinal.add(statsPerdedor);
+                
+                //DEBUG: Confirmar en consola que se creó la lista
+                System.out.println("[MANEJADOR] Enviando lista de estadísticas. Tamaño: " + reporteFinal.size());
+                
                 // Notificar al ganador
                 ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());
                 if (manejadorGanador != null) {
                     manejadorGanador.enviarMensaje(new MensajeDTO(
                         TipoMensaje.PARTIDA_GANADA,
                         "¡Felicidades! Has ganado la partida",
-                        ganador
-                    ));
+                        reporteFinal));
                 }
 
                 // Notificar al perdedor
@@ -630,8 +660,7 @@ public class ManejadorCliente implements Runnable {
                     manejadorPerdedor.enviarMensaje(new MensajeDTO(
                         TipoMensaje.PARTIDA_PERDIDA,
                         "Has perdido la partida. ¡Mejor suerte la próxima vez!",
-                        perdedor
-                    ));
+                        reporteFinal));
                 }
 
                 // Detener timer y limpiar recursos

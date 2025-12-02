@@ -1,5 +1,6 @@
 package mx.itson.models;
 
+import java.util.Set;
 import mx.itson.exceptions.ModelException;
 
 /**
@@ -38,4 +39,10 @@ public interface ITableroDisparos {
      * @throws ModelException 
      */
     public boolean yaDisparado(Coordenada coordenada)  throws ModelException;
+    
+    /**
+     * 
+     * @return 
+     */
+    public Set<Disparo> getDisparosRealizados();
 }

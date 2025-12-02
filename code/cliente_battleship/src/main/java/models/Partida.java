@@ -206,5 +206,4 @@ public class Partida implements ISubject{
     public void notificarObservadores(String mensaje) {
         observadores.stream().forEach(o -> o.notificar(mensaje, this.jugadorTurno.getNombre()));
     }
-    
 }

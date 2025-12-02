@@ -415,6 +415,13 @@ public class Partida {
         }
         return idGanador.equals(jugador1.getId()) ? jugador1 : jugador2;
     }
+    
+    public JugadorDTO getPerdedor() {
+        if (idGanador == null) {
+            return null;
+        }
+        return idGanador.equals(jugador1.getId()) ? jugador2 : jugador1;
+    }
 
     public TableroDTO getTableroJugador(String idJugador) {
         return getTableroDeJugador(idJugador);

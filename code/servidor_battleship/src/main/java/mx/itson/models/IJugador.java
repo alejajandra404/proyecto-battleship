@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.List;
 import mx.itson.utils.enums.EstadoCasilla;
 import mx.itson.exceptions.ModelException;
+import mx.itson.utils.dtos.EstadisticaDTO;
 
 /**
  *
@@ -103,4 +104,8 @@ public interface IJugador {
      * @throws ModelException 
      */
     public boolean colocarNaves(List<Nave> naves) throws ModelException;
+    
+    public IJugador getJugadorModeloPorId(String idBusqueda);
+    
+    public EstadisticaDTO generarEstadisticas(boolean esGanador, int barcosHundidos);
 }

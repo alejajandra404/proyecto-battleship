@@ -63,4 +63,9 @@ public class TableroDisparosServidor extends Tablero implements ITableroDisparos
             if (disparo.obtenerCoordenada().equals(coordenada)) return true;
         return false;
     }
+    
+    @Override
+    public Set<Disparo> getDisparosRealizados() {
+        return this.disparos;
+    }
 }

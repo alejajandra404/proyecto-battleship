@@ -178,5 +178,6 @@ public class Servidor_battleship {
         System.out.println("\n═══════════════════════════════════════════════════");
         System.out.println("     SERVIDOR BATTLESHIP FINALIZADO                ");
         System.out.println("═══════════════════════════════════════════════════");
+
     }
 }

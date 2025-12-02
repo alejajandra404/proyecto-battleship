@@ -7,6 +7,7 @@ import dtos.NaveDTO;
 import mx.itson.utils.dtos.JugadorDTO;
 import services.ServicioConexion;
 import javax.swing.JPanel;
+import mx.itson.utils.dtos.EstadisticaDTO;
 
 /**
  * Clase que controla el flujo de vistas del juego.
@@ -26,6 +27,7 @@ public class FlujoVista {
     private static VistaConfiguracionNaves vistaConfigNaves;
     private static VistaColocacionNavesVisual vistaColocacionNaves;
     private static VistaJuegoMultiplayer vistaJuego;
+    private static VistaEstadisticas vistaEstadisticas;
     /**
      * Cambia de vista.
      * @param nuevoPanel Panel a ser mostrado.
@@ -148,4 +150,14 @@ public class FlujoVista {
         cambiarVista(vistaJuego);
     }
 
+    /**
+     * Muestra la vista de las estadísticas de la partida
+     * @param controlador
+     * @param misEstadisticas
+     * @param stats 
+     */
+    public static void mostrarEstadisticas(ControladorJuego controlador, EstadisticaDTO misEstadisticas) {
+        vistaEstadisticas = new VistaEstadisticas(controlador, misEstadisticas);
+        cambiarVista(vistaEstadisticas);
+    }
 }
