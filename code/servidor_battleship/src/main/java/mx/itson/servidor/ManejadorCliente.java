@@ -632,12 +632,18 @@ public class ManejadorCliente implements Runnable {
                     perdedorModel = objJugador1;
                 }
 
-                EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, 11);
-                EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, 0);
+                int barcosTotales = 11;
+                int barcosPerdedor = 0;
                 
+                EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, barcosTotales);
+                EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, barcosPerdedor);
+
                 List<EstadisticaDTO> reporteFinal = new ArrayList<>();
                 reporteFinal.add(statsGanador);
                 reporteFinal.add(statsPerdedor);
+                
+                //DEBUG: Confirmar en consola que se creó la lista
+                System.out.println("[MANEJADOR] Enviando lista de estadísticas. Tamaño: " + reporteFinal.size());
                 
                 // Notificar al ganador
                 ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());
@@ -654,7 +660,7 @@ public class ManejadorCliente implements Runnable {
                     manejadorPerdedor.enviarMensaje(new MensajeDTO(
                         TipoMensaje.PARTIDA_PERDIDA,
                         "Has perdido la partida. ¡Mejor suerte la próxima vez!",
-                            reporteFinal));
+                        reporteFinal));
                 }
 
                 // Detener timer y limpiar recursos
