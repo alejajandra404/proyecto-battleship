@@ -1,9 +1,7 @@
 package views;
 
-import controllers.ControlDisparo;
 import controllers.ControladorListaJugadores;
 import controllers.ControladorJuego;
-import dtos.NaveDTO;
 import mx.itson.utils.dtos.JugadorDTO;
 import services.ServicioConexion;
 import javax.swing.JPanel;
@@ -18,16 +16,17 @@ import mx.itson.utils.dtos.EstadisticaDTO;
  * @author Daniel Miramontes Iribe ID: 00000252801
  */
 public class FlujoVista {
+    
     // Panel contenedor
     private static JPanel panelContenedor;
-    // Vistas.
+
+    // Vistas del juego multiplayer
     private static VistaConfigurarJugador vistaConfigurarJugador;
     private static VistaListaJugadores vistaListaJugadores;
-    private static VistaDisparos vistaDisparos;
-    private static VistaConfiguracionNaves vistaConfigNaves;
     private static VistaColocacionNavesVisual vistaColocacionNaves;
     private static VistaJuegoMultiplayer vistaJuego;
     private static VistaEstadisticas vistaEstadisticas;
+    
     /**
      * Cambia de vista.
      * @param nuevoPanel Panel a ser mostrado.
@@ -41,6 +40,7 @@ public class FlujoVista {
         panelContenedor.revalidate();
         panelContenedor.repaint();
     }
+    
     /**
      * Establece el contenedor de las vistas. Es extremadamente
      * importante que se llame a este método antes de iniciar el
@@ -50,6 +50,7 @@ public class FlujoVista {
     public static void setContenedor(JPanel contenedor) {
         panelContenedor = contenedor;
     }
+    
     /**
      * Muestra la vista de configuración del jugador.
      */
@@ -58,6 +59,7 @@ public class FlujoVista {
             vistaConfigurarJugador = new VistaConfigurarJugador();
         cambiarVista(vistaConfigurarJugador);
     }
+    
     // Controlador de lista de jugadores (reutilizable)
     private static ControladorListaJugadores controladorListaJugadores;
 
@@ -85,33 +87,6 @@ public class FlujoVista {
         controladorListaJugadores.solicitarListaJugadores();
 
         cambiarVista(vistaListaJugadores);
-    }
-    /**
-     * Muestra la vista de la configuración de las naves.
-     * @param nombreJugador Nombre del jugador.
-     * @param nombreOponente Nombre del oponente.
-     * @param controlador Controlador MVC.
-     */
-    public static void mostrarConfigNaves(String nombreJugador, String nombreOponente, ControlDisparo controlador){
-        if(vistaConfigNaves == null)
-            vistaConfigNaves = new VistaConfiguracionNaves(nombreJugador, nombreOponente, controlador);
-        cambiarVista(vistaConfigNaves);
-    }
-    /**
-     * Muestra la vista de la configuración de disparos.
-     * Si la vista no existía previamente, se crea, y en caso contrario,
-     * se resetea con la nueva información.
-     * @param nombreJugador Nombre del jugador.
-     * @param nombreOponente Nombre del oponente.
-     * @param controlador Controlador MVC.
-     * @param naves Naves a ser colocadas.
-     */
-    public static void mostrarConfigDisparos(String nombreJugador, String nombreOponente, ControlDisparo controlador, NaveDTO[] naves){
-        if(vistaDisparos == null)
-            vistaDisparos = new VistaDisparos(nombreJugador, nombreOponente, controlador, naves);
-        else
-            vistaDisparos.nuevaPartida(nombreJugador, nombreOponente, naves);
-        cambiarVista(vistaDisparos);
     }
 
     /**
@@ -153,8 +128,7 @@ public class FlujoVista {
     /**
      * Muestra la vista de las estadísticas de la partida
      * @param controlador
-     * @param misEstadisticas
-     * @param stats 
+     * @param misEstadisticas 
      */
     public static void mostrarEstadisticas(ControladorJuego controlador, EstadisticaDTO misEstadisticas) {
         vistaEstadisticas = new VistaEstadisticas(controlador, misEstadisticas);

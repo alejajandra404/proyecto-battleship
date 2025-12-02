@@ -219,16 +219,21 @@ public class Partida implements IPartida {
         // Se agregan al disparo tanto su resultado como el mensaje personalizado
         disparo.setResultado(resultadoDisparo);
         disparo.setMensaje(mensaje);
-        
+
+        // Registrar el disparo en el historial del jugador que disparó
+        IJugador jugadorQueDispara = getJugador(idJugadorDispara);
+        Disparo disparoParaRegistrar = new Disparo(coordenadaImpacto, resultadoDisparo, jugadorQueDispara);
+        jugadorQueDispara.getTableroDisparos().añadirDisparo(disparoParaRegistrar);
+
 //        // Cambiar turno si es agua
-//        if (resultadoDisparo == ResultadoDisparo.AGUA) 
+//        if (resultadoDisparo == ResultadoDisparo.AGUA)
 //            cambiarTurno();
-//        else 
+//        else
 //            // Reiniciar tiempo pero mantener turno
 //            tiempoRestante = TIEMPO_TURNO;
-        
+
         System.out.println("[PARTIDA] Disparo: " + coordenada.toStringCoord() + " - " + resultadoDisparo);
-        
+
         // Finalmente se regresa el resultado
         return disparo;
     }

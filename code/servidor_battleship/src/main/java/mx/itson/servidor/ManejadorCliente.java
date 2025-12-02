@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 import mx.itson.exceptions.GestorPartidasException;
 import mx.itson.models.IJugador;
+import mx.itson.models.IPartida;
 import mx.itson.subsistema_gestor_partidas.IGestorPartidas;
 
 /**
@@ -616,9 +617,10 @@ public class ManejadorCliente implements Runnable {
                     ? partida.getJugador2() : partida.getJugador1();
 
                 // --- INICIO: GENERAR ESTADÍSTICAS ---
-                //Solucionar Casteo || SI FUNCIONA || pero hay que quitarlo
-                IJugador objJugador1 = (IJugador) partida.getJugador1();
-                IJugador objJugador2 = (IJugador) partida.getJugador2();
+                // Obtener la partida del modelo (no DTO) para acceder a los jugadores IJugador
+                IPartida partidaModelo = gestorPartidas.obtenerPartidaModelo(partida.getIdPartida());
+                IJugador objJugador1 = partidaModelo.getJugador1();
+                IJugador objJugador2 = partidaModelo.getJugador2();
 
                 //Identificar quién es el ganador y quién el perdedor en los objetos Modelo
                 IJugador ganadorModel = null;
@@ -670,8 +672,11 @@ public class ManejadorCliente implements Runnable {
                 gestorJugadores.marcarDisponible(partida.getJugador1().getId());
                 gestorJugadores.marcarDisponible(partida.getJugador2().getId());
 
-                // Eliminar partida
-                gestorPartidas.eliminarPartida(partida.getIdPartida());
+                // NO eliminar la partida inmediatamente para evitar ClassCastException
+                // si el otro jugador intenta hacer algo después de terminar
+                // La partida se limpiará eventualmente cuando ambos jugadores se desconecten
+                // gestorPartidas.eliminarPartida(partida.getIdPartida());
+                // TODO PARA ALEJAJANDRA: hay un detallito aquí que falta corregir
 
             } else {
                 // Continuar juego - notificar cambio de turno si cambió
