@@ -31,18 +31,16 @@ public class VistaEstadisticas extends JPanel {
     }
 
     private void initComponents() {
-        // Configuramos el layout principal de esta vista
         this.setLayout(new BorderLayout());
         
         // Panel central con Grid para organizar los textos verticalmente
-        // Agregamos espaciado vertical (vgap) de 10px
         JPanel panelContenido = new JPanel(new GridLayout(8, 1, 0, 10)); 
 
         // --- DEFINICIÓN DE FUENTES (TAMAÑOS) ---
-        Font fuenteTitulo = new Font("Arial", Font.BOLD, 40);      // Muy grande
-        Font fuenteResultado = new Font("Arial", Font.BOLD, 32);   // Grande y negrita
-        Font fuenteDatos = new Font("Arial", Font.PLAIN, 24);      // Mediana para datos
-        Font fuenteBoton = new Font("Arial", Font.BOLD, 20);       // Para el botón
+        Font fuenteTitulo = new Font("Arial", Font.BOLD, 40); 
+        Font fuenteResultado = new Font("Arial", Font.BOLD, 32); 
+        Font fuenteDatos = new Font("Arial", Font.PLAIN, 24);     
+        Font fuenteBoton = new Font("Arial", Font.BOLD, 20);      
 
         // --- INICIALIZACIÓN Y ESTILO DE COMPONENTES ---
 
