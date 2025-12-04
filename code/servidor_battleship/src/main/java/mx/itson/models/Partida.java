@@ -337,13 +337,16 @@ public class Partida implements IPartida {
                             // Cambiar turno automáticamente
                             cambiarTurno();
 
-                            // Detener el timer actual
-                            detenerTemporizador();
+                            // NO detener el timer aquí, dejar que la tarea termine y sea cancelada por iniciarTemporizador()
+                            // El ManejadorCliente llamará iniciarTemporizador() que cancela y reinicia correctamente
 
                             // Notificar al manejador si hay callback
                             if (callbackTimeout != null) {
                                 callbackTimeout.accept(idJugadorQuePerdiTurno);
                             }
+
+                            // Detener esta ejecución específica del timer
+                            return;
                         }
                     }
                 }

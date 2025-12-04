@@ -197,6 +197,7 @@ public class ControladorListaJugadores implements ListenerServidor.ICallbackMens
                 case PARTIDA_GANADA:
                 case PARTIDA_PERDIDA:
                 case PARTIDA_FINALIZADA:
+                case PARTIDA_ABANDONADA:
                     System.out.println("[CONTROLADOR] Delegando mensaje al ControladorJuego");
                     controladorJuego.onMensajeRecibido(mensaje);
                     return;

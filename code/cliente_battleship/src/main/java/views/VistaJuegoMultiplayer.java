@@ -840,14 +840,12 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             }
         });
     }
-    
-    /**
-     * Método para abandonar partida / rendirse
-     */
-    private void abandonarPartida(){
+
+    @Override
+    public void partidaAbandonada(String nombreAbandonador) {
         SwingUtilities.invokeLater(() -> {
-            String titulo = "Partida Cancelada";
-            String mensaje = "Un jugador se ha rendido, por lo que la partída ha terminado.";
+            String titulo = "Partida Abandonada";
+            String mensaje = nombreAbandonador + " ha abandonado la partida.";
 
             log("========================================");
             log(titulo);
@@ -855,21 +853,59 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             log("========================================");
 
             // Deshabilitar todos los botones
-                for (int i = 0; i < TAMANO_TABLERO; i++) {
-                    for (int j = 0; j < TAMANO_TABLERO; j++) {
-                        botonesTableroOponente[i][j].setEnabled(false);
-                    }
+            for (int i = 0; i < TAMANO_TABLERO; i++) {
+                for (int j = 0; j < TAMANO_TABLERO; j++) {
+                    botonesTableroOponente[i][j].setEnabled(false);
                 }
+            }
 
-            lblTurno.setText("PARTIDA FINALIZADA - " + titulo);
-            JOptionPane.showMessageDialog(null, 
+            lblTurno.setText("PARTIDA ABANDONADA");
+            lblTurno.setForeground(Color.ORANGE);
+
+            JOptionPane.showMessageDialog(
+                this,
                 mensaje,
-                titulo, 
-                JOptionPane.INFORMATION_MESSAGE);
-            log("Partida finalizada. Mostrando Estadísticas...");
-            //Desde la pantalla de las estadísticas se va a la lista de los jugadores
+                titulo,
+                JOptionPane.WARNING_MESSAGE
+            );
+
+            log("Volviendo a la lista de jugadores...");
             FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
                 controlador.getJugadorLocal());
         });
+    }
+
+    /**
+     * Método para abandonar partida / rendirse
+     */
+    private void abandonarPartida(){
+        int confirmacion = JOptionPane.showConfirmDialog(
+            this,
+            "¿Estás seguro de que deseas abandonar la partida?",
+            "Abandonar Partida",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirmacion == JOptionPane.YES_OPTION) {
+            log("Jugador ha decidido abandonar la partida");
+
+            // Notificar al servidor que se abandona la partida
+            controlador.abandonarPartida();
+
+            // Deshabilitar todos los botones
+            for (int i = 0; i < TAMANO_TABLERO; i++) {
+                for (int j = 0; j < TAMANO_TABLERO; j++) {
+                    botonesTableroOponente[i][j].setEnabled(false);
+                }
+            }
+
+            lblTurno.setText("PARTIDA ABANDONADA");
+            log("Volviendo a la lista de jugadores...");
+
+            // Volver a la lista de jugadores
+            FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
+                controlador.getJugadorLocal());
+        }
     }
 }
