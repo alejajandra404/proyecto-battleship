@@ -26,14 +26,6 @@ import java.util.ArrayList;
  */
 public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
-    // Estados del juego
-    private enum EstadoJuego {
-        ESPERANDO_COLOCACION,
-        ESPERANDO_OPONENTE,
-        EN_JUEGO,
-        FINALIZADO
-    }
-
     // Servicios
     private final ServicioConexion servicioConexion;
 
@@ -92,6 +84,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
     /**
      * Establece la vista de colocación de naves
+     * @param vista
      */
     public void setVistaColocacion(IVistaColocacionNaves vista) {
         this.vistaColocacion = vista;
@@ -99,6 +92,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
     /**
      * Establece la vista del juego
+     * @param vista
      */
     public void setVistaJuego(IVistaJuego vista) {
         this.vistaJuego = vista;
