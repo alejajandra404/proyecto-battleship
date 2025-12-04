@@ -29,13 +29,6 @@ public class ControlFinPartida {
     }
     
     /**
-     * Aplica la victoria por condiciones naturales (hundir naves)
-     */
-    public void aplicarVictoria(IJugador ganador, Partida partida) {
-
-    }
-    
-    /**
      * Maneja desconexiones inesperadas
      */
     public void desconexionJugador(IJugador jugador, Partida partida) {
