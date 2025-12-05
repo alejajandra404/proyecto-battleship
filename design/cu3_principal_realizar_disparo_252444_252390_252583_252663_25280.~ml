@@ -65547,7 +65547,7 @@ DisparoDTO: serializado
 <XPD:OBJ name="DiagramView" type="UMLSequenceDiagramView" guid="7wPXZmsps0aUZVdwjtgkmgAA">
 <XPD:REF name="Model">YYFFqnnL40SV013UhL2vvQAA</XPD:REF>
 <XPD:REF name="Diagram">YYFFqnnL40SV013UhL2vvQAA</XPD:REF>
-<XPD:ATTR name="#OwnedViews" type="integer">12</XPD:ATTR>
+<XPD:ATTR name="#OwnedViews" type="integer">10</XPD:ATTR>
 <XPD:OBJ name="OwnedViews[0]" type="UMLFrameView" guid="VVrZpStMl02C3LFLbl5pQgAA">
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
@@ -65839,25 +65839,6 @@ DisparoDTO: serializado
 <XPD:ATTR name="Width" type="integer">14</XPD:ATTR>
 <XPD:ATTR name="Height" type="integer">29</XPD:ATTR>
 </XPD:OBJ>
-</XPD:OBJ>
-<XPD:OBJ name="OwnedViews[10]" type="UMLNoteView" guid="hFuOzPGS1EqgCLftycBgUgAA">
-<XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
-<XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
-<XPD:ATTR name="Left" type="integer">472</XPD:ATTR>
-<XPD:ATTR name="Top" type="integer">88</XPD:ATTR>
-<XPD:ATTR name="Width" type="integer">138</XPD:ATTR>
-<XPD:ATTR name="Height" type="integer">53</XPD:ATTR>
-<XPD:ATTR name="Text" type="string">TCP/IP Socket
-Puerto: 5000
-MensajeDTO: serializado
-</XPD:ATTR>
-</XPD:OBJ>
-<XPD:OBJ name="OwnedViews[11]" type="UMLNoteLinkView" guid="z+0X9HoymU2FmG7G1s1kgAAA">
-<XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
-<XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
-<XPD:ATTR name="Points" type="Points">660,215;571,140</XPD:ATTR>
-<XPD:REF name="Head">hFuOzPGS1EqgCLftycBgUgAA</XPD:REF>
-<XPD:REF name="Tail">/hBgLjoeg0yrdzXG3W34jQAA</XPD:REF>
 </XPD:OBJ>
 </XPD:OBJ>
 </XPD:OBJ>
