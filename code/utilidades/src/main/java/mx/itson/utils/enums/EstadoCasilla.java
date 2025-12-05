@@ -18,9 +18,18 @@ package mx.itson.utils.enums;
  *
  */
 public enum EstadoCasilla {
+    /** Casilla vacía sin nave y sin disparo */
     VACIA,
+
+    /** Casilla ocupada por una nave sin disparar */
     OCUPADA,
+
+    /** Casilla vacía que recibió un disparo (agua) */
     IMPACTADA_VACIA,
+
+    /** Casilla con nave que fue impactada (nave averiada) */
     IMPACTADA_AVERIADA,
+
+    /** Casilla con nave hundida */
     IMPACTADA_HUNDIDA
 }

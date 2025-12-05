@@ -18,6 +18,9 @@ package mx.itson.utils.enums;
  *
  */
 public enum OrientacionNave {
+    /** Nave colocada en dirección vertical (columna) */
     VERICAL,
+
+    /** Nave colocada en dirección horizontal (fila) */
     HORIZONTAL
 }

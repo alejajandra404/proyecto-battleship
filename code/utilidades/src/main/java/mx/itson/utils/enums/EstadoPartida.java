@@ -18,6 +18,9 @@ package mx.itson.utils.enums;
  *
  */
 public enum EstadoPartida {
+    /** Partida en curso, jugadores realizando turnos */
     EN_CURSO,
+
+    /** Partida terminada, hay un ganador */
     FINALIZADA
 }

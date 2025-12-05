@@ -18,7 +18,12 @@ package mx.itson.utils.enums;
  *
  */
 public enum EstadoNave {
+    /** Nave sin daño, ninguna casilla ha sido impactada */
     INTACTA,
+
+    /** Nave con al menos una casilla impactada pero no hundida */
     AVERIADA,
+
+    /** Nave completamente destruida, todas sus casillas impactadas */
     HUNDIDA
 }

@@ -18,8 +18,15 @@ package mx.itson.utils.enums;
  *
  */
 public enum TipoNave {
+    /** Portaaviones - Nave de 4 casillas */
     PORTAAVIONES,
+
+    /** Crucero - Nave de 3 casillas */
     CRUCERO,
+
+    /** Submarino - Nave de 2 casillas */
     SUBMARINO,
+
+    /** Barco - Nave de 1 casilla */
     BARCO
 }
