@@ -3,6 +3,8 @@ package models;
 import mx.itson.utils.dtos.*;
 import java.util.ArrayList;
 import java.util.List;
+import patterns.observer.IObserver;
+import patterns.observer.ISubject;
 
 /**
  * Estado local del juego en el cliente.

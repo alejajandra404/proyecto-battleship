@@ -92,11 +92,17 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
     }
 
     /**
-     * Establece la vista del juego
+     * Establece la vista del juego y la registra como observadora del modelo (patrón Observer)
      * @param vista
      */
     public void setVistaJuego(IVistaJuego vista) {
         this.vistaJuego = vista;
+
+        // Registrar la vista como observadora del modelo si implementa IObserver
+        if (vista instanceof patterns.observer.IObserver) {
+            estadoLocal.agregarObserver((patterns.observer.IObserver) vista);
+            System.out.println("[CONTROLADOR_JUEGO] Vista registrada como observadora del modelo");
+        }
     }
 
     /**

@@ -3,6 +3,7 @@ package views;
 import controllers.ControladorJuego;
 import mx.itson.utils.dtos.*;
 import mx.itson.utils.enums.*;
+import patterns.observer.IObserver;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -14,14 +15,15 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 /**
  * Vista principal del juego multijugador.
- * 
+ * Implementa el patrón Observer para recibir notificaciones del modelo EstadoLocalJuego.
+ *
  * @author Leonardo Flores Leyva ID: 00000252390
  * @author Yuri Germán García López ID: 00000252583
  * @author Alejandra García Preciado ID: 00000252444
  * @author Jesús Ernesto López Ibarra ID: 00000252663
  * @author Daniel Miramontes Iribe ID: 00000252801
 */
-public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IVistaJuego {
+public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IVistaJuego, IObserver {
 
     // Lista que guarda las naves colocadas en la vista VistaColocacionNavesVisual
     public static List<NaveDTO> navesParaTransferir = new ArrayList<>();
@@ -907,5 +909,48 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
                 controlador.getJugadorLocal());
         }
+    }
+
+    // ========== IMPLEMENTACIÓN DE IOBSERVER (PATRÓN OBSERVER) ==========
+
+    /**
+     * Método del patrón Observer que recibe notificaciones del modelo EstadoLocalJuego.
+     * Este método es llamado automáticamente cuando el estado del juego cambia.
+     *
+     * @param evento El tipo de evento que ocurrió (ej: "TURNO_CAMBIADO", "TIEMPO_ACTUALIZADO")
+     * @param datos Datos adicionales relacionados con el evento
+     */
+    @Override
+    public void notificar(String evento, String datos) {
+        SwingUtilities.invokeLater(() -> {
+            switch (evento) {
+                case "TURNO_CAMBIADO":
+                    log("Notificación Observer: Turno cambió - " + datos);
+                    // La vista ya recibe actualizarTurno() del controlador
+                    // Esta notificación es adicional para logging o efectos visuales
+                    break;
+
+                case "TIEMPO_ACTUALIZADO":
+                    // El tiempo se actualiza automáticamente por el controlador
+                    // Aquí podríamos agregar efectos visuales adicionales
+                    break;
+
+                case "TABLEROS_ACTUALIZADOS":
+                    log("Notificación Observer: Tableros actualizados");
+                    break;
+
+                case "DISPARO_REALIZADO":
+                    log("Notificación Observer: " + datos);
+                    break;
+
+                case "PARTIDA_FINALIZADA":
+                    log("Notificación Observer: Partida finalizada - " + datos);
+                    break;
+
+                default:
+                    log("Notificación Observer desconocida: " + evento);
+                    break;
+            }
+        });
     }
 }

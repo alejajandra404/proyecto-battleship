@@ -1,5 +1,3 @@
-package equipo_1;
-
 import views.ContenedorBattleship;
 import views.FlujoVista;
 
