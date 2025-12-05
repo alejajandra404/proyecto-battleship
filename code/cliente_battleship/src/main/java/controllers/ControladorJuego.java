@@ -26,14 +26,6 @@ import java.util.ArrayList;
  */
 public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
-    // Estados del juego
-    private enum EstadoJuego {
-        ESPERANDO_COLOCACION,
-        ESPERANDO_OPONENTE,
-        EN_JUEGO,
-        FINALIZADO
-    }
-
     // Servicios
     private final ServicioConexion servicioConexion;
 
@@ -69,6 +61,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
         void mostrarMensaje(String mensaje);
         void mostrarError(String error);
         void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas);
+        void partidaAbandonada(String nombreAbandonador);
     }
 
     /**
@@ -92,16 +85,24 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
     /**
      * Establece la vista de colocación de naves
+     * @param vista
      */
     public void setVistaColocacion(IVistaColocacionNaves vista) {
         this.vistaColocacion = vista;
     }
 
     /**
-     * Establece la vista del juego
+     * Establece la vista del juego y la registra como observadora del modelo (patrón Observer)
+     * @param vista
      */
     public void setVistaJuego(IVistaJuego vista) {
         this.vistaJuego = vista;
+
+        // Registrar la vista como observadora del modelo si implementa IObserver
+        if (vista instanceof patterns.observer.IObserver) {
+            estadoLocal.agregarObserver((patterns.observer.IObserver) vista);
+            System.out.println("[CONTROLADOR_JUEGO] Vista registrada como observadora del modelo");
+        }
     }
 
     /**
@@ -175,6 +176,26 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
             if (vistaJuego != null) {
                 vistaJuego.mostrarError("Error al enviar disparo: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Notifica al servidor que el jugador abandona la partida
+     */
+    public void abandonarPartida() {
+        try {
+            System.out.println("[CONTROLADOR_JUEGO] Jugador abandona la partida");
+
+            MensajeDTO mensaje = new MensajeDTO(
+                TipoMensaje.ABANDONAR_PARTIDA,
+                "Jugador ha abandonado la partida",
+                estadoLocal.getJugadorLocal()
+            );
+
+            servicioConexion.enviarMensaje(mensaje);
+
+        } catch (Exception e) {
+            System.err.println("[CONTROLADOR_JUEGO] Error al notificar abandono: " + e.getMessage());
         }
     }
 
@@ -363,7 +384,25 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                 Object datosRecibidos = mensaje.getDatos();
                 EstadisticaDTO misStats = null;
 
-                if (datosRecibidos instanceof List) {
+                // El servidor ahora envía directamente la EstadisticaDTO del jugador correspondiente
+                if (datosRecibidos instanceof EstadisticaDTO) {
+                    misStats = (EstadisticaDTO) datosRecibidos;
+
+                    boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
+                    JugadorDTO ganadorDTO = gane ? estadoLocal.getJugadorLocal() : estadoLocal.getOponente();
+
+                    System.out.println("[CONTROLADOR] Partida finalizada - Ganó: " + gane +
+                                     ", Stats: " + misStats.getNombreJugador());
+
+                    // Actualizar MODELO
+                    estadoLocal.finalizarPartida(gane, ganadorDTO);
+
+                    if (vistaJuego != null) {
+                        vistaJuego.partidaFinalizada(gane, ganadorDTO, misStats);
+                    }
+
+                } else if (datosRecibidos instanceof List) {
+                    // Compatibilidad con versión antigua (enviar lista)
                     List<EstadisticaDTO> listaStats = (List<EstadisticaDTO>) datosRecibidos;
 
                     for (EstadisticaDTO s : listaStats) {
@@ -397,7 +436,16 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                     }
                 }
                 break;
-                
+
+            case PARTIDA_ABANDONADA:
+                String nombreAbandonador = mensaje.getContenido();
+                System.out.println("[CONTROLADOR_JUEGO] Oponente abandonó: " + nombreAbandonador);
+
+                if (vistaJuego != null) {
+                    vistaJuego.partidaAbandonada(nombreAbandonador);
+                }
+                break;
+
             case ERROR:
                 String error = mensaje.getContenido();
                 System.err.println("[CONTROLADOR_JUEGO] Error del servidor: " + error);

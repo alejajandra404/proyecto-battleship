@@ -18,7 +18,12 @@ package mx.itson.utils.enums;
  *
  */
 public enum ResultadoDisparo {
+    /** Disparo impactó una nave y la averió */
     IMPACTO_AVERIADA,
+
+    /** Disparo impactó y hundió completamente una nave */
     IMPACTO_HUNDIDA,
+
+    /** Disparo cayó al agua, no hay nave */
     AGUA
 }

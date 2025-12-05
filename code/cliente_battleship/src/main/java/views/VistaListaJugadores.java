@@ -120,7 +120,7 @@ public class VistaListaJugadores extends JPanel implements IVistaListaJugadores 
 
         btnSeleccionar = new JButton("Seleccionar Oponente");
         btnSeleccionar.setFont(new Font("Arial", Font.BOLD, 16));
-        btnSeleccionar.setPreferredSize(new Dimension(200, 40));
+        btnSeleccionar.setPreferredSize(new Dimension(250, 40));
         btnSeleccionar.setBackground(new Color(70, 130, 180));
         btnSeleccionar.setForeground(Color.WHITE);
         btnSeleccionar.setFocusPainted(false);

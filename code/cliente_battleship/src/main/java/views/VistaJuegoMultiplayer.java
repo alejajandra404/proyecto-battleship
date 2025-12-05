@@ -3,6 +3,7 @@ package views;
 import controllers.ControladorJuego;
 import mx.itson.utils.dtos.*;
 import mx.itson.utils.enums.*;
+import patterns.observer.IObserver;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -14,22 +15,28 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 /**
  * Vista principal del juego multijugador.
- * 
+ * Implementa el patrón Observer para recibir notificaciones del modelo EstadoLocalJuego.
+ *
  * @author Leonardo Flores Leyva ID: 00000252390
  * @author Yuri Germán García López ID: 00000252583
  * @author Alejandra García Preciado ID: 00000252444
  * @author Jesús Ernesto López Ibarra ID: 00000252663
  * @author Daniel Miramontes Iribe ID: 00000252801
 */
-public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IVistaJuego {
+public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IVistaJuego, IObserver {
 
     // Lista que guarda las naves colocadas en la vista VistaColocacionNavesVisual
     public static List<NaveDTO> navesParaTransferir = new ArrayList<>();
 
     private final ControladorJuego controlador;
-    private final JugadorDTO jugadorLocal;
-    private final JugadorDTO oponente;
-    
+
+    // Datos del jugador local (primitivos, no DTOs)
+    private final String nombreJugadorLocal;
+    private final Color colorJugadorLocal;
+
+    // Datos del oponente (primitivos, no DTOs)
+    private final String nombreOponente;
+
     // Lista de naves propias (naves colocadas en el tablero propio)
     private List<NaveDTO> misNaves; 
 
@@ -81,17 +88,20 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
      * @param jugadorLocal Datos del jugador local
      * @param oponente Datos del oponente
      * @param controlador Controlador de la lógica del juego
-     */ 
+     */
     public VistaJuegoMultiplayer(JugadorDTO jugadorLocal, JugadorDTO oponente,
                                  ControladorJuego controlador) {
-        this.jugadorLocal = jugadorLocal;
-        this.oponente = oponente;
+        // Extraer solo los datos necesarios (primitivos) de los DTOs
+        this.nombreJugadorLocal = jugadorLocal.getNombre();
+        this.colorJugadorLocal = jugadorLocal.getColor();
+        this.nombreOponente = oponente.getNombre();
+
         this.controlador = controlador;
         this.misNaves = new ArrayList<>(navesParaTransferir);
 
         determinarSufijoColor();
-        cargarRecursos(); 
-        
+        cargarRecursos();
+
         controlador.setVistaJuego(this);
 
         inicializarComponentes();
@@ -109,11 +119,11 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
     }
 
     /**
-     * Método que ayuda a determinar el sufijo de 
+     * Método que ayuda a determinar el sufijo de
      * archivo de imagen según el color del jugador (rojo/azul)
      */
     private void determinarSufijoColor() {
-        Color c = jugadorLocal.getColor();
+        Color c = colorJugadorLocal;
         if (c != null && c.getRed() > 200 && c.getBlue() < 100) {
             this.sufijoColor = "_rojo";
         } else {
@@ -356,7 +366,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
 
         JPanel panelSuperior = new JPanel(new GridLayout(2, 1, 5, 5));
         panelSuperior.setOpaque(false);
-        lblTitulo = new JLabel("BATALLA NAVAL - " + jugadorLocal.getNombre() + " vs " + oponente.getNombre(), SwingConstants.CENTER);
+        lblTitulo = new JLabel("BATALLA NAVAL - " + nombreJugadorLocal + " vs " + nombreOponente, SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 20));
         lblTitulo.setForeground(new Color(0, 51, 102));
         lblTurno = new JLabel("Esperando turno...", SwingConstants.CENTER);
@@ -378,7 +388,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         JPanel contenedorPropio = new JPanel(new BorderLayout());
         contenedorPropio.setOpaque(false);
         contenedorPropio.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Tu Tablero - " + jugadorLocal.getNombre()),
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Tu Tablero - " + nombreJugadorLocal),
             BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2)));
 
         // Panel personalizado
@@ -391,7 +401,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
         JPanel contenedorOponente = new JPanel(new BorderLayout());
         contenedorOponente.setOpaque(false);
         contenedorOponente.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Enemigo - " + oponente.getNombre()),
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 1), "Enemigo - " + nombreOponente),
             BorderFactory.createLineBorder(COLOR_BORDE_TABLERO, 2)));
 
         panelTableroOponente = new JPanel(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 0, 0));
@@ -778,7 +788,7 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
 
             String titulo = gane ? "¡VICTORIA!" : "DERROTA";
             String mensaje = gane ?
-                    "¡Felicidades! Has ganado la partida contra " + oponente.getNombre() :
+                    "¡Felicidades! Has ganado la partida contra " + nombreOponente :
                     "Has perdido contra " + ganador.getNombre() + ". ¡Mejor suerte la próxima vez!";
 
             log("========================================");
@@ -803,20 +813,20 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             
             log("Partida finalizada. Intentando mostrar Estadísticas...");
 
-            statsFinales = new EstadisticaDTO(jugadorLocal.getNombre(), gane, 
-                        statsFinales.getTotalDisparos(), statsFinales.getAciertos(), 
+            statsFinales = new EstadisticaDTO(nombreJugadorLocal, gane,
+                        statsFinales.getTotalDisparos(), statsFinales.getAciertos(),
                         statsFinales.getBarcosHundidos());
-            
+
             //DIAGNÓSTICO *sonidos de ambulancia*
             System.out.println("[DEBUG VISTA] Preparando cambio de pantalla...");
-            
+
             if (controlador == null) {
                 System.err.println("[ERROR CRÍTICO] El controlador es NULL.");
             }
-            
+
             if (statsFinales == null) {
                 System.err.println("[ERROR CRÍTICO] Las estadísticas llegaron NULL.");
-                System.err.println("[DEBUG] Nombre esperado (Local): " + jugadorLocal.getNombre());
+                System.err.println("[DEBUG] Nombre esperado (Local): " + nombreJugadorLocal);
 
             } else {
                 System.out.println("[DEBUG] Stats válidas. Disparos: " + statsFinales.getTotalDisparos());
@@ -832,14 +842,12 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             }
         });
     }
-    
-    /**
-     * Método para abandonar partida / rendirse
-     */
-    private void abandonarPartida(){
+
+    @Override
+    public void partidaAbandonada(String nombreAbandonador) {
         SwingUtilities.invokeLater(() -> {
-            String titulo = "Partida Cancelada";
-            String mensaje = "Un jugador se ha rendido, por lo que la partída ha terminado.";
+            String titulo = "Partida Abandonada";
+            String mensaje = nombreAbandonador + " ha abandonado la partida.";
 
             log("========================================");
             log(titulo);
@@ -847,21 +855,102 @@ public class VistaJuegoMultiplayer extends JPanel implements ControladorJuego.IV
             log("========================================");
 
             // Deshabilitar todos los botones
-                for (int i = 0; i < TAMANO_TABLERO; i++) {
-                    for (int j = 0; j < TAMANO_TABLERO; j++) {
-                        botonesTableroOponente[i][j].setEnabled(false);
-                    }
+            for (int i = 0; i < TAMANO_TABLERO; i++) {
+                for (int j = 0; j < TAMANO_TABLERO; j++) {
+                    botonesTableroOponente[i][j].setEnabled(false);
                 }
+            }
 
-            lblTurno.setText("PARTIDA FINALIZADA - " + titulo);
-            JOptionPane.showMessageDialog(null, 
+            lblTurno.setText("PARTIDA ABANDONADA");
+            lblTurno.setForeground(Color.ORANGE);
+
+            JOptionPane.showMessageDialog(
+                this,
                 mensaje,
-                titulo, 
-                JOptionPane.INFORMATION_MESSAGE);
-            log("Partida finalizada. Mostrando Estadísticas...");
-            //Desde la pantalla de las estadísticas se va a la lista de los jugadores
+                titulo,
+                JOptionPane.WARNING_MESSAGE
+            );
+
+            log("Volviendo a la lista de jugadores...");
             FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
-                controlador.getJugadorLocal());;
+                controlador.getJugadorLocal());
+        });
+    }
+
+    /**
+     * Método para abandonar partida / rendirse
+     */
+    private void abandonarPartida(){
+        int confirmacion = JOptionPane.showConfirmDialog(
+            this,
+            "¿Estás seguro de que deseas abandonar la partida?",
+            "Abandonar Partida",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirmacion == JOptionPane.YES_OPTION) {
+            log("Jugador ha decidido abandonar la partida");
+
+            // Notificar al servidor que se abandona la partida
+            controlador.abandonarPartida();
+
+            // Deshabilitar todos los botones
+            for (int i = 0; i < TAMANO_TABLERO; i++) {
+                for (int j = 0; j < TAMANO_TABLERO; j++) {
+                    botonesTableroOponente[i][j].setEnabled(false);
+                }
+            }
+
+            lblTurno.setText("PARTIDA ABANDONADA");
+            log("Volviendo a la lista de jugadores...");
+
+            // Volver a la lista de jugadores
+            FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(),
+                controlador.getJugadorLocal());
+        }
+    }
+
+    // ========== IMPLEMENTACIÓN DE IOBSERVER (PATRÓN OBSERVER) ==========
+
+    /**
+     * Método del patrón Observer que recibe notificaciones del modelo EstadoLocalJuego.
+     * Este método es llamado automáticamente cuando el estado del juego cambia.
+     *
+     * @param evento El tipo de evento que ocurrió (ej: "TURNO_CAMBIADO", "TIEMPO_ACTUALIZADO")
+     * @param datos Datos adicionales relacionados con el evento
+     */
+    @Override
+    public void notificar(String evento, String datos) {
+        SwingUtilities.invokeLater(() -> {
+            switch (evento) {
+                case "TURNO_CAMBIADO":
+                    log("Notificación Observer: Turno cambió - " + datos);
+                    // La vista ya recibe actualizarTurno() del controlador
+                    // Esta notificación es adicional para logging o efectos visuales
+                    break;
+
+                case "TIEMPO_ACTUALIZADO":
+                    // El tiempo se actualiza automáticamente por el controlador
+                    // Aquí podríamos agregar efectos visuales adicionales
+                    break;
+
+                case "TABLEROS_ACTUALIZADOS":
+                    log("Notificación Observer: Tableros actualizados");
+                    break;
+
+                case "DISPARO_REALIZADO":
+                    log("Notificación Observer: " + datos);
+                    break;
+
+                case "PARTIDA_FINALIZADA":
+                    log("Notificación Observer: Partida finalizada - " + datos);
+                    break;
+
+                default:
+                    log("Notificación Observer desconocida: " + evento);
+                    break;
+            }
         });
     }
 }
