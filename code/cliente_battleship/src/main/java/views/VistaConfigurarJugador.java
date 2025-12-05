@@ -2,7 +2,6 @@ package views;
 
 import controllers.ControladorConfigurarJugador;
 import controllers.ControladorConfigurarJugador.IVistaConfigurarJugador;
-import mx.itson.utils.dtos.JugadorDTO;
 import javax.swing.*;
 import java.awt.*;
 
@@ -200,23 +199,23 @@ public class VistaConfigurarJugador extends JPanel implements IVistaConfigurarJu
     }
 
     @Override
-    public void registroExitoso(JugadorDTO jugador) {
+    public void registroExitoso(String nombreJugador, String idJugador) {
         SwingUtilities.invokeLater(() -> {
-            lblEstado.setText("¡Registro exitoso! Bienvenido, " + jugador.getNombre());
+            lblEstado.setText("¡Registro exitoso! Bienvenido, " + nombreJugador);
             lblEstado.setForeground(new Color(0, 150, 0));
 
             // Mostrar mensaje de confirmación
             JOptionPane.showMessageDialog(
                 this,
                 "Registro exitoso!\n" +
-                "Nombre: " + jugador.getNombre() + "\n" +
-                "ID: " + jugador.getId().substring(0, 8) + "...",
+                "Nombre: " + nombreJugador + "\n" +
+                "ID: " + idJugador.substring(0, 8) + "...",
                 "¡Bienvenido!",
                 JOptionPane.INFORMATION_MESSAGE
             );
 
             // Avanzar a la vista de lista de jugadores
-            FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(), jugador);
+            FlujoVista.mostrarListaJugadores(controlador.getServicioConexion(), controlador.getJugadorRegistrado());
         });
     }
 

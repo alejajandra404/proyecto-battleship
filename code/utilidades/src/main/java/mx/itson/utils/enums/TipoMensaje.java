@@ -51,6 +51,8 @@ public enum TipoMensaje {
     PARTIDA_GANADA, // Servidor notifica al ganador
     PARTIDA_PERDIDA, // Servidor notifica al perdedor
     PARTIDA_FINALIZADA, // Servidor notifica fin de partida
+    ABANDONAR_PARTIDA, // Cliente notifica que abandona la partida
+    PARTIDA_ABANDONADA, // Servidor notifica que el oponente abandonó
 
     // General
     ERROR,

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 import mx.itson.exceptions.GestorPartidasException;
 import mx.itson.models.IJugador;
+import mx.itson.models.IPartida;
 import mx.itson.subsistema_gestor_partidas.IGestorPartidas;
 
 /**
@@ -88,6 +89,8 @@ public class ManejadorCliente implements Runnable {
             case COLOCAR_NAVES -> procesarColocacionNaves(mensaje);
 
             case ENVIAR_DISPARO -> procesarDisparo(mensaje);
+
+            case ABANDONAR_PARTIDA -> procesarAbandonoPartida();
 
             case DESCONEXION -> conectado = false;
 
@@ -504,13 +507,26 @@ public class ManejadorCliente implements Runnable {
                 enviarTablerosAJugadores(partida);
 
                 // Configurar callback de timeout
-                gestorPartidas.establecerRespuestaTiempoAgotado(partida.getIdPartida(), idJugadorTimeout -> {
-                    manejarTimeout(partida);
+                String idPartidaFinal = partida.getIdPartida();
+                gestorPartidas.establecerRespuestaTiempoAgotado(idPartidaFinal, idJugadorTimeout -> {
+                    try {
+                        // Obtener la partida ACTUALIZADA del gestor, no usar el DTO capturado
+                        PartidaDTO partidaActualizada = gestorPartidas.obtenerPartida(idPartidaFinal);
+                        manejarTimeout(partidaActualizada, idJugadorTimeout);
+                    } catch (GestorPartidasException e) {
+                        System.err.println("[MANEJADOR] Error al obtener partida en timeout: " + e.getMessage());
+                    }
                 });
 
                 // Configurar callback de actualización periódica del tiempo
-                gestorPartidas.establecerCallbackActualizacionTiempo(partida.getIdPartida(), tiempoRestante -> {
-                    enviarActualizacionTiempoAJugadores(partida, tiempoRestante);
+                gestorPartidas.establecerCallbackActualizacionTiempo(idPartidaFinal, tiempoRestante -> {
+                    try {
+                        // Obtener la partida ACTUALIZADA del gestor
+                        PartidaDTO partidaActualizada = gestorPartidas.obtenerPartida(idPartidaFinal);
+                        enviarActualizacionTiempoAJugadores(partidaActualizada, tiempoRestante);
+                    } catch (GestorPartidasException e) {
+                        System.err.println("[MANEJADOR] Error al obtener partida en actualización tiempo: " + e.getMessage());
+                    }
                 });
 
                 // Iniciar timer del primer turno
@@ -616,9 +632,10 @@ public class ManejadorCliente implements Runnable {
                     ? partida.getJugador2() : partida.getJugador1();
 
                 // --- INICIO: GENERAR ESTADÍSTICAS ---
-                //Solucionar Casteo || SI FUNCIONA || pero hay que quitarlo
-                IJugador objJugador1 = (IJugador) partida.getJugador1();
-                IJugador objJugador2 = (IJugador) partida.getJugador2();
+                // Obtener la partida del modelo (no DTO) para acceder a los jugadores IJugador
+                IPartida partidaModelo = gestorPartidas.obtenerPartidaModelo(partida.getIdPartida());
+                IJugador objJugador1 = partidaModelo.getJugador1();
+                IJugador objJugador2 = partidaModelo.getJugador2();
 
                 //Identificar quién es el ganador y quién el perdedor en los objetos Modelo
                 IJugador ganadorModel = null;
@@ -638,29 +655,34 @@ public class ManejadorCliente implements Runnable {
                 EstadisticaDTO statsGanador = ganadorModel.generarEstadisticas(true, barcosTotales);
                 EstadisticaDTO statsPerdedor = perdedorModel.generarEstadisticas(false, barcosPerdedor);
 
-                List<EstadisticaDTO> reporteFinal = new ArrayList<>();
-                reporteFinal.add(statsGanador);
-                reporteFinal.add(statsPerdedor);
-                
-                //DEBUG: Confirmar en consola que se creó la lista
-                System.out.println("[MANEJADOR] Enviando lista de estadísticas. Tamaño: " + reporteFinal.size());
-                
-                // Notificar al ganador
+                //DEBUG: Confirmar en consola que se generaron las estadísticas
+                System.out.println("[MANEJADOR] Estadísticas generadas - Ganador: " + statsGanador.getNombreJugador() +
+                                 ", Perdedor: " + statsPerdedor.getNombreJugador());
+                System.out.println("[MANEJADOR] IDs - Ganador: " + ganador.getId() +
+                                 ", Perdedor: " + perdedor.getId());
+
+                // Notificar al ganador (solo sus estadísticas)
                 ManejadorCliente manejadorGanador = gestorJugadores.obtenerManejador(ganador.getId());
+                System.out.println("[MANEJADOR] manejadorGanador instance: " +
+                                 (manejadorGanador != null ? manejadorGanador.hashCode() : "null"));
                 if (manejadorGanador != null) {
+                    System.out.println("[MANEJADOR] Enviando PARTIDA_GANADA a ganador: " + ganador.getNombre());
                     manejadorGanador.enviarMensaje(new MensajeDTO(
                         TipoMensaje.PARTIDA_GANADA,
                         "¡Felicidades! Has ganado la partida",
-                        reporteFinal));
+                        statsGanador));  // Solo las estadísticas del ganador
                 }
 
-                // Notificar al perdedor
+                // Notificar al perdedor (solo sus estadísticas)
                 ManejadorCliente manejadorPerdedor = gestorJugadores.obtenerManejador(perdedor.getId());
+                System.out.println("[MANEJADOR] manejadorPerdedor instance: " +
+                                 (manejadorPerdedor != null ? manejadorPerdedor.hashCode() : "null"));
                 if (manejadorPerdedor != null) {
+                    System.out.println("[MANEJADOR] Enviando PARTIDA_PERDIDA a perdedor: " + perdedor.getNombre());
                     manejadorPerdedor.enviarMensaje(new MensajeDTO(
                         TipoMensaje.PARTIDA_PERDIDA,
                         "Has perdido la partida. ¡Mejor suerte la próxima vez!",
-                        reporteFinal));
+                        statsPerdedor));  // Solo las estadísticas del perdedor
                 }
 
                 // Detener timer y limpiar recursos
@@ -670,8 +692,11 @@ public class ManejadorCliente implements Runnable {
                 gestorJugadores.marcarDisponible(partida.getJugador1().getId());
                 gestorJugadores.marcarDisponible(partida.getJugador2().getId());
 
-                // Eliminar partida
-                gestorPartidas.eliminarPartida(partida.getIdPartida());
+                // NO eliminar la partida inmediatamente para evitar ClassCastException
+                // si el otro jugador intenta hacer algo después de terminar
+                // La partida se limpiará eventualmente cuando ambos jugadores se desconecten
+                // gestorPartidas.eliminarPartida(partida.getIdPartida());
+                // TODO PARA ALEJAJANDRA: hay un detallito aquí que falta corregir
 
             } else {
                 // Continuar juego - notificar cambio de turno si cambió
@@ -713,15 +738,73 @@ public class ManejadorCliente implements Runnable {
     }
 
     /**
+     * Procesa el abandono de una partida por parte de un jugador
+     * @param mensaje Mensaje con datos del jugador que abandona
+     */
+    private void procesarAbandonoPartida() {
+        try {
+            System.out.println("[MANEJADOR] Procesando abandono de partida");
+
+            // Obtener la partida actual del jugador
+            PartidaDTO partida = gestorPartidas.obtenerPartidaDeJugador(jugadorAsociado.getId());
+
+            if (partida == null) {
+                System.err.println("[MANEJADOR] El jugador no está en ninguna partida");
+                return;
+            }
+
+            // Determinar quién es el oponente
+            JugadorDTO oponente = partida.getJugador1().getId().equals(jugadorAsociado.getId())
+                ? partida.getJugador2() : partida.getJugador1();
+
+            System.out.println("[MANEJADOR] Jugador " + jugadorAsociado.getNombre() +
+                             " abandona la partida contra " + oponente.getNombre());
+
+            // Detener timer y liberar recursos de la partida
+            gestorPartidas.liberarRecursos(partida.getIdPartida());
+
+            // Notificar al oponente que la partida fue abandonada
+            ManejadorCliente manejadorOponente = gestorJugadores.obtenerManejador(oponente.getId());
+            if (manejadorOponente != null) {
+                manejadorOponente.enviarMensaje(new MensajeDTO(
+                    TipoMensaje.PARTIDA_ABANDONADA,
+                    jugadorAsociado.getNombre(),
+                    null
+                ));
+            }
+
+            // Marcar ambos jugadores como disponibles
+            gestorJugadores.marcarDisponible(jugadorAsociado.getId());
+            gestorJugadores.marcarDisponible(oponente.getId());
+
+            // Eliminar la partida
+            gestorPartidas.eliminarPartida(partida.getIdPartida());
+
+            System.out.println("[MANEJADOR] Partida abandonada exitosamente. Ambos jugadores disponibles.");
+
+        } catch (GestorPartidasException e) {
+            System.err.println("[MANEJADOR] Error al procesar abandono: " + e.getMessage());
+            enviarMensaje(new MensajeDTO(
+                TipoMensaje.ERROR,
+                "Error al abandonar partida: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
      * Maneja el timeout de un turno
      */
-    private void manejarTimeout(PartidaDTO partida) {
-        // Obtener jugador en turno actual (ya cambió en Partida)
+    private void manejarTimeout(PartidaDTO partida, String idJugadorQuePerdiTurno) {
+        // El turno ya cambió en Partida, idJugadorQuePerdiTurno es quien se quedó sin tiempo
+        // idEnTurno es el NUEVO jugador que ahora tiene el turno
         String idEnTurno = partida.getIdJugadorEnTurno();
         JugadorDTO jugadorEnTurno = partida.getJugador1().getId().equals(idEnTurno)
             ? partida.getJugador1() : partida.getJugador2();
+        JugadorDTO jugadorQuePerdiTurno = partida.getJugador1().getId().equals(idJugadorQuePerdiTurno)
+            ? partida.getJugador1() : partida.getJugador2();
 
-        System.out.println("[MANEJADOR] Timeout - Nuevo turno: " + jugadorEnTurno.getNombre());
+        System.out.println("[MANEJADOR] Timeout - Jugador que perdió turno: " + jugadorQuePerdiTurno.getNombre() +
+                         ", Nuevo turno: " + jugadorEnTurno.getNombre());
 
         // Obtener manejadores
         ManejadorCliente manejador1 = gestorJugadores.obtenerManejador(partida.getJugador1().getId());

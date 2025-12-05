@@ -1,6 +1,6 @@
 package controllers;
 
-import static enums.ResultadoDisparo.AGUA;
+import models.EstadoLocalJuego;
 import mx.itson.utils.dtos.*;
 import mx.itson.utils.enums.*;
 import services.ServicioConexion;
@@ -10,8 +10,13 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Controlador principal del juego multijugador
+ * Controlador principal del juego multijugador (MVC)
  * Gestiona el flujo completo de la partida desde la colocación de naves hasta el final
+ *
+ * ARQUITECTURA MVC:
+ * - Modelo: EstadoLocalJuego (contiene DTOs + patrón Observer)
+ * - Vista: IVistaJuego, IVistaColocacionNaves
+ * - Controlador: Esta clase (ControladorJuego)
  *
  * @author Leonardo Flores Leyva ID: 00000252390
  * @author Yuri Germán García López ID: 00000252583
@@ -21,29 +26,18 @@ import java.util.ArrayList;
  */
 public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
-    // Estados del juego
-    private enum EstadoJuego {
-        ESPERANDO_COLOCACION,
-        ESPERANDO_OPONENTE,
-        EN_JUEGO,
-        FINALIZADO
-    }
-
+    // Servicios
     private final ServicioConexion servicioConexion;
-    private final JugadorDTO jugadorLocal;
-    private JugadorDTO oponente;
-    private String idPartida;
 
+    // MODELO (MVC) - Estado local del juego con patrón Observer
+    private final EstadoLocalJuego estadoLocal;
+
+    // Estado del controlador
     private EstadoJuego estadoActual;
-    private boolean miTurno;
 
     // Referencias a vistas
     private IVistaColocacionNaves vistaColocacion;
     private IVistaJuego vistaJuego;
-
-    // Datos del juego
-    private TableroDTO miTablero;
-    private TableroDTO tableroOponente;
 
     /**
      * Interfaz para la vista de colocación de naves
@@ -67,6 +61,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
         void mostrarMensaje(String mensaje);
         void mostrarError(String error);
         void partidaFinalizada(boolean gane, JugadorDTO ganador, EstadisticaDTO misEstadisticas);
+        void partidaAbandonada(String nombreAbandonador);
     }
 
     /**
@@ -79,17 +74,18 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
     public ControladorJuego(ServicioConexion servicioConexion, JugadorDTO jugadorLocal,
                            JugadorDTO oponente, String idPartida) {
         this.servicioConexion = servicioConexion;
-        this.jugadorLocal = jugadorLocal;
-        this.oponente = oponente;
-        this.idPartida = idPartida;
+
+        // Crear el MODELO con patrón Observer
+        this.estadoLocal = new EstadoLocalJuego(jugadorLocal, oponente, idPartida);
+
         this.estadoActual = EstadoJuego.ESPERANDO_COLOCACION;
-        this.miTurno = false;
 
         System.out.println("[CONTROLADOR_JUEGO] Iniciado para partida: " + idPartida);
     }
 
     /**
      * Establece la vista de colocación de naves
+     * @param vista
      */
     public void setVistaColocacion(IVistaColocacionNaves vista) {
         this.vistaColocacion = vista;
@@ -97,6 +93,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
     /**
      * Establece la vista del juego
+     * @param vista
      */
     public void setVistaJuego(IVistaJuego vista) {
         this.vistaJuego = vista;
@@ -146,7 +143,7 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
      * @param coordenada Coordenada del disparo
      */
     public void realizarDisparo(CoordenadaDTO coordenada) {
-        if (!miTurno) {
+        if (!estadoLocal.isMiTurno()) {
             if (vistaJuego != null) {
                 vistaJuego.mostrarError("No es tu turno");
             }
@@ -173,6 +170,26 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
             if (vistaJuego != null) {
                 vistaJuego.mostrarError("Error al enviar disparo: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Notifica al servidor que el jugador abandona la partida
+     */
+    public void abandonarPartida() {
+        try {
+            System.out.println("[CONTROLADOR_JUEGO] Jugador abandona la partida");
+
+            MensajeDTO mensaje = new MensajeDTO(
+                TipoMensaje.ABANDONAR_PARTIDA,
+                "Jugador ha abandonado la partida",
+                estadoLocal.getJugadorLocal()
+            );
+
+            servicioConexion.enviarMensaje(mensaje);
+
+        } catch (Exception e) {
+            System.err.println("[CONTROLADOR_JUEGO] Error al notificar abandono: " + e.getMessage());
         }
     }
 
@@ -240,24 +257,30 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
             case TURNO_INICIADO:
                 JugadorDTO jugadorEnTurno = (JugadorDTO) mensaje.getDatos();
-                miTurno = jugadorEnTurno.getId().equals(jugadorLocal.getId());
+                boolean esMiTurno = jugadorEnTurno.getId().equals(estadoLocal.getJugadorLocal().getId());
                 estadoActual = EstadoJuego.EN_JUEGO;
 
-                System.out.println("[CONTROLADOR_JUEGO] Turno iniciado - Mi turno: " + miTurno);
+                // Actualizar MODELO (notifica a observadores si es necesario)
+                estadoLocal.cambiarTurno(esMiTurno, jugadorEnTurno);
+
+                System.out.println("[CONTROLADOR_JUEGO] Turno iniciado - Mi turno: " + esMiTurno);
 
                 if (vistaJuego != null) {
-                    vistaJuego.actualizarTurno(miTurno, jugadorEnTurno);
+                    vistaJuego.actualizarTurno(esMiTurno, jugadorEnTurno);
                 }
                 break;
 
             case CAMBIO_TURNO:
                 JugadorDTO nuevoTurno = (JugadorDTO) mensaje.getDatos();
-                miTurno = nuevoTurno.getId().equals(jugadorLocal.getId());
+                boolean esNuevoMiTurno = nuevoTurno.getId().equals(estadoLocal.getJugadorLocal().getId());
 
-                System.out.println("[CONTROLADOR_JUEGO] Cambio de turno - Mi turno: " + miTurno);
+                // Actualizar MODELO
+                estadoLocal.cambiarTurno(esNuevoMiTurno, nuevoTurno);
+
+                System.out.println("[CONTROLADOR_JUEGO] Cambio de turno - Mi turno: " + esNuevoMiTurno);
 
                 if (vistaJuego != null) {
-                    vistaJuego.actualizarTurno(miTurno, nuevoTurno);
+                    vistaJuego.actualizarTurno(esNuevoMiTurno, nuevoTurno);
                 }
                 break;
 
@@ -270,6 +293,10 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
             case ACTUALIZAR_TIEMPO_TURNO:
                 Integer tiempoRestante = (Integer) mensaje.getDatos();
+
+                // Actualizar MODELO
+                estadoLocal.actualizarTiempo(tiempoRestante);
+
                 System.out.println("[CONTROLADOR_JUEGO] Actualización tiempo: " + tiempoRestante + "s");
                 if (vistaJuego != null) {
                     vistaJuego.actualizarTiempoTurno(tiempoRestante);
@@ -292,7 +319,10 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                 List<TableroDTO> tableros = (List<TableroDTO>) mensaje.getDatos();
 
                 System.out.println("[CONTROLADOR_JUEGO] Número de tableros recibidos: " + tableros.size());
-                System.out.println("[CONTROLADOR_JUEGO] Mi ID local: " + jugadorLocal.getId());
+                System.out.println("[CONTROLADOR_JUEGO] Mi ID local: " + estadoLocal.getJugadorLocal().getId());
+
+                TableroDTO miTablero = null;
+                TableroDTO tableroOponente = null;
 
                 // Identificar cuál tablero es cuál
                 for (int i = 0; i < tableros.size(); i++) {
@@ -312,13 +342,18 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
                     }
                     System.out.println("[CONTROLADOR_JUEGO] Total disparos en tablero " + i + ": " + disparos);
 
-                    if (tablero.getIdJugador().equals(jugadorLocal.getId())) {
+                    if (tablero.getIdJugador().equals(estadoLocal.getJugadorLocal().getId())) {
                         miTablero = tablero;
                         System.out.println("[CONTROLADOR_JUEGO] Asignado como MI TABLERO");
                     } else {
                         tableroOponente = tablero;
                         System.out.println("[CONTROLADOR_JUEGO] Asignado como TABLERO OPONENTE");
                     }
+                }
+
+                // Actualizar MODELO
+                if (miTablero != null && tableroOponente != null) {
+                    estadoLocal.actualizarTableros(miTablero, tableroOponente);
                 }
 
                 System.out.println("[CONTROLADOR_JUEGO] miTablero: " + (miTablero != null ? "OK" : "NULL"));
@@ -342,19 +377,40 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
             case PARTIDA_PERDIDA:
                 Object datosRecibidos = mensaje.getDatos();
                 EstadisticaDTO misStats = null;
-                
-                if (datosRecibidos instanceof List) {
+
+                // El servidor ahora envía directamente la EstadisticaDTO del jugador correspondiente
+                if (datosRecibidos instanceof EstadisticaDTO) {
+                    misStats = (EstadisticaDTO) datosRecibidos;
+
+                    boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
+                    JugadorDTO ganadorDTO = gane ? estadoLocal.getJugadorLocal() : estadoLocal.getOponente();
+
+                    System.out.println("[CONTROLADOR] Partida finalizada - Ganó: " + gane +
+                                     ", Stats: " + misStats.getNombreJugador());
+
+                    // Actualizar MODELO
+                    estadoLocal.finalizarPartida(gane, ganadorDTO);
+
+                    if (vistaJuego != null) {
+                        vistaJuego.partidaFinalizada(gane, ganadorDTO, misStats);
+                    }
+
+                } else if (datosRecibidos instanceof List) {
+                    // Compatibilidad con versión antigua (enviar lista)
                     List<EstadisticaDTO> listaStats = (List<EstadisticaDTO>) datosRecibidos;
 
                     for (EstadisticaDTO s : listaStats) {
-                        if (s.getNombreJugador().equals(jugadorLocal.getNombre())) {
+                        if (s.getNombreJugador().equals(estadoLocal.getJugadorLocal().getNombre())) {
                             misStats = s;
                             break;
                         }
                     }
 
                     boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
-                    JugadorDTO ganadorDTO = gane ? jugadorLocal : oponente; 
+                    JugadorDTO ganadorDTO = gane ? estadoLocal.getJugadorLocal() : estadoLocal.getOponente();
+
+                    // Actualizar MODELO
+                    estadoLocal.finalizarPartida(gane, ganadorDTO);
 
                     if (vistaJuego != null && misStats != null) {
                         vistaJuego.partidaFinalizada(gane, ganadorDTO, misStats);
@@ -367,14 +423,23 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
                     boolean gane = (mensaje.getTipo() == TipoMensaje.PARTIDA_GANADA);
                     EstadisticaDTO statsF = new EstadisticaDTO(
-                            jugadorLocal.getNombre(), gane, 0, 0,0);
+                            estadoLocal.getJugadorLocal().getNombre(), gane, 0, 0,0);
 
                     if (vistaJuego != null) {
                         vistaJuego.partidaFinalizada(gane, (JugadorDTO) datosRecibidos, statsF);
                     }
                 }
                 break;
-                
+
+            case PARTIDA_ABANDONADA:
+                String nombreAbandonador = mensaje.getContenido();
+                System.out.println("[CONTROLADOR_JUEGO] Oponente abandonó: " + nombreAbandonador);
+
+                if (vistaJuego != null) {
+                    vistaJuego.partidaAbandonada(nombreAbandonador);
+                }
+                break;
+
             case ERROR:
                 String error = mensaje.getContenido();
                 System.err.println("[CONTROLADOR_JUEGO] Error del servidor: " + error);
@@ -394,19 +459,19 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
     // Getters
 
     public JugadorDTO getJugadorLocal() {
-        return jugadorLocal;
+        return estadoLocal.getJugadorLocal();
     }
 
     public JugadorDTO getOponente() {
-        return oponente;
+        return estadoLocal.getOponente();
     }
 
     public String getIdPartida() {
-        return idPartida;
+        return estadoLocal.getIdPartida();
     }
 
     public boolean isMiTurno() {
-        return miTurno;
+        return estadoLocal.isMiTurno();
     }
 
     public EstadoJuego getEstadoActual() {
@@ -415,5 +480,13 @@ public class ControladorJuego implements ListenerServidor.ICallbackMensaje {
 
     public ServicioConexion getServicioConexion() {
         return servicioConexion;
+    }
+
+    /**
+     * Obtiene el modelo del juego (EstadoLocalJuego)
+     * @return Estado local del juego
+     */
+    public EstadoLocalJuego getEstadoLocal() {
+        return estadoLocal;
     }
 }

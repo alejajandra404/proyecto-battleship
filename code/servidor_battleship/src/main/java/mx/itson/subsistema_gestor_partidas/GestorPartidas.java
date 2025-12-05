@@ -109,7 +109,18 @@ public class GestorPartidas implements IGestorPartidas{
             throw new GestorPartidasException(ex.getMessage(), ex);
         }
     }
-    
+
+    /**
+     * Obtiene la partida del modelo (IPartida) sin convertir a DTO
+     *
+     * @param idPartida ID de la partida
+     * @return La partida del modelo o null si no existe
+     */
+    @Override
+    public synchronized IPartida obtenerPartidaModelo(String idPartida) {
+        return partidas.get(idPartida);
+    }
+
     @Override
     public boolean verificarJugadorPartidaActiva(String idJugador){return (jugadorAPartida.get(idJugador) != null);}
     

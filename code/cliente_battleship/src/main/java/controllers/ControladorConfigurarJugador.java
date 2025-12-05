@@ -19,6 +19,7 @@ public class ControladorConfigurarJugador {
 
     private final ServicioConexion servicioConexion;
     private IVistaConfigurarJugador vista;
+    private JugadorDTO jugadorRegistrado;
 
     /**
      * Interfaz que debe implementar la vista
@@ -28,7 +29,7 @@ public class ControladorConfigurarJugador {
         void mostrarError(String error);
         void habilitarFormulario(boolean habilitar);
         void mostrarProgreso(String mensaje);
-        void registroExitoso(JugadorDTO jugador);
+        void registroExitoso(String nombreJugador, String idJugador);
         void nombreDuplicado(String mensaje);
     }
 
@@ -134,8 +135,9 @@ public class ControladorConfigurarJugador {
         switch (respuesta.getTipo()) {
             case REGISTRO_EXITOSO:
                 JugadorDTO jugador = (JugadorDTO) respuesta.getDatos();
+                this.jugadorRegistrado = jugador; // Guardar en el controlador
                 System.out.println("[CONTROLADOR] Registro exitoso: " + jugador.getNombre());
-                vista.registroExitoso(jugador);
+                vista.registroExitoso(jugador.getNombre(), jugador.getId());
                 break;
 
             case NOMBRE_DUPLICADO:
@@ -163,6 +165,14 @@ public class ControladorConfigurarJugador {
      */
     public ServicioConexion getServicioConexion() {
         return servicioConexion;
+    }
+
+    /**
+     * Obtiene el jugador registrado
+     * @return JugadorDTO del jugador registrado
+     */
+    public JugadorDTO getJugadorRegistrado() {
+        return jugadorRegistrado;
     }
 
     /**

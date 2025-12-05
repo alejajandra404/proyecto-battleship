@@ -3,6 +3,7 @@ package mx.itson.subsistema_gestor_partidas;
 import java.util.List;
 import java.util.function.Consumer;
 import mx.itson.exceptions.GestorPartidasException;
+import mx.itson.models.IPartida;
 import mx.itson.utils.dtos.CoordenadaDTO;
 import mx.itson.utils.dtos.DisparoDTO;
 import mx.itson.utils.dtos.JugadorDTO;
@@ -20,7 +21,9 @@ public interface IGestorPartidas {
     public PartidaDTO obtenerPartidaDeJugador(String idJugador) throws GestorPartidasException;
     
     public PartidaDTO obtenerPartida(String idPartida) throws GestorPartidasException;
-    
+
+    public IPartida obtenerPartidaModelo(String idPartida);
+
     public boolean verificarJugadorPartidaActiva(String idJugador);
     
     public void eliminarPartida(String idPartida) throws GestorPartidasException;
