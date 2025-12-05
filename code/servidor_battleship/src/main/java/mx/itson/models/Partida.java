@@ -16,6 +16,11 @@ import mx.itson.utils.enums.EstadoPartida;
 import mx.itson.utils.enums.ResultadoDisparo;
 
 /**
+ * Partida.java
+ *
+ * Clase que representa una partida de batalla naval entre dos jugadores.
+ * Gestiona el estado de la partida, los turnos, el temporizador y el procesamiento
+ * de disparos. Utiliza un ScheduledExecutorService para controlar el tiempo de cada turno.
  *
  * @author Leonardo Flores Leyva
  * ID: 00000252390
@@ -56,10 +61,12 @@ public class Partida implements IPartida {
     private Consumer<Integer> callbackActualizacionTiempo; // Callback para actualizaciones periódicas del tiempo
 
     /**
-     * Constructor para iniciar una nueva partida
-     * @param idPartida ID de la partida
-     * @param jugador1 El primer jugador
-     * @param jugador2 El segundo jugador
+     * Constructor para iniciar una nueva partida.
+     * Inicializa el executor para el temporizador y establece el estado inicial.
+     *
+     * @param idPartida ID único de la partida
+     * @param jugador1 Primer jugador
+     * @param jugador2 Segundo jugador
      */
     public Partida(String idPartida, IJugador jugador1, IJugador jugador2) {
         this.idPartida = idPartida;
@@ -74,35 +81,81 @@ public class Partida implements IPartida {
         System.out.println("[PARTIDA] Partida creada: " + jugador1.getNombre() + " vs " + jugador2.getNombre());
     }
 
+    /**
+     * Obtiene el ID único de la partida.
+     *
+     * @return ID de la partida
+     */
     @Override
     public String getIdPartida() {return idPartida;}
-    
+
+    /**
+     * Obtiene el primer jugador de la partida.
+     *
+     * @return Primer jugador
+     */
     @Override
     public IJugador getJugador1() {return jugador1;}
 
+    /**
+     * Obtiene el segundo jugador de la partida.
+     *
+     * @return Segundo jugador
+     */
     @Override
     public IJugador getJugador2() {return jugador2;}
-    
+
+    /**
+     * Obtiene el ID del jugador que tiene el turno actual.
+     *
+     * @return ID del jugador en turno
+     */
     @Override
     public String getIdJugadorEnTurno() {return idJugadorEnTurno;}
-    
+
+    /**
+     * Obtiene el ID del jugador ganador.
+     *
+     * @return ID del ganador, o null si no hay ganador
+     */
     @Override
     public String getIdGanador() {return idGanador;}
-    
+
+    /**
+     * Verifica si la partida tiene un ganador.
+     *
+     * @return true si hay un ganador
+     */
     @Override
     public boolean hayGanador() {return idGanador != null;}
-    
+
+    /**
+     * Verifica si ambos jugadores han colocado sus naves.
+     *
+     * @return true si ambos jugadores están listos
+     */
     @Override
     public boolean ambosJugadoresListos() {return navesColocadasJugador1 && navesColocadasJugador2;}
-    
+
+    /**
+     * Obtiene el estado actual de la partida.
+     *
+     * @return Estado de la partida
+     */
     @Override
     public EstadoPartida getEstadoPartida() {return estado;}
-    
+
+    /**
+     * Obtiene el tiempo restante del turno actual en segundos.
+     *
+     * @return Tiempo restante en segundos
+     */
     @Override
     public int getTiempoRestante() {return tiempoRestante;}
     
     /**
-     * Inicia el juego una vez que ambos jugadores han colocado sus naves
+     * Inicia el juego una vez que ambos jugadores han colocado sus naves.
+     * Asigna el turno inicial de forma aleatoria.
      */
     private void iniciarJuego() {
         // Asignar turno aleatorio
@@ -115,8 +168,9 @@ public class Partida implements IPartida {
         System.out.println("[PARTIDA] Juego iniciado. Turno aleatorio asignado a: " + nombreInicia);
     }
     
-     /**
-     * Finaliza la partida declarando un ganador
+    /**
+     * Finaliza la partida declarando un ganador.
+     * Cambia el estado de la partida a FINALIZADA.
      *
      * @param idGanador ID del jugador ganador
      */
@@ -125,33 +179,78 @@ public class Partida implements IPartida {
         this.estado = EstadoPartida.FINALIZADA;
         System.out.println("[PARTIDA] Partida finalizada. Ganador: " + getNombreGanador());
     }
-    
+
+    /**
+     * Obtiene un jugador por su ID.
+     *
+     * @param idJugador ID del jugador a buscar
+     * @return El jugador correspondiente al ID
+     */
     @Override
     public IJugador getJugador(String idJugador){return (jugador1.getId().equals(idJugador)) ? jugador1 : jugador2;}
-    
+
+    /**
+     * Obtiene el oponente de un jugador.
+     *
+     * @param idJugador ID del jugador
+     * @return El jugador oponente
+     */
     private IJugador getJugadorOponente(String idJugador){return (jugador1.getId().equals(idJugador)) ? jugador2 : jugador1;}
-    
+
+    /**
+     * Obtiene el nombre del jugador que tiene el turno actual.
+     *
+     * @return Nombre del jugador en turno
+     */
     public String getNombreJugadorEnTurno() {
-        return (idJugadorEnTurno.equals(jugador1.getId())) ? 
-                jugador1.getNombre() : 
+        return (idJugadorEnTurno.equals(jugador1.getId())) ?
+                jugador1.getNombre() :
                 jugador2.getNombre();
     }
-    
+
+    /**
+     * Obtiene el nombre del jugador ganador.
+     *
+     * @return Nombre del ganador, o null si no hay ganador
+     */
     public String getNombreGanador() {
         if (idGanador == null) return null;
         return idGanador.equals(jugador1.getId()) ? jugador1.getNombre() : jugador2.getNombre();
     }
-    
+
+    /**
+     * Verifica si un jugador tiene el turno actual.
+     *
+     * @param idJugador ID del jugador a verificar
+     * @return true si es el turno del jugador
+     */
     @Override
     public boolean verificarJugadorTurno(String idJugador) {return getIdJugadorEnTurno().equals(idJugador);}
-    
+
+    /**
+     * Valida si un disparo en una coordenada es válido para un jugador.
+     *
+     * @param idJugador ID del jugador que intenta disparar
+     * @param coordenada Coordenada del disparo
+     * @return true si el disparo es válido
+     * @throws ModelException Si ocurre un error durante la validación
+     */
     @Override
     public boolean validarDisparo(String idJugador, CoordenadaDTO coordenada) throws ModelException {
         IJugador jugador = getJugador(idJugador);
         return jugador.validarDisparo(CoordenadaMapper.toEntity(coordenada));
     }
-    
-    // EN PROCESO DE ORGANIZACIÓN, POR LO QUE PUEDE CONTENER ERRORES
+
+    /**
+     * Procesa un disparo de un jugador hacia el oponente.
+     * Valida el disparo, actualiza el estado de las naves, registra el disparo
+     * en el historial y cambia el turno si es necesario.
+     *
+     * @param idJugadorDispara ID del jugador que dispara
+     * @param coordenada Coordenada del disparo
+     * @return DTO del disparo con el resultado (AGUA, IMPACTO_AVERIADA, IMPACTO_HUNDIDA)
+     * @throws ModelException Si ocurre un error al procesar el disparo
+     */
     @Override
     public synchronized DisparoDTO procesarDisparo(String idJugadorDispara, CoordenadaDTO coordenada) throws ModelException {
         
@@ -238,6 +337,15 @@ public class Partida implements IPartida {
         return disparo;
     }
 
+    /**
+     * Coloca las naves de un jugador en su tablero.
+     * Si ambos jugadores han colocado sus naves, inicia el juego automáticamente.
+     *
+     * @param idJugador ID del jugador que coloca las naves
+     * @param naves Lista de naves a colocar
+     * @return true si se colocaron exitosamente
+     * @throws ModelException Si ocurre un error al colocar las naves
+     */
     @Override
     public synchronized boolean colocarNaves(String idJugador, List<Nave> naves) throws ModelException {
         IJugador jugadorNaves;
@@ -269,16 +377,10 @@ public class Partida implements IPartida {
             return false;
     }
 
-    @Override
-    public synchronized boolean agregarNave(Nave naveNueva, String idJugador) throws ModelException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public synchronized boolean quitarNave(Coordenada[] coordenadas, String idJugador) throws ModelException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-    
+    /**
+     * Cambia el turno al siguiente jugador.
+     * Reinicia el tiempo restante del turno.
+     */
     private void cambiarTurno(){
         
         idJugadorEnTurno = (idJugadorEnTurno.equals(jugador1.getId())) ? 
@@ -289,21 +391,40 @@ public class Partida implements IPartida {
         
         System.out.println("[PARTIDA] Cambio de turno. Ahora juega: " + getNombreJugadorEnTurno());
     }
-    
+
+    /**
+     * Maneja el evento cuando se agota el tiempo de un turno.
+     * Cambia el turno automáticamente al siguiente jugador.
+     */
     @Override
     public synchronized void manejarTiempoAgotado() {
         System.out.println("[PARTIDA] Timeout para: " + getNombreJugadorEnTurno());
         cambiarTurno();
     }
 
+    /**
+     * Establece el callback que se ejecutará cuando se agote el tiempo de un turno.
+     *
+     * @param callback Consumer que recibe el ID del jugador que perdió su turno
+     */
     @Override
     public void establecerRespuestaTiempoAgotado(Consumer<String> callback) {this.callbackTimeout = callback;}
 
+    /**
+     * Establece el callback para actualizaciones periódicas del tiempo restante.
+     *
+     * @param callback Consumer que recibe el tiempo restante en segundos
+     */
     @Override
     public void establecerCallbackActualizacionTiempo(Consumer<Integer> callback) {
         this.callbackActualizacionTiempo = callback;
     }
 
+    /**
+     * Inicia el temporizador del turno actual.
+     * Crea una tarea que se ejecuta cada segundo para decrementar el tiempo
+     * y notificar cuando se agote.
+     */
     @Override
     public synchronized void iniciarTemporizador() {
         // Cancelar timer anterior si existe
@@ -357,6 +478,10 @@ public class Partida implements IPartida {
         }, 1, 1, TimeUnit.SECONDS); // Ejecutar cada 1 segundo, empezando después de 1 segundo
     }
 
+    /**
+     * Detiene el temporizador del turno actual.
+     * Cancela la tarea programada si está en ejecución.
+     */
     @Override
     public synchronized void detenerTemporizador() {
         if (tareaTimer != null && !tareaTimer.isDone()) {
@@ -365,6 +490,10 @@ public class Partida implements IPartida {
         }
     }
 
+    /**
+     * Libera los recursos asociados a la partida.
+     * Detiene el temporizador y cierra el executor.
+     */
     @Override
     public void liberarRecursos() {
         detenerTemporizador();
@@ -373,7 +502,13 @@ public class Partida implements IPartida {
             System.out.println("[PARTIDA] Executor del timer cerrado");
         }
     }
-    
+
+    /**
+     * Obtiene el jugador del modelo por su ID.
+     *
+     * @param idBusqueda ID del jugador a buscar
+     * @return El jugador correspondiente, o null si no se encuentra
+     */
     public IJugador getJugadorModeloPorId(String idBusqueda) {
         if (this.jugador1.getId().equals(idBusqueda)) {
             return this.jugador1;
@@ -383,4 +518,5 @@ public class Partida implements IPartida {
         }
         return null;
     }
+    
 }

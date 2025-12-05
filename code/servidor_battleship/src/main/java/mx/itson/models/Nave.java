@@ -6,6 +6,10 @@ import mx.itson.utils.enums.OrientacionNave;
 import mx.itson.utils.enums.TipoNave;
 
 /**
+ * Nave.java
+ *
+ * Clase que representa una nave en el juego de batalla naval.
+ * Gestiona el estado de la nave, sus coordenadas, orientación y los impactos recibidos.
  *
  * @author Leonardo Flores Leyva
  * ID: 00000252390
@@ -27,10 +31,13 @@ public class Nave {
     private int impactosRecibidos;
     
     /**
-     * Constructor para crear una nueva Nave
-     * @param tipo El tipo de nave (ej. PORTAAVIONES, CRUCERO)
+     * Constructor para crear una nueva Nave.
+     * Valida las coordenadas y establece el estado inicial como INTACTA.
+     *
+     * @param tipo El tipo de nave (PORTAAVIONES, CRUCERO, SUBMARINO, BARCO)
      * @param orientacion La orientación de la nave (VERTICAL u HORIZONTAL)
-     * @param coordenadas
+     * @param coordenadas Arreglo de coordenadas que ocupa la nave
+     * @throws ModelException Si las coordenadas no son válidas para el tipo de nave
      */
     public Nave(TipoNave tipo, OrientacionNave orientacion, Coordenada[] coordenadas) throws ModelException {
         this.tipo = tipo;
@@ -76,34 +83,40 @@ public class Nave {
     public int getLongitud() {return this.coordenadas.length;}
     
     /**
-     * 
-     * @return 
+     * Obtiene el tipo de nave.
+     *
+     * @return Tipo de nave
      */
     public TipoNave getTipo() {return tipo;}
-    
+
     /**
-     * 
-     * @return 
+     * Obtiene la orientación de la nave.
+     *
+     * @return Orientación de la nave (VERTICAL u HORIZONTAL)
      */
     public OrientacionNave obtenerOrientacion() {return orientacion;}
-    
+
     /**
-     * 
-     * @return 
+     * Verifica y retorna el estado actual de la nave.
+     *
+     * @return Estado de la nave (INTACTA, AVERIADA, HUNDIDA)
      */
     public EstadoNave verificarEstado() {return estado;}
-    
+
     /**
-     * 
-     * @return 
+     * Obtiene las coordenadas que ocupa la nave.
+     *
+     * @return Arreglo de coordenadas de la nave
      */
     public Coordenada[] obtenerCoordenadas() {return coordenadas;}
     
     /**
-     * Procesa un disparo en una coordenada específica. La lógica para encontrar
-     * y registrar el impacto está consolidada dentro de este método
-     * @param coordenadaImpacto
-     * @return 
+     * Procesa un disparo en una coordenada específica.
+     * Verifica si la coordenada coincide con alguna de las coordenadas de la nave,
+     * incrementa los impactos recibidos y actualiza el estado.
+     *
+     * @param coordenadaImpacto Coordenada donde se recibió el disparo
+     * @return true si la nave fue impactada, false en caso contrario
      */
     public boolean recibirImpacto(Coordenada coordenadaImpacto) {
         // Recorre las coordenadas de la nave
@@ -120,8 +133,7 @@ public class Nave {
 
     /**
      * Verifica y actualiza el estado de la nave (INTACTA, AVERIADA, HUNDIDA)
-     * basado en el número de impactos recibidos
-     * @return El nuevo estado de la nave
+     * basado en el número de impactos recibidos.
      */
     private void actualizarEstado() {
         if (impactosRecibidos >= getLongitud()) 
@@ -131,15 +143,18 @@ public class Nave {
     }
 
     /**
-     * Comprueba si la nave ha sido hundida
+     * Comprueba si la nave ha sido hundida.
+     *
      * @return true si la nave está hundida, false en caso contrario
      */
     public boolean estaHundida() {return this.impactosRecibidos >= getLongitud();}
-    
+
     /**
-     * 
-     * @param coordenadas
-     * @throws ModelException 
+     * Verifica que las coordenadas sean válidas para el tipo de nave.
+     * Valida que la cantidad de coordenadas corresponda con el tipo de nave.
+     *
+     * @param coordenadas Arreglo de coordenadas a verificar
+     * @throws ModelException Si las coordenadas no corresponden con el tipo de nave
      */
     private void verificarCoordenadas(Coordenada[] coordenadas) throws ModelException{
         // Verifica la cantidad de coordenadas, de acuerdo al tipo de nave

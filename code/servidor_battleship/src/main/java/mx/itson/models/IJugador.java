@@ -7,6 +7,11 @@ import mx.itson.exceptions.ModelException;
 import mx.itson.utils.dtos.EstadisticaDTO;
 
 /**
+ * IJugador.java
+ *
+ * Interfaz que define el contrato para un jugador en el servidor.
+ * Gestiona los tableros de naves y disparos del jugador, así como
+ * las operaciones relacionadas con el juego.
  *
  * @author Leonardo Flores Leyva
  * ID: 00000252390
@@ -20,92 +25,120 @@ import mx.itson.utils.dtos.EstadisticaDTO;
  * ID: 00000252801
  */
 public interface IJugador {
+
     /**
-     * 
-     * @return 
+     * Obtiene el ID único del jugador.
+     *
+     * @return ID del jugador
      */
     public String getId();
-    
+
     /**
-     * 
-     * @return 
+     * Obtiene el nombre del jugador.
+     *
+     * @return Nombre del jugador
      */
     public String getNombre();
-    
+
     /**
-     * 
-     * @return 
+     * Obtiene el color asignado al jugador.
+     *
+     * @return Color del jugador
      */
     public Color getColor();
-    
+
     /**
-     * 
-     * @return 
+     * Obtiene el tablero de disparos del jugador.
+     * Este tablero registra los disparos realizados hacia el oponente.
+     *
+     * @return Tablero de disparos
      */
     public ITableroDisparos getTableroDisparos();
-    
+
     /**
-     * 
-     * @return 
+     * Obtiene el tablero de naves del jugador.
+     * Este tablero contiene las naves del jugador y los impactos recibidos.
+     *
+     * @return Tablero de naves
      */
     public ITableroNaves getTableroNaves();
-    
+
     /**
-     * 
-     * @return 
+     * Verifica si el jugador está actualmente en una partida.
+     *
+     * @return true si el jugador está en partida
      */
     public boolean isEnPartida();
-    
+
     /**
-     * Marca un disparo realizado por este jugador en su tablero de disparos
+     * Marca un disparo realizado por este jugador en su tablero de disparos.
+     *
      * @param disparo El objeto Disparo que contiene el resultado y la coordenada
-     * @throws ModelException
+     * @throws ModelException Si ocurre un error al marcar el disparo
      */
     public void marcarDisparo(Disparo disparo) throws ModelException;
-    
+
     /**
-     * Procesa un disparo recibido de un oponente en una coordenada específica
-     * Delega la acción a su tablero de naves
+     * Procesa un disparo recibido de un oponente en una coordenada específica.
+     * Delega la acción a su tablero de naves.
+     *
      * @param coordenada La coordenada donde el oponente ha disparado
-     * @return Un objeto Disparo con el resultado (AGUA, TOCADO, HUNDIDO)
-     * @throws ModelException
+     * @return Estado de la casilla después del impacto (IMPACTADA_VACIA, IMPACTADA_AVERIADA, IMPACTADA_HUNDIDA)
+     * @throws ModelException Si ocurre un error al procesar el disparo
      */
     public EstadoCasilla recibirDisparo(Coordenada coordenada) throws ModelException;
-    
+
     /**
-     * Valida si un disparo en una coordenada es válido (por ejemplo, si no se ha
-     * disparado antes en esa misma casilla)
-     * @param coordenada
+     * Valida si un disparo en una coordenada es válido.
+     * Verifica que no se haya disparado antes en esa misma casilla.
+     *
+     * @param coordenada Coordenada a validar
      * @return true si el disparo es válido, false en caso contrario
-     * @throws ModelException
+     * @throws ModelException Si ocurre un error durante la validación
      */
     public boolean validarDisparo(Coordenada coordenada) throws ModelException;
-    
+
     /**
-     * 
-     * @param nave
-     * @return
-     * @throws ModelException 
+     * Añade una nave al tablero del jugador.
+     *
+     * @param nave Nave a añadir
+     * @return true si se añadió exitosamente
+     * @throws ModelException Si ocurre un error al añadir la nave
      */
     public boolean añadirNave(Nave nave) throws ModelException;
-    
+
     /**
-     * 
-     * @param nave
-     * @return
-     * @throws ModelException 
+     * Elimina una nave del tablero del jugador.
+     *
+     * @param nave Nave a eliminar
+     * @return true si se eliminó exitosamente
+     * @throws ModelException Si ocurre un error al eliminar la nave
      */
     public boolean eliminarNave(Nave nave) throws ModelException;
-    
+
     /**
-     * 
-     * @param naves
-     * @return
-     * @throws ModelException 
+     * Coloca todas las naves del jugador en el tablero.
+     *
+     * @param naves Lista de naves a colocar
+     * @return true si se colocaron exitosamente todas las naves
+     * @throws ModelException Si ocurre un error al colocar las naves
      */
     public boolean colocarNaves(List<Nave> naves) throws ModelException;
-    
+
+    /**
+     * Obtiene el jugador del modelo por su ID.
+     *
+     * @param idBusqueda ID del jugador a buscar
+     * @return Instancia de IJugador, o null si no se encuentra
+     */
     public IJugador getJugadorModeloPorId(String idBusqueda);
-    
+
+    /**
+     * Genera las estadísticas finales del jugador al terminar la partida.
+     *
+     * @param esGanador true si este jugador ganó la partida
+     * @param barcosHundidos Cantidad de barcos que este jugador hundió
+     * @return DTO con las estadísticas del jugador
+     */
     public EstadisticaDTO generarEstadisticas(boolean esGanador, int barcosHundidos);
 }

@@ -11,10 +11,12 @@ import mx.itson.utils.enums.OrientacionNave;
 import mx.itson.utils.enums.TipoNave;
 
 /**
+ * TableroNavesServidor.java
  *
- * Clase entidad que hereda de la clase padre Tablero
- * y representa el tablero de naves de un jugador.
- * 
+ * Clase que representa el tablero de naves de un jugador en el servidor.
+ * Contiene las naves del jugador y gestiona los impactos recibidos del oponente.
+ * Valida la colocación de naves y mantiene el registro de naves hundidas.
+ *
  * @author Leonardo Flores Leyva
  * ID: 00000252390
  * @author Yuri Germán García López
@@ -35,14 +37,30 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     private final int totalCruceros = 2;
     private final int totalSubmarinos = 4;
     private final int totalBarcos = 3;
-    
+
+    /**
+     * Constructor de la clase TableroNavesServidor.
+     * Inicializa el tablero con el tamaño especificado, crea la matriz de casillas
+     * y el conjunto de naves.
+     *
+     * @param tamanio Tamaño del tablero
+     * @throws ModelException Si el tamaño es inválido
+     */
     public TableroNavesServidor(int tamanio) throws ModelException {
         super(tamanio);
         this.casillas = new Casilla[tamanio][tamanio];
         this.naves = new HashSet<>();
         inicializarCasillas();
     }
-    
+
+    /**
+     * Añade una nave al tablero.
+     * Valida que la nave sea válida y que las casillas no estén ocupadas.
+     *
+     * @param nave Nave a añadir
+     * @return true si se añadió exitosamente
+     * @throws ModelException Si la nave es inválida o la posición está ocupada
+     */
     @Override
     public boolean añadirNave(Nave nave) throws ModelException {
         // Verifica que la coordenada exista y tenga coordenadas
@@ -68,6 +86,14 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
         return true;
     }
 
+    /**
+     * Elimina una nave del tablero.
+     * Busca la nave en el conjunto y desocupa sus casillas.
+     *
+     * @param nave Nave a eliminar
+     * @return true si se eliminó exitosamente, false si no se encontró
+     * @throws ModelException Si la nave es inválida
+     */
     @Override
     public boolean eliminarNave(Nave nave) throws ModelException {
         
@@ -108,7 +134,15 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
         }
         return false;
     }
-    
+
+    /**
+     * Coloca todas las naves en el tablero.
+     * Valida que se coloquen todas las naves requeridas por tipo.
+     *
+     * @param naves Lista de naves a colocar
+     * @return true si se colocaron exitosamente todas las naves
+     * @throws ModelException Si faltan naves o hay errores en la colocación
+     */
     @Override
     public boolean colocarNaves(List<Nave> naves) throws ModelException{
         // Lista de naves agregadas
@@ -178,7 +212,13 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
             throw new ModelException("No se pudieron agregar todas las naves al tablero. Verifique la posición de cada una.");
         }
     }
-    
+
+    /**
+     * Busca y retorna la nave ubicada en una coordenada específica.
+     *
+     * @param coordenada Coordenada a buscar
+     * @return La nave en esa coordenada, o null si no hay ninguna
+     */
     @Override
     public Nave encontrarNaveEnCoordenada(Coordenada coordenada){
         for (Nave nave : naves) 
@@ -187,7 +227,15 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
                     return nave;
         return null;
     }
-    
+
+    /**
+     * Recibe un impacto en una coordenada específica.
+     * Actualiza el estado de la casilla y la nave si es impactada.
+     *
+     * @param coordenada Coordenada del impacto
+     * @return Estado de la casilla después del impacto
+     * @throws ModelException Si la coordenada es inválida o ya fue impactada
+     */
     @Override
     public EstadoCasilla recibirImpacto(Coordenada coordenada) throws ModelException {
         // Verifica que la coordenada exista.
@@ -236,18 +284,21 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     }
     
     /**
-     * Inicializa la matriz de casillas vacías 
+     * Inicializa la matriz de casillas vacías.
+     * Crea una casilla para cada posición del tablero.
      */
     private void inicializarCasillas() {
         for (int i = 0; i < getTamanio(); i++) 
             for (int j = 0; j < getTamanio(); j++) 
                 casillas[i][j] = new Casilla(new Coordenada(i, j));
     }
-    
+
     /**
-     * 
-     * @param coordenadas
-     * @throws ModelException 
+     * Verifica que una nave sea válida.
+     * Valida el tipo, tamaño, orientación y que esté dentro del tablero.
+     *
+     * @param nave Nave a verificar
+     * @throws ModelException Si la nave no cumple con las validaciones
      */
     private void verificarNave(Nave nave) throws ModelException{
         // Obtiene las coordenadas de la nave
@@ -338,15 +389,30 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
             if (maxX - minX + 1 != coordenadas.length) 
                 throw new ModelException("Las coordenas de la nave no corresponden con su orientación.");
         }
-        
+
     }
-    
+
+    /**
+     * Verifica si todas las naves han sido colocadas en el tablero.
+     *
+     * @return true si todas las naves están colocadas
+     */
     @Override
     public boolean navesColocadas(){return naves.size() == (totalPortaaviones + totalCruceros + totalSubmarinos + totalBarcos);}
 
+    /**
+     * Obtiene el número de naves hundidas.
+     *
+     * @return Cantidad de naves hundidas
+     */
     @Override
     public int getNavesHundidas() {return navesHundidas;}
 
+    /**
+     * Obtiene la lista de todas las naves en el tablero.
+     *
+     * @return Lista de naves, o null si no hay naves
+     */
     @Override
     public List<Nave> getNaves() {
         if(!naves.isEmpty()){
@@ -359,12 +425,27 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
             return null;
     }
 
+    /**
+     * Obtiene la matriz de casillas del tablero.
+     *
+     * @return Matriz bidimensional de casillas
+     */
     @Override
     public Casilla[][] getCasillas() {return casillas;}
 
+    /**
+     * Obtiene el número total de naves que debe tener el tablero.
+     *
+     * @return Total de naves requeridas
+     */
     @Override
     public int getTotalNaves() {return totalPortaaviones + totalCruceros + totalSubmarinos + totalBarcos;}
 
+    /**
+     * Verifica si todas las naves del tablero han sido hundidas.
+     *
+     * @return true si todas las naves están hundidas
+     */
     @Override
     public boolean todasNavesHundidas() {
         int totalNaves = totalPortaaviones + totalCruceros + totalSubmarinos + totalBarcos;

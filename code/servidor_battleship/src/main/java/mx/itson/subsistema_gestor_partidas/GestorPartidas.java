@@ -121,6 +121,12 @@ public class GestorPartidas implements IGestorPartidas{
         return partidas.get(idPartida);
     }
 
+    /**
+     * Verifica si un jugador tiene una partida activa.
+     *
+     * @param idJugador ID del jugador
+     * @return true si el jugador está en una partida activa
+     */
     @Override
     public boolean verificarJugadorPartidaActiva(String idJugador){return (jugadorAPartida.get(idJugador) != null);}
     
@@ -173,12 +179,22 @@ public class GestorPartidas implements IGestorPartidas{
         }
     }
 
+    /**
+     * Coloca las naves de un jugador en el tablero de una partida.
+     * Si ambos jugadores ya colocaron sus naves, inicia el juego automáticamente.
+     *
+     * @param idPartida ID de la partida
+     * @param idJugador ID del jugador que coloca las naves
+     * @param naves Lista de naves a colocar
+     * @return DTO de la partida actualizada, o null si no se pudieron colocar
+     * @throws GestorPartidasException Si ocurre un error al colocar las naves
+     */
     @Override
     public PartidaDTO colocarNaves(String idPartida, String idJugador, List<NaveDTO> naves) throws GestorPartidasException {
         try {
             IPartida partida = partidas.get(idPartida);
-            return (partida.colocarNaves(idJugador, NaveMapper.toEntityList(naves))) ? 
-                    PartidaMapper.toDTO(partida) : 
+            return (partida.colocarNaves(idJugador, NaveMapper.toEntityList(naves))) ?
+                    PartidaMapper.toDTO(partida) :
                     null;
         } catch (ModelException ex) {
             System.getLogger(GestorPartidas.class.getName()).log(System.Logger.Level.ERROR, ex.getMessage(), ex);
@@ -186,25 +202,47 @@ public class GestorPartidas implements IGestorPartidas{
         }
     }
     
+    /**
+     * Establece el callback para notificar cuando se agota el tiempo de un turno.
+     *
+     * @param idPartida ID de la partida
+     * @param callback Consumer que recibe el ID del jugador que perdió el turno
+     */
     @Override
     public void establecerRespuestaTiempoAgotado(String idPartida, Consumer<String> callback){
         IPartida partida = partidas.get(idPartida);
         if(partida != null) partida.establecerRespuestaTiempoAgotado(callback);
     }
 
+    /**
+     * Establece el callback para actualizaciones periódicas del tiempo restante del turno.
+     *
+     * @param idPartida ID de la partida
+     * @param callback Consumer que recibe el tiempo restante en segundos
+     */
     @Override
     public void establecerCallbackActualizacionTiempo(String idPartida, Consumer<Integer> callback){
         IPartida partida = partidas.get(idPartida);
         if(partida != null) partida.establecerCallbackActualizacionTiempo(callback);
     }
 
+    /**
+     * Inicia el temporizador del turno actual de una partida.
+     *
+     * @param idPartida ID de la partida
+     */
     @Override
     public void iniciarTemporizador(String idPartida) {partidas.get(idPartida).iniciarTemporizador();}
     
+    /**
+     * Libera los recursos asociados a una partida (temporizadores, threads, etc.).
+     *
+     * @param idPartida ID de la partida
+     */
     @Override
     public void liberarRecursos(String idPartida){
         IPartida partida = partidas.get(idPartida);
-        if(partida != null) partida.liberarRecursos(); 
+        if(partida != null) partida.liberarRecursos();
     }
     
     @Override
