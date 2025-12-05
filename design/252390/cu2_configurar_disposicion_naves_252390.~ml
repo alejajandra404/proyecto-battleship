@@ -39104,8 +39104,8 @@ ListenerServidor
 <XPD:OBJ name="OwnedViews[58]" type="UMLNoteView" guid="ujnKyujD6U2ZeEDwvzBe5AAA">
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
-<XPD:ATTR name="Left" type="integer">600</XPD:ATTR>
-<XPD:ATTR name="Top" type="integer">1004</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">784</XPD:ATTR>
+<XPD:ATTR name="Top" type="integer">948</XPD:ATTR>
 <XPD:ATTR name="Width" type="integer">238</XPD:ATTR>
 <XPD:ATTR name="Height" type="integer">68</XPD:ATTR>
 <XPD:ATTR name="Text" type="string">Serializa MensajeDTO:
@@ -39117,15 +39117,15 @@ ListenerServidor
 <XPD:OBJ name="OwnedViews[59]" type="UMLNoteLinkView" guid="H+mPWDD44km02nM8o5XzoQAA">
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
-<XPD:ATTR name="Points" type="Points">505,974;606,1004</XPD:ATTR>
+<XPD:ATTR name="Points" type="Points">505,974;784,979</XPD:ATTR>
 <XPD:REF name="Head">ujnKyujD6U2ZeEDwvzBe5AAA</XPD:REF>
 <XPD:REF name="Tail">5gPwx4jZPk6uxUJZL/RjlgAA</XPD:REF>
 </XPD:OBJ>
 <XPD:OBJ name="OwnedViews[60]" type="UMLNoteView" guid="RhYK3RnU3kOaWLXRkvcWfgAA">
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
-<XPD:ATTR name="Left" type="integer">684</XPD:ATTR>
-<XPD:ATTR name="Top" type="integer">1328</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">580</XPD:ATTR>
+<XPD:ATTR name="Top" type="integer">1192</XPD:ATTR>
 <XPD:ATTR name="Width" type="integer">186</XPD:ATTR>
 <XPD:ATTR name="Height" type="integer">68</XPD:ATTR>
 <XPD:ATTR name="Text" type="string">Serializa MensajeDTO:
@@ -39157,7 +39157,7 @@ ListenerServidor
 <XPD:OBJ name="OwnedViews[63]" type="UMLNoteLinkView" guid="rEpxwyVtcESU/FAPPaUnTwAA">
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
-<XPD:ATTR name="Points" type="Points">505,1338;684,1353</XPD:ATTR>
+<XPD:ATTR name="Points" type="Points">505,1338;622,1259</XPD:ATTR>
 <XPD:REF name="Head">RhYK3RnU3kOaWLXRkvcWfgAA</XPD:REF>
 <XPD:REF name="Tail">duibXI8d7EmZZWYM9R18zAAA</XPD:REF>
 </XPD:OBJ>

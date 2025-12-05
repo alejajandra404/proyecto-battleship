@@ -1,11 +1,13 @@
 package mx.itson.models;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import mx.itson.exceptions.ModelException;
 import mx.itson.utils.enums.EstadoCasilla;
+import mx.itson.utils.enums.OrientacionNave;
 import mx.itson.utils.enums.TipoNave;
 
 /**
@@ -29,11 +31,13 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     private Set<Nave> naves;
     private final Casilla[][] casillas;
     private int navesHundidas;
-    private final int totalNaves;
+    private final int totalPortaaviones = 2;
+    private final int totalCruceros = 2;
+    private final int totalSubmarinos = 4;
+    private final int totalBarcos = 3;
     
-    public TableroNavesServidor(int tamanio, int totalNaves) throws ModelException {
+    public TableroNavesServidor(int tamanio) throws ModelException {
         super(tamanio);
-        this.totalNaves = totalNaves;
         this.casillas = new Casilla[tamanio][tamanio];
         this.naves = new HashSet<>();
         inicializarCasillas();
@@ -109,6 +113,50 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     public boolean colocarNaves(List<Nave> naves) throws ModelException{
         // Lista de naves agregadas
         List<Nave> navesAgregadas = new ArrayList<>();
+        // Variables para guardar la cantidad de cada tipo de naves del conjunto de naves recibido
+        int portaaviones = 0, cruceros = 0, submarinos = 0, barcos = 0;
+        // Recorre cada nave
+        for(Nave nave: naves){
+            // Obtiene el tipo de cada nave
+            switch(nave.getTipo()){
+                // Aumenta la cantidad de tipo de nave del conjunto
+                case TipoNave.PORTAAVIONES -> {portaaviones++; break;} 
+                case TipoNave.CRUCERO ->{cruceros++; break;} 
+                case TipoNave.SUBMARINO ->{submarinos++; break;} 
+                case TipoNave.BARCO ->{barcos++;}
+            }
+        }
+        /*
+            Valores booleanos para almacenar true si la cantidad de cada tipo corresponde
+            con la cantidad esperada por el tablero.
+        */
+        boolean todosPortaaviones = portaaviones == totalPortaaviones;
+        boolean todosCruceros = cruceros == totalCruceros;
+        boolean todosSubmarinos = submarinos == totalSubmarinos;
+        boolean todosBarcos = barcos == totalBarcos;
+        // Si alguno de los valores es falso (faltan tipos de naves)
+        if(!todosPortaaviones || !todosCruceros || !todosSubmarinos || !todosBarcos){
+            // Mensaje de error para ser lanzado por la excepción
+            String mensajeError = """
+                                  Agregue todas las naves para poder iniciar la partida.
+                                  Faltan las siguientes naves:
+                                  """;
+            // Si faltan portaaviones, se explica la cantidad faltante
+            if(!todosPortaaviones)
+                mensajeError += String.format("\n- Portaaviones: %d", (totalPortaaviones - portaaviones));
+            // Si faltan cruceros, se explica la cantidad faltante
+            if(!todosCruceros)
+                mensajeError += String.format("\n- Cruceros: %d", (totalCruceros - cruceros));
+            // Si faltan submarinos, se explica la cantidad faltante
+            if(!todosSubmarinos)
+                mensajeError += String.format("\n- Submarinos: %d", (totalSubmarinos - submarinos));
+            // Si faltan barcos, se explica la cantidad faltante
+            if(!todosBarcos)
+                mensajeError += String.format("\n- Barcos: %d", (totalBarcos - barcos));
+            // Se lanza la excepción con el mensaje de error personalizado
+            throw new ModelException(mensajeError);
+        }
+        // Si se recibió el total de naves esperado
         try {
             // Intenta agregar cada nave al tablero
             for(Nave nave: naves){
@@ -117,7 +165,7 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
                 // Agrega la nave a la lista de naves agregadas
                 navesAgregadas.add(nave);
             }
-            
+            // Confirma la exitosa colocación de las naves
             return true;
             
         } catch (ModelException e) {
@@ -126,32 +174,10 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
                 // Elimina cada nave agregada del tablero
                 for(Nave naveAgregada : navesAgregadas)
                     eliminarNave(naveAgregada);
-            
+            // Lanza la excepción correspondiente
             throw new ModelException("No se pudieron agregar todas las naves al tablero. Verifique la posición de cada una.");
         }
     }
-    
-//    private boolean validarPosicionamientoNaves(List<Nave> naves) {
-//        Set<String> coordenadasOcupadas = new HashSet<>();
-//
-//        for (Nave nave : naves) {
-//            for (Coordenada coord : nave.obtenerCoordenadas()) {
-//                // Validar que esté dentro del tablero
-//                if (coord.obtenerX() < 0 || coord.obtenerX() >= tamanio ||
-//                    coord.obtenerY() < 0 || coord.obtenerY() >= tamanio) {
-//                    return false;
-//                }
-//
-//                String key = coord.obtenerX() + "," + coord.obtenerY();
-//                if (coordenadasOcupadas.contains(key)) {
-//                    return false; // Se sobrep one con otra nave
-//                }
-//                coordenadasOcupadas.add(key);
-//            }
-//        }
-//
-//        return true;
-//    }
     
     @Override
     public Nave encontrarNaveEnCoordenada(Coordenada coordenada){
@@ -224,8 +250,9 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
      * @throws ModelException 
      */
     private void verificarNave(Nave nave) throws ModelException{
-        
+        // Obtiene las coordenadas de la nave
         Coordenada[] coordenadas = nave.obtenerCoordenadas();
+        // Obtiene el tipo de nave
         TipoNave tipo = nave.getTipo();
         
         // Verifica la cantidad de coordenadas, de acuerdo al tipo de nave
@@ -259,19 +286,63 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
             }
         }
         
+        // Verifica las coordenadas de acuerdo a la orientación de la nave.
+        if(nave.obtenerOrientacion() == OrientacionNave.HORIZONTAL){
+            // Almacena el valor de x de la primera coordenada (todas las coordenadas deberían tener el mismo valor de x)
+            int mismaX = coordenadas[0].obtenerX();
+            // Conjunto de valores de y de las coordenadas (valida que los valores de y sean distintos entre sí)
+            Set<Integer> y = new HashSet<>();
+            // Recorre cada coordenada
+            for (Coordenada c : coordenadas) {
+                // Verifica que cada coordenada tenga el mismo valor de x
+                if (c.obtenerX() != mismaX) 
+                    throw new ModelException("Las coordenas de la nave no corresponden con su orientación.");
+                // Agrega el valor de y al conjunto de valores de y de las coordenadas
+                y.add(c.obtenerY());
+            }
+            // Obtiene el mínimo y máximo del conjunto de valores de y de las coordenadas
+            int minY = Collections.min(y);
+            int maxY = Collections.max(y);
+            /*
+                Verifica que la resta del valor de y máximo menos el valor de y mínimo 
+                del conjunto de coordenadas sea igual al tamaño del arreglo de coordenadas.
+                Esto valida que las coordenadas correspondan con la cantidad de casillas que
+                abarca la nave, y que estas casillas sean subsecuentes entre sí (que no haya
+                huecos entre casillas).
+            */
+            if (maxY - minY + 1 != coordenadas.length)
+                throw new ModelException("Las coordenas de la nave no corresponden con su orientación.");
+        } else{
+            // Almacena el valor de y de la primera coordenada (todas las coordenadas deberían tener el mismo valor de y)
+            int mismaY = coordenadas[0].obtenerY();
+            // Conjunto de valores de x de las coordenadas (valida que los valores de x sean distintos entre sí)
+            Set<Integer> x = new HashSet<>();
+            // Recorre cada coordenada
+            for (Coordenada c : coordenadas) {
+                // Verifica que cada coordenada tenga el mismo valor de y
+                if (c.obtenerY() != mismaY) 
+                    throw new ModelException("Las coordenas de la nave no corresponden con su orientación.");
+                // Agrega el valor de x al conjunto de valores de x de las coordenadas
+                x.add(c.obtenerX());
+            }
+            // Obtiene el mínimo y máximo del conjunto de valores de x de las coordenadas
+            int minX = Collections.min(x);
+            int maxX = Collections.max(x);
+            /*
+                Verifica que la resta del valor de x máximo menos el valor de x mínimo 
+                del conjunto de coordenadas sea igual al tamaño del arreglo de coordenadas.
+                Esto valida que las coordenadas correspondan con la cantidad de casillas que
+                abarca la nave, y que estas casillas sean subsecuentes entre sí (que no haya
+                huecos entre casillas).
+            */
+            if (maxX - minX + 1 != coordenadas.length) 
+                throw new ModelException("Las coordenas de la nave no corresponden con su orientación.");
+        }
         
-        // Verifica las coordenadas, de acuerdo a la orientación (queda pendiente).
-//        for (Coordenada coordenada : coordenadas) {
-//            if(orientacion == OrientacionNave.HORIZONTAL){
-//                
-//            } else{
-//                
-//            }
-//        }
     }
     
     @Override
-    public boolean navesColocadas(){return naves.size() == totalNaves;}
+    public boolean navesColocadas(){return naves.size() == (totalPortaaviones + totalCruceros + totalSubmarinos + totalBarcos);}
 
     @Override
     public int getNavesHundidas() {return navesHundidas;}
@@ -292,8 +363,11 @@ public class TableroNavesServidor extends Tablero implements ITableroNaves {
     public Casilla[][] getCasillas() {return casillas;}
 
     @Override
-    public int getTotalNaves() {return totalNaves;}
+    public int getTotalNaves() {return totalPortaaviones + totalCruceros + totalSubmarinos + totalBarcos;}
 
     @Override
-    public boolean todasNavesHundidas() {return totalNaves > 0 && navesHundidas >= totalNaves;}
+    public boolean todasNavesHundidas() {
+        int totalNaves = totalPortaaviones + totalCruceros + totalSubmarinos + totalBarcos;
+        return totalNaves > 0 && navesHundidas >= totalNaves;
+    }
 }
