@@ -10,35 +10,5 @@ import mx.itson.utils.enums.EstadoPartida;
  */
 public class ControlFinPartida {
 
-    private final GestorJugadores gestorJugadores;
-    private final GestorPartidas gestorPartidas;
-
-    /**
-     * Constructor obligatorio para inyectar los gestores.
-     */
-    public ControlFinPartida(GestorJugadores gestorJugadores, GestorPartidas gestorPartidas) {
-        this.gestorJugadores = gestorJugadores;
-        this.gestorPartidas = gestorPartidas;
-    }
-
-    /**
-     * Método principal para el caso de uso "Abandonar Partida"
-     */
-    public void aplicarRendicion(IJugador jugadorQueAbandona, Partida partida) {
-
-    }
     
-    /**
-     * Maneja desconexiones inesperadas
-     */
-    public void desconexionJugador(IJugador jugador, Partida partida) {
-        System.out.println("CONTROL (Servidor): Jugador desconectado.");
-
-        if (partida.getEstadoPartida()== EstadoPartida.FINALIZADA) {
-            return;
-        }
-
-        System.out.println("CONTROL (Servidor): Aplicando rendición por desconexión.");
-        aplicarRendicion(jugador, partida);
-    }
 }
