@@ -20,7 +20,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>equipo_1.Main</mainClass>
+              <mainClass>Main</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -37,7 +37,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>equipo_1.Main</mainClass>
+                  <mainClass>Main</mainClass>
                 </transformer>
               </transformers>
               <finalName>cliente_battleship-completo</finalName>
@@ -49,7 +49,7 @@
   </build>
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
-    <exec.mainClass>equipo_1.Main</exec.mainClass>
+    <exec.mainClass>Main</exec.mainClass>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>
