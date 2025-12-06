@@ -278,6 +278,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
                 @Override
                 public void mousePressed(MouseEvent e) {
                     if (SwingUtilities.isLeftMouseButton(e) && !colocada) {
+                        requestFocusInWindow();
                         naveArrastrada = NaveVisual.this;
                         puntoInicial = e.getPoint();
                         posicionOriginal = getLocation();
@@ -321,15 +322,27 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
                 public void mouseClicked(MouseEvent e) {
                     // Agregamos 'e' como argumento a rotar
                     if (naveArrastrada == NaveVisual.this && !colocada && SwingUtilities.isRightMouseButton(e)) {
-                        rotar(e);
+                        rotar(e.getX(), e.getY());
                     }
                 }
             });
-
+            
+            setFocusable(true);
+            
+            addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (naveArrastrada == NaveVisual.this && !colocada && e.getKeyCode() == KeyEvent.VK_SPACE) {
+                        rotar(mouseX, mouseY);
+                    }
+                }
+                
+            });
             addMouseMotionListener(new MouseMotionAdapter() {
                 @Override
                 public void mouseDragged(MouseEvent e) {
                     if (naveArrastrada == NaveVisual.this && puntoInicial != null) {
+                        requestFocusInWindow();
                         // 1. Obtenemos la posición actual de la esquina del componente
                         Point ubicacion = getLocation();
                         
@@ -349,7 +362,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
                         setLocation(nuevoX, nuevoY);
 
                         // Refrescar la interfaz
-                        actualizarPreviewTablero(e);
+                        actualizarPreviewTablero(e.getPoint());
                         if (getParent() != null)
                             getParent().repaint();
                     }
@@ -357,12 +370,12 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             });
         }
 
-        public void rotar(MouseEvent e) {
+        public void rotar(int x, int y) {
             // 1. CALCULAR EL PIVOTE (Posición absoluta del mouse en el contenedor padre)
             // Usamos e.getX() y e.getY() porque son las coordenadas frescas del clic actual.
             Point ubicacionActual = getLocation();
-            int pivoteX = ubicacionActual.x + e.getX();
-            int pivoteY = ubicacionActual.y + e.getY();
+            int pivoteX = ubicacionActual.x + x;
+            int pivoteY = ubicacionActual.y + y;
 
             // 2. CAMBIAR ORIENTACIÓN Y DIMENSIONES
             horizontal = !horizontal;
@@ -388,13 +401,15 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             // arrastre ('drag') sea suave y no dé saltos.
             this.mouseX = getWidth() / 2;
             this.mouseY = getHeight() / 2;
-
+            
             // 5. Refrescar visuales
             revalidate();
             repaint();
             if (getParent() != null) {
                 getParent().repaint();
             }
+            
+            actualizarPreviewTablero(new Point(mouseX, mouseY));
 
             // (Opcional) Log
             log(nombre + " rotado a " + (horizontal ? "horizontal" : "vertical"));
@@ -623,7 +638,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         return panel;
     }
 
-    private void actualizarPreviewTablero(MouseEvent e) {
+    private void actualizarPreviewTablero(Point point) {
         // Limpiar hovers
         for (int i = 0; i < TAMANO_TABLERO; i++) {
             for (int j = 0; j < TAMANO_TABLERO; j++) {
@@ -632,7 +647,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         }
         if (naveArrastrada == null) return;
 
-        Point p = SwingUtilities.convertPoint(naveArrastrada, e.getPoint(), panelTablero);
+        Point p = SwingUtilities.convertPoint(naveArrastrada, point, panelTablero);
         Component c = panelTablero.getComponentAt(p);
 
         if (c instanceof CasillaTablero) {

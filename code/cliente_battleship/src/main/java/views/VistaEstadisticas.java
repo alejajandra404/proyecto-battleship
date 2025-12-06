@@ -111,6 +111,6 @@ public class VistaEstadisticas extends JPanel {
         lblBarcosHundidos.setText("Barcos Hundidos: " + stats.getBarcosHundidos());
         
         // Formateo simple para que se vea limpio
-        lblPrecision.setText("Precisión: " + stats.getPorcentajePrecision() + "%");
+        lblPrecision.setText(String.format("Precisión: %.2f%%", stats.getPorcentajePrecision()));
     }
 }
