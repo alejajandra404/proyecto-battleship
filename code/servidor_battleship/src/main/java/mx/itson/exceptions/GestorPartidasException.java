@@ -1,28 +1,34 @@
 package mx.itson.exceptions;
 
 /**
- *
- * @author PC WHITE WOLF
+ * Excepción del subsistema GestorPartidas.
+ * @author Leonardo Flores Leyva
+ * ID: 00000252390
+ * @author Yuri Germán García López
+ * ID: 00000252583
+ * @author Alejandra García Preciado
+ * ID: 00000252444
+ * @author Jesús Ernesto López Ibarra
+ * ID: 00000252663
+ * @author Daniel Miramontes Iribe
+ * ID: 00000252801
  */
 public class GestorPartidasException extends Exception {
 
     /**
-     * Creates a new instance of <code>GestorPartidasException</code> without
-     * detail message.
+     * Constructor por defecto.
      */
     public GestorPartidasException() {}
 
     /**
-     * Constructs an instance of <code>GestorPartidasException</code> with the
-     * specified detail message.
-     *
-     * @param message
+     * Constructor con mensaje.
+     * @param message Mensaje de la excepción.
      */
-    public GestorPartidasException(String message) {
-        super(message);
-    }
-
-    public GestorPartidasException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    public GestorPartidasException(String message) {super(message);}
+    /**
+     * Constructor con mensaje y causa.
+     * @param message Mensaje de la excepción.
+     * @param cause Causa de la excepción.
+     */
+    public GestorPartidasException(String message, Throwable cause) {super(message, cause);}
 }

@@ -179,13 +179,5 @@ public class Nave {
                     throw new ModelException("Un portaaviones debe abarcar 4 casillas.");
             }
         }
-        // Verifica las coordenadas, de acuerdo a la orientación (queda pendiente).
-//        for (Coordenada coordenada : coordenadas) {
-//            if(orientacion == OrientacionNave.HORIZONTAL){
-//                
-//            } else{
-//                
-//            }
-//        }
     }
 }

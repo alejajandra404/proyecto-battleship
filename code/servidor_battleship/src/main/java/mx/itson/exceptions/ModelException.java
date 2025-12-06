@@ -1,7 +1,7 @@
 package mx.itson.exceptions;
 
 /**
- *
+ * Excepción del dominio.
  * @author Leonardo Flores Leyva
  * ID: 00000252390
  * @author Yuri Germán García López
@@ -16,18 +16,13 @@ package mx.itson.exceptions;
 public class ModelException extends Exception {
 
     /**
-     * Creates a new instance of <code>JugadorException</code> without detail
-     * message.
+     * Constructor por defecto.
      */
     public ModelException() {}
 
     /**
-     * Constructs an instance of <code>JugadorException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
+     * Constructor con mensaje.
+     * @param msg Mensaje de la excepción.
      */
-    public ModelException(String msg) {
-        super(msg);
-    }
+    public ModelException(String msg) {super(msg);}
 }

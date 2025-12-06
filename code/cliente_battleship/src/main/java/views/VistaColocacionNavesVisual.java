@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 /**
  * Vista visual con drag-and-drop para colocación de naves en modo multijugador.
@@ -27,9 +26,11 @@ import javax.swing.border.TitledBorder;
  * @author Daniel Miramontes Iribe ID: 00000252801
  */
 public class VistaColocacionNavesVisual extends JPanel implements ControladorJuego.IVistaColocacionNaves {
-
+    // Controlador asociado
     private final ControladorJuego controlador;
+    // Jugador local
     private final JugadorDTO jugadorLocal;
+    // Jugador oponente
     private final JugadorDTO oponente;
 
     // Recursos gráficos
@@ -76,10 +77,11 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         // Variables para ajustar la posición de las naves en el tablero
         private final int AJUSTE_X = 2;   
         private final int AJUSTE_Y = 18;  
-
-        public PanelTableroConImagenes(LayoutManager layout) {
-            super(layout);
-        }
+        /**
+         * Constructor que recibe un layout.
+         * @param layout Layout de la clase.
+         */
+        public PanelTableroConImagenes(LayoutManager layout) {super(layout);}
 
         @Override
         protected void paintChildren(Graphics g) {
@@ -93,10 +95,10 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
                 if (img != null) {
                     int x = ((nc.columna + 1) * TAMANO_CASILLA) + AJUSTE_X;
                     int y = ((nc.fila + 1) * TAMANO_CASILLA) + AJUSTE_Y;
-                    
                     int ancho = nc.naveVisual.isHorizontal() ? nc.naveVisual.getTamano() * TAMANO_CASILLA : TAMANO_CASILLA;
                     int alto = nc.naveVisual.isHorizontal() ? TAMANO_CASILLA : nc.naveVisual.getTamano() * TAMANO_CASILLA;
-
+                    
+                    // Rota la imagen dependiendo de su orientación.
                     if (!nc.naveVisual.isHorizontal()) {
                         java.awt.geom.AffineTransform backup = g2d.getTransform();
                         g2d.translate(x + ancho / 2.0, y + alto / 2.0);
@@ -115,11 +117,18 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
      * CasillaTablero: Usa colores sólidos de fondo y bordes
      */
     private class CasillaTablero extends JPanel {
-        private int fila;
-        private int columna;
+        // Fila y columna de una casilla del tablero.
+        private final int fila;
+        private final int columna;
+        // Establece si está ocupada.
         private boolean ocupada = false;
+        // Establece si el cursor está posicionado encima de la casilla.
         private boolean hover = false;
-
+        /**
+         * Constructor que recibe la fila y la columna de la casilla.
+         * @param fila Fila
+         * @param columna Columna
+         */
         public CasillaTablero(int fila, int columna) {
             this.fila = fila;
             this.columna = columna;
@@ -127,25 +136,41 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             setBackground(COLOR_AGUA);
             setBorder(BorderFactory.createLineBorder(COLOR_TITLE_BORDER, 2));
         }
-        
+        /**
+         * Establece si la casilla está ocupada.
+         * @param ocupada Está ocupada o no.
+         */
         public void setOcupada(boolean ocupada) {
             this.ocupada = ocupada;
-            if (!hover) {
-                setBackground(COLOR_AGUA);
-            }
+            if (!hover) setBackground(COLOR_AGUA);
         }
-
+        /**
+         * Establece si el cursor está encima de la
+         * casilla.
+         * @param hover Cursor encima.
+         * @param valido Si la casilla es válida.
+         */
         public void setHover(boolean hover, boolean valido) {
             this.hover = hover;
-            if (hover) {
+            if (hover)
                 setBackground(valido ? COLOR_VALIDO : COLOR_INVALIDO);
-            } else {
+            else
                 setBackground(COLOR_AGUA);
-            }
         }
-
+        /**
+         * Retorna el estado de ocupación de la casilla.
+         * @return VERDADERO si la casilla está ocupada, FALSO en caso contrario.
+         */
         public boolean isOcupada() { return ocupada; }
+        /**
+         * Regresa la fila de la casilla.
+         * @return Fila de la casilla.
+         */
         public int getFila() { return fila; }
+        /**
+         * Regresa la columna de la casilla.
+         * @return Columna de la casilla.
+         */
         public int getColumna() { return columna; }
     }
 
@@ -153,18 +178,25 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
      * NaveVisual: Carga imágenes (igual que antes)
      */
     private class NaveVisual extends JPanel {
-        private TipoNave tipo;
-        private int tamano;
+        // Atributos de una nave.
+        private final TipoNave tipo;
+        private final int tamano;
+        private final String nombre;
+        // Atributos visuales de una nave.
         private boolean horizontal = true;
         private boolean colocada = false;
-        private String nombre;
         private BufferedImage imagenNave;
         private JComponent contenedorPadreOriginal;
         private JRootPane contenedorRaiz;
-        
+        // Coordenadas del mouse.
         private int mouseX;
         private int mouseY;
-        
+        /**
+         * Constructor que recibe los datos básicos de una nave visual.
+         * @param nombre Nombre de la nave.
+         * @param tipo Tipo de nave.
+         * @param tamano Tamaño de casillas de la nave.
+         */
         public NaveVisual(String nombre, TipoNave tipo, int tamano) {
             this.nombre = nombre;
             this.tipo = tipo;
@@ -175,7 +207,6 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             setBackground(null);
             actualizarDimensiones();
             agregarListeners();
-//            setBorder(new LineBorder(Color.BLACK, 2));
         }
 
         @Override
@@ -184,31 +215,34 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             mouseX = getLocation().x;
             mouseY = getLocation().y;
         }
-        
+        /**
+         * Carga la imagen de una nave visual.
+         */
         private void cargarImagenNave() {
             String nombreArchivo = "";
-            switch (tipo) {
-                case PORTAAVIONES: nombreArchivo = "portaaviones" + sufijoColor + ".png"; break;
-                case CRUCERO:      nombreArchivo = "crucero" + sufijoColor + ".png"; break;
-                case SUBMARINO:    nombreArchivo = "submarino" + sufijoColor + ".png"; break;
-                case BARCO:        nombreArchivo = "barco" + sufijoColor + ".png"; break; 
-                default:           nombreArchivo = "barco" + sufijoColor + ".png"; break;
-            }
+            
+            nombreArchivo = switch (tipo) {
+                case PORTAAVIONES -> "portaaviones" + sufijoColor + ".png";
+                case CRUCERO -> "crucero" + sufijoColor + ".png";
+                case SUBMARINO -> "submarino" + sufijoColor + ".png";
+                case BARCO -> "barco" + sufijoColor + ".png";
+                default -> "barco" + sufijoColor + ".png";
+            };
 
             try {
                 URL url = getClass().getResource("/" + nombreArchivo);
                 if(url == null) url = getClass().getResource("imgs/" + nombreArchivo);
                 
-                if (url != null) {
+                if (url != null)
                     imagenNave = ImageIO.read(url);
-                } else {
+                else
                     System.err.println("No se encontró imagen: " + nombreArchivo);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                
+            } catch (Exception e) {e.printStackTrace();}
         }
-
+        /**
+         * Actualiza las dimensiones de la nave visual.
+         */
         private void actualizarDimensiones() {
             int w = tamano * TAMANO_CASILLA;
             int h = TAMANO_CASILLA;
@@ -221,7 +255,10 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             revalidate();
             repaint();
         }
-        
+        /**
+         * Retorna la imagen asociada a la nave.
+         * @return Imagen asociada.
+         */
         public BufferedImage getImagenActual() { return imagenNave; }
 
         @Override
@@ -234,75 +271,62 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
                 g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
                 if (horizontal) {
-                    // --- CASO 1: HORIZONTAL (Original) ---
-                    // Se dibuja tal cual, llenando todo el componente
                     g2d.drawImage(imagenNave, 0, 0, getWidth(), getHeight(), this);
-
                 } else {
-                    // --- CASO 2: VERTICAL (Rotado 90 grados) ---
-                    // Guardamos la transformación original para no afectar otros dibujos
                     AffineTransform backup = g2d.getTransform();
-
-                    // 1. Movemos el punto de origen (0,0) al CENTRO EXACTO del componente actual
                     g2d.translate(getWidth() / 2.0, getHeight() / 2.0);
-
-                    // 2. Rotamos 90 grados alrededor de ese centro
                     g2d.rotate(Math.toRadians(90));
-
-                    // 3. Dibujamos la imagen "Centrada" en el nuevo origen.
-                    // IMPORTANTE: Como hemos rotado 90 grados:
-                    // - La longitud de la imagen será igual al ALTO (Height) del componente.
-                    // - El grosor de la imagen será igual al ANCHO (Width) del componente.
-                    // Por eso invertimos getHeight() y getWidth() en los parámetros de drawImage.
                     int w = getWidth();
                     int h = getHeight();
-
-                    // Coordenadas: (-h/2, -w/2) para que el centro de la imagen quede en el origen (0,0)
                     g2d.drawImage(imagenNave, -h / 2, -w / 2, h, w, this);
-
-                    // Restauramos la configuración original
                     g2d.setTransform(backup);
                 }
             } else {
-                // Fallback visual
                 g.setColor(Color.GRAY);
                 g.fillRect(0, 0, getWidth(), getHeight());
                 g.setColor(Color.BLACK);
                 g.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
             }
         }
-
+        /**
+         * Agrega los listeners requeridos para el correcto arrastre
+         * de las naves visuales.
+         */
         private void agregarListeners() {
-            
+            /**
+             * Listeners de acciones de mouse.
+             */
             addMouseListener(new MouseAdapter() {
+                
                 @Override
                 public void mousePressed(MouseEvent e) {
                     if (SwingUtilities.isLeftMouseButton(e) && !colocada) {
+                        
                         requestFocusInWindow();
+                        
                         naveArrastrada = NaveVisual.this;
                         puntoInicial = e.getPoint();
                         posicionOriginal = getLocation();
                         SwingUtilities.getWindowAncestor(NaveVisual.this).setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                         
-                        // 1.- Guarda el contenedor padre
+                        // 1.- Se guarda el contenedor padre
                         contenedorPadreOriginal = (JComponent) getParent();
 
-                        // 2.- Obtiene el contenedor raíz
+                        // 2.- Se obtiene el contenedor raíz
                         contenedorRaiz = naveArrastrada.getRootPane();
 
-                        // 3.- Obtiene el punto relativo al contenedor padre
+                        // 3.- Se obtiene el punto relativo al contenedor padre
                         Point ubicacionActual = SwingUtilities.convertPoint(contenedorPadreOriginal, naveArrastrada.getLocation(), contenedorRaiz);
 
-                        // 4.- Quita el componente de su padre original y lo repinta
+                        // 4.- Se quita el componente de su padre original y lo repinta
                         contenedorPadreOriginal.remove(naveArrastrada);
                         contenedorPadreOriginal.repaint();
 
-                        // 5.- Agrega el componente al contenedor raíz
-                        if (contenedorRaiz != null) {
+                        // 5.- Se agrega el componente al contenedor raíz
+                        if (contenedorRaiz != null) 
                             contenedorRaiz.getLayeredPane().add(naveArrastrada, JLayeredPane.DRAG_LAYER);
-                        }
 
-                        // 5. Establece la nueva ubicación y hace que el nuevo padre lo repinte
+                        // 6. Se establece la nueva ubicación y hace que el nuevo padre lo repinte
                         naveArrastrada.setLocation(ubicacionActual);
                         naveArrastrada.repaint();
                     }
@@ -320,48 +344,66 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
 
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    // Agregamos 'e' como argumento a rotar
-                    if (naveArrastrada == NaveVisual.this && !colocada && SwingUtilities.isRightMouseButton(e)) {
+                    if (
+                            naveArrastrada == NaveVisual.this
+                                && 
+                                    !colocada
+                                        && 
+                                            NaveVisual.this.tipo != TipoNave.BARCO 
+                                                && 
+                                                    SwingUtilities.isRightMouseButton(e)
+                    )
                         rotar(e.getX(), e.getY());
-                    }
                 }
             });
-            
+            // Se permite que la nave sea enfocada
             setFocusable(true);
-            
+            /**
+             * Listener del teclado.
+             */
             addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent e) {
-                    if (naveArrastrada == NaveVisual.this && !colocada && e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    if (
+                            naveArrastrada == NaveVisual.this 
+                                && 
+                                    !colocada 
+                                        && 
+                                            NaveVisual.this.tipo != TipoNave.BARCO 
+                                                && 
+                                                    e.getKeyCode() == KeyEvent.VK_SPACE
+                    ) 
                         rotar(mouseX, mouseY);
-                    }
                 }
-                
             });
+            /**
+             * Listener del mouse en movimiento.
+             */
             addMouseMotionListener(new MouseMotionAdapter() {
                 @Override
                 public void mouseDragged(MouseEvent e) {
+                    
                     if (naveArrastrada == NaveVisual.this && puntoInicial != null) {
                         requestFocusInWindow();
-                        // 1. Obtenemos la posición actual de la esquina del componente
+                        // 1. Se obtiene la posición actual de la esquina del componente
                         Point ubicacion = getLocation();
                         
                         mouseX = e.getX();
                         mouseY = e.getY();
                         
-                        // 2. Calculamos la posición del mouse respecto al PADRE (Contenedor).
-                        // Sumamos la posición del componente (ubicacion.x) + la posición local del mouse (e.getX())
+                        // 2. Se calcula la posición del mouse respecto al PADRE (Contenedor).
+                        // Se suma la posición del componente (ubicacion.x) + la posición local del mouse (e.getX())
                         int mouseX_EnParent = ubicacion.x + e.getX();
                         int mouseY_EnParent = ubicacion.y + e.getY();
 
-                        // 3. Restamos la mitad del ancho/alto para que el CENTRO quede en el mouse
+                        // 3. Se resta la mitad del ancho/alto para que el CENTRO quede en el mouse
                         int nuevoX = mouseX_EnParent - (getWidth() / 2);
                         int nuevoY = mouseY_EnParent - (getHeight() / 2);
 
-                        // 4. Aplicamos la nueva ubicación
+                        // 4. Se aplica la nueva ubicación
                         setLocation(nuevoX, nuevoY);
 
-                        // Refrescar la interfaz
+                        // Se actualiza la interfaz
                         actualizarPreviewTablero(e.getPoint());
                         if (getParent() != null)
                             getParent().repaint();
@@ -369,69 +411,89 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
                 }
             });
         }
-
+        /**
+         * Cambia la orientación de la nave.
+         * @param x Coordenada x
+         * @param y Coordenada y
+         */
         public void rotar(int x, int y) {
-            // 1. CALCULAR EL PIVOTE (Posición absoluta del mouse en el contenedor padre)
-            // Usamos e.getX() y e.getY() porque son las coordenadas frescas del clic actual.
+            // 1. Obtiene la ubicación actual
             Point ubicacionActual = getLocation();
+            
+            // 2. Obtiene las coordenadas x,y del punto pivote
             int pivoteX = ubicacionActual.x + x;
             int pivoteY = ubicacionActual.y + y;
-
-            // 2. CAMBIAR ORIENTACIÓN Y DIMENSIONES
+            
+            // 3. Cambia el valor de la orientación
             horizontal = !horizontal;
-
-            // Intercambiamos ancho y alto
+            
+            // 4. Actualiza las dimensiones de la nave.
             int w = getWidth();
             int h = getHeight();
-
             setSize(h, w);
             setPreferredSize(new Dimension(h, w));
-
-            // 3. REUBICAR CENTRADO EN EL PIVOTE
-            // Ahora que el componente tiene nuevas dimensiones, calculamos dónde debe ir 
-            // su esquina superior izquierda para que su centro coincida con el pivote.
+            
+            // 5. Obtiene las coordenadas nuevas.
             int nuevoX = pivoteX - (getWidth() / 2);
             int nuevoY = pivoteY - (getHeight() / 2);
-
+            
+            // 6. Establece la nueva ubicación de la nave rotada.
             setLocation(nuevoX, nuevoY);
-
-            // 4. ACTUALIZAR VARIABLES INTERNAS (CRUCIAL)
-            // Como hemos forzado que el mouse esté en el centro exacto del componente,
-            // debemos actualizar las variables mouseX y mouseY para que el próximo 
-            // arrastre ('drag') sea suave y no dé saltos.
+            
+            // 7. Actualiza las coordenadas x,y del mouse.
             this.mouseX = getWidth() / 2;
             this.mouseY = getHeight() / 2;
             
-            // 5. Refrescar visuales
+            // 8. Refrezca la interfaz
             revalidate();
             repaint();
-            if (getParent() != null) {
+            if (getParent() != null)
                 getParent().repaint();
-            }
             
+            // 9. Actualiza la previsualización del tablero.
             actualizarPreviewTablero(new Point(mouseX, mouseY));
-
+            
             // (Opcional) Log
             log(nombre + " rotado a " + (horizontal ? "horizontal" : "vertical"));
         }
-        
+        /**
+         * Retorna si la nave es horizontal.
+         * @return VERDADERO si la nave es horizontal, FALSO en caso contrario.
+         */
         public boolean isHorizontal() { return horizontal; }
+        /**
+         * Rertorna el tipo de la nave.
+         * @return Tipo de la nave.
+         */
         public TipoNave getTipo() { return tipo; }
+        /**
+         * Retorna el tamaño en casillas de la nave.
+         * @return Tamaño de la nave en cantidad de casillas.
+         */
         public int getTamano() { return tamano; }
+        /**
+         * Retorna el nombre de la nave.
+         * @return Nombre de la nave.
+         */
         public String getNombre() { return nombre; }
-        public void setMouseX(int mouseX) {this.mouseX = mouseX;}
-        public void setMouseY(int mouseY) {this.mouseY = mouseY;}
-        
+        /**
+         * Establece si la nave está colocada en el tablero.
+         * @param colocada Estado de colocación de la nave en el tablero.
+         */
         public void setColocada(boolean colocada) {
             this.colocada = colocada;
             setVisible(!colocada);
         }
-
+        /**
+         * Retorna la nave a su posición original en el panel de naves.
+         */
         public void resetear() {
+            
             colocada = false;
             setVisible(true);
             horizontal = true;
             actualizarDimensiones();
+            
             if(contenedorPadreOriginal != null && !colocada){
                 // 1.- Se obtiene el contenedor actual, y se castea como LayeredPane
                 JLayeredPane currentParent = (JLayeredPane) getParent();
@@ -459,10 +521,21 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             }
         }
     }
-
+    /**
+     * Representa una casilla de una nave visual del
+     * tablero de naves.
+     */
     private class NaveColocada {
+        // Nave visual asociada.
         NaveVisual naveVisual;
+        // Fila y columna de la casilla
         int fila, columna;
+        /**
+         * Constructor.
+         * @param naveVisual Nave visual asociada.
+         * @param fila Fila de la casilla
+         * @param columna Columna de la casilla
+         */
         public NaveColocada(NaveVisual naveVisual, int fila, int columna) {
             this.naveVisual = naveVisual;
             this.fila = fila;
@@ -471,32 +544,38 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
     }
 
     /**
-     * Constructor
+     * Constructor.
+     * @param jugadorLocal Jugador local asociado.
+     * @param oponente Jugador oponente.
+     * @param controlador Controlador.
      */
     public VistaColocacionNavesVisual(JugadorDTO jugadorLocal, JugadorDTO oponente, ControladorJuego controlador) {
         this.jugadorLocal = jugadorLocal;
         this.oponente = oponente;
         this.controlador = controlador;
         this.navesColocadas = new ArrayList<>();
-
+        // Obtiene el color elegido por el jugador.
         determinarSufijoColor();
-        
+        // Establece esta vista como la correspondiente a la de colocación de naves en el controlador.
         controlador.setVistaColocacion(this);
-
+        // Carga todos los recursos visuales.
         inicializarComponentes();
         log("Bienvenido " + jugadorLocal.getNombre());
         log("Arrastra las naves al tablero. Clic derecho para rotar.");
     }
-    
+    /**
+     * Determina el color elegidor por el jugador.
+     */
     private void determinarSufijoColor() {
         Color c = jugadorLocal.getColor();
-        if (c != null && c.getRed() > 200 && c.getBlue() < 100) {
+        if (c != null && c.getRed() > 200 && c.getBlue() < 100) 
             this.sufijoColor = "_rojo";
-        } else {
+        else 
             this.sufijoColor = "_azul";
-        }
     }
-
+    /**
+     * Carga todos los recursos gráficos de la clase.
+     */
     private void inicializarComponentes() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -513,7 +592,7 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         JLabel lblJugadores = new JLabel(jugadorLocal.getNombre() + " vs " + oponente.getNombre(), SwingConstants.CENTER);
         lblJugadores.setFont(new Font("Arial", Font.PLAIN, 16));
 
-        lblInstrucciones = new JLabel("Arrastra las naves | Clic derecho rotar | Separadas por agua", SwingConstants.CENTER);
+        lblInstrucciones = new JLabel("Arrastra las naves | Clic derecho o barra espaciadora para rotar | Separadas por agua", SwingConstants.CENTER);
         lblInstrucciones.setFont(new Font("Arial", Font.ITALIC, 11));
 
         panelSuperior.add(lblTitulo);
@@ -573,7 +652,10 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         add(panelCentral, BorderLayout.CENTER);
         add(panelInferior, BorderLayout.SOUTH);
     }
-
+    /**
+     * Crea el tablero.
+     * @return Panel del tablero.
+     */
     private PanelTableroConImagenes crearPanelTablero() {
         PanelTableroConImagenes panel = new PanelTableroConImagenes(new GridLayout(TAMANO_TABLERO + 1, TAMANO_TABLERO + 1, 0, 0));
         panel.setBackground(COLOR_FONDO_TABLERO);
@@ -608,7 +690,10 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         }
         return panel;
     }
-
+    /**
+     * Crea el panel contenedor de las naves.
+     * @return Panel con contenedor de naves.
+     */
     private JPanel crearPanelNaves() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2, 10, 10));
@@ -633,11 +718,16 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             c.setOpaque(false);
             c.add(nave);
             panel.add(c);
-//            panel.add(Box.createVerticalStrut(10));
         }
         return panel;
     }
-
+    /**
+     * Actualiza la previsualización de las naves en el tablero,
+     * a partir de un punto pivote. Es decir, da una indicación visual
+     * de la validez de la posición de la nave mientras es arrastrada
+     * al tablero.
+     * @param point Punto pivote.
+     */
     private void actualizarPreviewTablero(Point point) {
         // Limpiar hovers
         for (int i = 0; i < TAMANO_TABLERO; i++) {
@@ -665,7 +755,10 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             }
         }
     }
-
+    /**
+     * Intenta colocar una nave en el tablero.
+     * @param e MouseEvent.
+     */
     private void intentarColocarNave(MouseEvent e) {
         Point p = SwingUtilities.convertPoint(naveArrastrada, e.getPoint(), panelTablero);
         Component c = panelTablero.getComponentAt(p);
@@ -689,7 +782,14 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         for(int i=0; i<TAMANO_TABLERO; i++) for(int j=0; j<TAMANO_TABLERO; j++) casillas[i][j].setHover(false, false);
         panelTablero.repaint(); // Forzar el repintado de imágenes
     }
-    
+    /**
+     * Valida la posición de una casilla asociada a una 
+     * nave.
+     * @param fila Fila de la casilla.
+     * @param columna Columna de la casilla.
+     * @param nave Nave asociada.
+     * @return Validez de la casilla.
+     */
     private boolean validarPosicion(int fila, int columna, NaveVisual nave) {
         if (nave.isHorizontal()) {
             if (columna + nave.getTamano() > TAMANO_TABLERO) return false;
@@ -725,7 +825,12 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         }
         return true;
     }
-
+    /**
+     * Marca las casillas de una nave en el tablero.
+     * @param nave Nave asociada.
+     * @param fila Fila de la casilla.
+     * @param columna Columna de la casilla.
+     */
     private void colocarNave(NaveVisual nave, int fila, int columna) {
         // Marcar lógicamente las casillas
         for (int i = 0; i < nave.getTamano(); i++) {
@@ -738,7 +843,9 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         verificarNavesCompletas();
         panelTablero.repaint();
     }
-
+    /**
+     * Verifica si ya se colocaron todas las naves.
+     */
     private void verificarNavesCompletas() {
         if (navesColocadas.size() == navesDisponibles.size()) {
             btnListo.setEnabled(true);
@@ -747,7 +854,10 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
             btnListo.setEnabled(false);
         }
     }
-
+    /**
+     * Restablece todas las naves a sus posiciones originales
+     * en el panel contenedor de naves.
+     */
     private void reiniciarNaves() {
         for (int i = 0; i < TAMANO_TABLERO; i++) {
             for (int j = 0; j < TAMANO_TABLERO; j++) {
@@ -763,7 +873,9 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         panelTablero.repaint();
         log("Reiniciado.");
     }
-
+    /**
+     * Envía las naves al controlador.
+     */
     private void enviarNaves() {
         List<NaveDTO> naves = new ArrayList<>();
         for (NaveColocada nc : navesColocadas) {
@@ -788,9 +900,17 @@ public class VistaColocacionNavesVisual extends JPanel implements ControladorJue
         btnListo.setEnabled(false);
         btnReiniciar.setEnabled(false);
     }
-    
+    /**
+     * Convierte una coordenada a un String.
+     * @param fila Fila de la coordenada.
+     * @param columna Columna de la coordenada.
+     * @return String de la coordenada.
+     */
     private String coordenadaToString(int fila, int columna) { return String.valueOf((char) ('A' + columna)) + (fila + 1); }
-
+    /**
+     * Loggea un mensaje.
+     * @param m Mensaje.
+     */
     private void log(String m) { SwingUtilities.invokeLater(() -> txtLog.append(m + "\n")); }
 
     // Interfaz IVistaColocacionNaves

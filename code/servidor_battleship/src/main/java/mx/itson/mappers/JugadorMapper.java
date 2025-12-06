@@ -32,7 +32,6 @@ public class JugadorMapper {
         JugadorDTO jugadorDTO = new JugadorDTO();
         jugadorDTO.setId(jugador.getId());
         jugadorDTO.setNombre(jugador.getNombre());
-        // HARDCODEADO POR MIENTRAS
         jugadorDTO.setColor(jugador.getColor());
         jugadorDTO.setEnPartida(jugador.isEnPartida());
         return jugadorDTO;

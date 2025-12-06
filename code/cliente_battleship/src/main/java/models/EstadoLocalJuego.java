@@ -126,56 +126,34 @@ public class EstadoLocalJuego implements ISubject {
 
     // ========== GETTERS ==========
 
-    public JugadorDTO getJugadorLocal() {
-        return jugadorLocal;
-    }
+    public JugadorDTO getJugadorLocal() {return jugadorLocal;}
 
-    public JugadorDTO getOponente() {
-        return oponente;
-    }
+    public JugadorDTO getOponente() {return oponente;}
 
-    public TableroDTO getMiTablero() {
-        return miTablero;
-    }
+    public TableroDTO getMiTablero() {return miTablero;}
 
-    public TableroDTO getTableroOponente() {
-        return tableroOponente;
-    }
+    public TableroDTO getTableroOponente() {return tableroOponente;}
 
-    public boolean isMiTurno() {
-        return miTurno;
-    }
+    public boolean isMiTurno() {return miTurno;}
 
-    public int getTiempoRestante() {
-        return tiempoRestante;
-    }
+    public int getTiempoRestante() {return tiempoRestante;}
 
-    public String getIdPartida() {
-        return idPartida;
-    }
+    public String getIdPartida() {return idPartida;}
 
-    public void setIdPartida(String idPartida) {
-        this.idPartida = idPartida;
-    }
+    public void setIdPartida(String idPartida) {this.idPartida = idPartida;}
 
     // ========== IMPLEMENTACIÓN DE ISubject (Patrón Observer) ==========
 
     @Override
     public void agregarObserver(IObserver observador) {
-        if (observador != null && !observadores.contains(observador)) {
-            observadores.add(observador);
-        }
+        if (observador != null && !observadores.contains(observador)) {observadores.add(observador);}
     }
 
     @Override
-    public void quitarObserver(IObserver observador) {
-        observadores.remove(observador);
-    }
+    public void quitarObserver(IObserver observador) {observadores.remove(observador);}
 
     @Override
-    public void notificarObservadores(String mensaje) {
-        notificarObservadores(mensaje, "");
-    }
+    public void notificarObservadores(String mensaje) {notificarObservadores(mensaje, "");}
 
     /**
      * Notifica a todos los observadores con un mensaje y datos adicionales

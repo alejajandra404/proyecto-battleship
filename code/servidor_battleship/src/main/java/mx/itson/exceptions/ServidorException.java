@@ -1,7 +1,7 @@
 package mx.itson.exceptions;
 
 /**
- *
+ * Excepción del servidor.
  * @author Leonardo Flores Leyva
  * ID: 00000252390
  * @author Yuri Germán García López
@@ -16,18 +16,13 @@ package mx.itson.exceptions;
 public class ServidorException extends Exception {
 
     /**
-     * Creates a new instance of <code>ServidorException</code> without detail
-     * message.
+     * Constructor por defecto.
      */
     public ServidorException() {}
 
     /**
-     * Constructs an instance of <code>ServidorException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
+     * Constructor con mensaje.
+     * @param msg Mensaje de la excepción.
      */
-    public ServidorException(String msg) {
-        super(msg);
-    }
+    public ServidorException(String msg) {super(msg);}
 }
